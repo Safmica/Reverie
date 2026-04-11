@@ -33,7 +33,7 @@
         const base = _Game_Enemy_name.call(this);
         if (this.isStateAffected(4)) return `${base.toUpperCase().split('').join(' ')}`;
         if (this.isStateAffected(5)) return `..${base.toLowerCase()}..`;
-        if (this.isStateAffected(3)) return `THE ${base.toUpperCase()}`;
+        if (this.isStateAffected(3)) return `${base.toUpperCase()}`;
         return base;
     };
 
