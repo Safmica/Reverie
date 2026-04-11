@@ -170,39 +170,27 @@
         
         this.contents.clearRect(rect.x, rect.y - 4, rect.width, rect.height + 8);
 
+        const boxColor = CHAOTIC_COLORS[index % CHAOTIC_COLORS.length];
+        this.contents.fillRect(rect.x + 2, rect.y + 2, rect.width - 4, rect.height - 4, boxColor);
+
         let cleanName = cleanText(this.commandName(index));
         let enabled = this.isCommandEnabled(index);
-        const isSelected = this.index() === index;
-
-        // Draw border/frame with OMORI-inspired aesthetic
-        const borderColor = isSelected ? "#ffffff" : "#b0b0b0";
-        const borderWidth = isSelected ? 3 : 2;
-        const bgColor = isSelected ? "rgba(150, 100, 180, 0.4)" : "rgba(100, 100, 120, 0.3)";
-        
-        // Background
-        this.contents.fillRect(rect.x + borderWidth, rect.y + borderWidth, rect.width - borderWidth * 2, rect.height - borderWidth * 2, bgColor);
-        
-        // Top border
-        this.contents.fillRect(rect.x + borderWidth, rect.y + borderWidth, rect.width - borderWidth * 2, borderWidth, borderColor);
-        // Bottom border
-        this.contents.fillRect(rect.x + borderWidth, rect.y + rect.height - borderWidth * 2, rect.width - borderWidth * 2, borderWidth, borderColor);
-        // Left border
-        this.contents.fillRect(rect.x + borderWidth, rect.y + borderWidth, borderWidth, rect.height - borderWidth * 2, borderColor);
-        // Right border
-        this.contents.fillRect(rect.x + rect.width - borderWidth * 2, rect.y + borderWidth, borderWidth, rect.height - borderWidth * 2, borderColor);
 
         this.contents.fontFace = CUSTOM_FONT;
         this.contents.fontSize = CUSTOM_FONT_SIZE;
-        this.contents.textColor = enabled ? "#ffffff" : "#888888"; 
-        this.contents.outlineColor = "rgba(0, 0, 0, 0.95)";
-        this.contents.outlineWidth = 4;
+        this.contents.textColor = "#ffffff"; 
+        this.contents.outlineColor = "rgba(0, 0, 0, 0.9)";
+        this.contents.outlineWidth = 5;
         this.changePaintOpacity(enabled);
 
-        if (isSelected) {
-            cleanName = CURSOR_SYMBOL + " " + cleanName + " " + CURSOR_SYMBOL;
+        let jitterY = (index % 2 === 0) ? -3 : 3;
+
+        if (this.index() === index) {
+            cleanName = CURSOR_SYMBOL + " " + cleanName;
+            jitterY = 0; 
         }
 
-        this.drawText(cleanName, rect.x, rect.y, rect.width, 'center');
+        this.drawText(cleanName, rect.x, rect.y + jitterY, rect.width, 'center');
     };
 
     const _Scene_Battle_actorCommandWindowRect = Scene_Battle.prototype.actorCommandWindowRect;
