@@ -14,3 +14,11 @@
     font-family: HopelessFont;
     src: url("ShadowsIntoLight-Regular.ttf");
 }
+@font-face {
+    font-family: "ReverieFont";
+    src: url("AmaticSC-Regular.ttf");
+}
+@font-face {
+    font-family: "ReverieFontBold";
+    src: url("AmaticSC-Bold.ttf");
+}
