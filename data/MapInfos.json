@@ -1,8 +1,8 @@
 [
 null,
-{"id":1,"expanded":false,"name":"FOREST","order":24,"parentId":2,"scrollX":845.4,"scrollY":664.8},
-{"id":2,"expanded":false,"name":"CH_1","order":23,"parentId":0,"scrollX":845.4,"scrollY":475.2},
-{"id":3,"expanded":false,"name":"FOREST_LEFT","order":25,"parentId":2,"scrollX":816,"scrollY":640},
+{"id":1,"expanded":false,"name":"FOREST","order":24,"parentId":2,"scrollX":1390.2857142857142,"scrollY":824.5714285714286},
+{"id":2,"expanded":true,"name":"CH_1","order":23,"parentId":0,"scrollX":845.4,"scrollY":475.2},
+{"id":3,"expanded":false,"name":"FOREST_LEFT","order":25,"parentId":2,"scrollX":1738.2857142857142,"scrollY":1032},
 {"id":4,"expanded":false,"name":"CH_2","order":44,"parentId":0,"scrollX":845.4,"scrollY":475.2},
 {"id":5,"expanded":false,"name":"Mountain Village","order":48,"parentId":4,"scrollX":855,"scrollY":664.8},
 {"id":6,"expanded":false,"name":"CH_3","order":65,"parentId":0,"scrollX":619,"scrollY":396},
