@@ -462,6 +462,13 @@ Window_BattleLog.prototype.addText = function(text) {
 Window_BattleLog.prototype.displayAction = function(subject, item) {
     this.push('clear'); 
 
+    if (subject._martyrBlinded) {
+        this.push('addText', cleanText(subject.name()) + " is blinded by self-sacrifice!");
+        this.push('wait');
+        this.push('wait');
+        subject._martyrBlinded = false; // Turn it off so it doesn't accidentally print on their next normal turn
+    }
+
     let targets = BattleManager._targets;
     let targetName = "";
     let target = null;
