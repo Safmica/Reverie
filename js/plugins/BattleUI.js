@@ -601,9 +601,14 @@ Window_BattleLog.prototype.displayChangedStates = function(target) {
     
     if (target.result().addedStateObjects().length > 0) {
         for (let state of target.result().addedStateObjects()) {
-            if (state.id !== target.deathStateId() && state.id !== 2) {
-                this.push('addText', cleanText(target.name()) + " becomes " + cleanText(state.name) + "!");
+            if (state.id === target.deathStateId()) {
+                this.push('addText', cleanText(target.name()) + " fell asleep...");
                 this.push('wait');
+                this.push('wait');
+            } 
+
+            else if (state.id !== target.deathStateId() && state.id !== 2) {
+                this.push('addText', cleanText(target.name()) + " becomes " + cleanText(state.name) + "!");
                 this.push('wait');
                 this.push('wait');
             }
