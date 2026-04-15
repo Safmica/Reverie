@@ -128,6 +128,7 @@
             this.filters = [];
         }
         this.filters.push(this._stateOutlineFilter);
+        this._stateOutlineFilter.padding = outlineThickness * 2;
     };
 
     const _Sprite_Enemy_update = Sprite_Enemy.prototype.update;
