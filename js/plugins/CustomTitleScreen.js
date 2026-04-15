@@ -2,7 +2,7 @@
 
 * @target MZ
 * @plugindesc Custom Cinematic Title Screen (Sprite-Based, No Window UI)
-* @author G
+* @author Safmica
 *
 * @param BackgroundImage
 * @type file

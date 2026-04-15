@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc Force enemy position to bottom with adjustable offset
- * @author Kai
+ * @author Safmica
  *
  * @param Bottom Offset
  * @type number
