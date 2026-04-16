@@ -1,6 +1,6 @@
 /*:
 @target MZ
-@plugindesc Reverie - Complete Main Menu UI Override (THE PIXI RENDER HIJACK - FLICKER FIXED)
+@plugindesc Reverie - Complete Main Menu UI Override (THE PIXI RENDER HIJACK)
 @author Aristel
 */
 
@@ -8,7 +8,7 @@
     // =======================================================
     // 1. SETTINGS & CONSTANTS
     // =======================================================
-    const DEBUG_MODE = false; 
+    const DEBUG_MODE = false; // Turned off the green skeleton boxes for you
 
     const MENU_MARGIN_X = 12; 
     const MENU_MARGIN_Y = 12; 
@@ -22,7 +22,7 @@
 
     // Custom delay for the cursor when opening a sliding submenu (in frames)
     const CURSOR_ANIMATION_DELAY = 90; 
-    // How far up (in pixels) the menu starts before sliding down
+    // How far up (in pixels) the menu starts before sliding down (starts at 0, slides to 68)
     const SLIDE_Y_OFFSET = -68; 
 
     // =======================================================
@@ -34,6 +34,7 @@
         for (let i = 0; i < parent.children.length; i++) {
             const child = parent.children[i];
             
+            // Aggressively check every known way HMU stores the Name
             let isTarget = false;
             if (child.name === targetName) isTarget = true;
             else if (child._component && child._component.name === targetName) isTarget = true;
@@ -44,35 +45,35 @@
             if (isTarget && !child._reverieHijacked) {
                 child._reverieHijacked = true;
                 
-                // --- FLICKER FIX: HIDE IMMEDIATELY ON DISCOVERY ---
-                // This prevents the group from being drawn at the resting position for 1 frame
-                child.renderable = false; 
+                // --- FLICKER FIX: ELIMINATE GUESSWORK ---
+                // We know the group rests at 68. We hardcode the base Y so it never grabs the wrong 
+                // coordinate on frame 1. We then instantly snap it to the top offset before it renders.
+                child._reverieBaseY = 68; 
+                if ($gameTemp && $gameTemp._customMenuOpen && $gameTemp._menuCursorDelay > 0) {
+                    child.y = child._reverieBaseY + SLIDE_Y_OFFSET;
+                }
                 
+                // Inject our slide math directly into the PIXI render pipeline
                 const originalUpdateTransform = child.updateTransform;
                 child.updateTransform = function() {
-                    // Let HUD Maker lock its coordinates
+                    // Let HUD Maker do its normal coordinate locking first
                     if (originalUpdateTransform) originalUpdateTransform.call(this);
                     
-                    // Capture the resting Y position once
-                    if (this._reverieBaseY === undefined) {
-                        this._reverieBaseY = this.y; 
-                    }
-                    
-                    // Override the Y position during the slide
+                    // THEN OVERRIDE IT right before it hits the screen with absolute math
                     if ($gameTemp && $gameTemp._customMenuOpen && $gameTemp._menuCursorDelay > 0) {
                         const progress = (CURSOR_ANIMATION_DELAY - $gameTemp._menuCursorDelay) / CURSOR_ANIMATION_DELAY;
                         const easeOut = 1 - Math.pow(1 - progress, 3);
                         const offset = SLIDE_Y_OFFSET * (1 - easeOut);
                         
                         this.y = this._reverieBaseY + offset; 
-                        this.renderable = true; // Show it now that it's at the correct slide position
                     } else if ($gameTemp && $gameTemp._customMenuOpen) {
+                        // Lock to base when animation is done
                         this.y = this._reverieBaseY;
-                        this.renderable = true;
                     }
                 };
             }
             
+            // Keep digging deeper into the PIXI tree
             hijackHUDMakerNode(child, targetName);
         }
     };
@@ -86,7 +87,7 @@
             Scene_Base.prototype.update.call(this); 
             this.updateHUDMakerBridge(); 
 
-            // Hijack scan
+            // Constantly scan the screen to hijack HUD Maker the millisecond it spawns
             if (this._mementosCatWindow && this._mementosCatWindow.visible) {
                 hijackHUDMakerNode(this, HMU_MEMENTOS_GROUP);
             }
