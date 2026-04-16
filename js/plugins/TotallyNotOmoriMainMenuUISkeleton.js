@@ -21,7 +21,7 @@
     const HMU_MEMENTOS_GROUP = "MementosGroup";
 
     // Custom delay for the cursor when opening a sliding submenu (in frames)
-    const CURSOR_ANIMATION_DELAY = 90; 
+    const CURSOR_ANIMATION_DELAY = 45; 
     // How far up (in pixels) the menu starts before sliding down (starts at 0, slides to 68)
     const SLIDE_Y_OFFSET = -68; 
 
@@ -42,35 +42,50 @@
             else if (child._data && (child._data.name === targetName || child._data.Name === targetName)) isTarget = true;
             else if (child.data && (child.data.name === targetName || child.data.Name === targetName)) isTarget = true;
             
-            if (isTarget && !child._reverieHijacked) {
-                child._reverieHijacked = true;
+            if (isTarget && !child._reverieRenderHijacked) {
+                child._reverieRenderHijacked = true;
                 
-                // --- FLICKER FIX: ELIMINATE GUESSWORK ---
-                // We know the group rests at 68. We hardcode the base Y so it never grabs the wrong 
-                // coordinate on frame 1. We then instantly snap it to the top offset before it renders.
-                child._reverieBaseY = 68; 
-                if ($gameTemp && $gameTemp._customMenuOpen && $gameTemp._menuCursorDelay > 0) {
-                    child.y = child._reverieBaseY + SLIDE_Y_OFFSET;
-                }
-                
-                // Inject our slide math directly into the PIXI render pipeline
-                const originalUpdateTransform = child.updateTransform;
-                child.updateTransform = function() {
-                    // Let HUD Maker do its normal coordinate locking first
-                    if (originalUpdateTransform) originalUpdateTransform.call(this);
-                    
-                    // THEN OVERRIDE IT right before it hits the screen with absolute math
+                // --- THE NUCLEAR OPTION: RENDER HIJACK ---
+                // Instead of fighting HMU's math, we intercept the final draw call to the graphics card.
+                const originalRender = child.render;
+                const originalRenderCanvas = child.renderCanvas;
+
+                const applyReverieSlide = function(target, renderer, originalMethod) {
+                    const originalY = target.y; // Save where HMU wants it to be (68)
+
                     if ($gameTemp && $gameTemp._customMenuOpen && $gameTemp._menuCursorDelay > 0) {
                         const progress = (CURSOR_ANIMATION_DELAY - $gameTemp._menuCursorDelay) / CURSOR_ANIMATION_DELAY;
                         const easeOut = 1 - Math.pow(1 - progress, 3);
-                        const offset = SLIDE_Y_OFFSET * (1 - easeOut);
                         
-                        this.y = this._reverieBaseY + offset; 
+                        // Shift it, force PIXI to calculate the matrix, and draw it
+                        target.y = 68 + (SLIDE_Y_OFFSET * (1 - easeOut));
+                        target.updateTransform();
                     } else if ($gameTemp && $gameTemp._customMenuOpen) {
-                        // Lock to base when animation is done
-                        this.y = this._reverieBaseY;
+                        target.y = 68;
+                        target.updateTransform();
                     }
+
+                    // Actually draw the pixels on the screen at our new coordinate
+                    if (originalMethod) originalMethod.call(target, renderer);
+
+                    // Instantly put it back so HMU's logic doesn't crash next frame
+                    target.y = originalY;
+                    target.updateTransform(); 
                 };
+
+                // Hijack WebGL
+                if (originalRender) {
+                    child.render = function(renderer) {
+                        applyReverieSlide(this, renderer, originalRender);
+                    };
+                }
+                
+                // Hijack Canvas fallback
+                if (originalRenderCanvas) {
+                    child.renderCanvas = function(renderer) {
+                        applyReverieSlide(this, renderer, originalRenderCanvas);
+                    };
+                }
             }
             
             // Keep digging deeper into the PIXI tree
@@ -395,8 +410,8 @@
     };
 
     Scene_Map.prototype.commandMementos = function() {
-        // PRE-HIJACK DISCOVERY: Hide it before the first frame can draw at the bottom
-        hijackHUDMakerNode(this, HMU_MEMENTOS_GROUP);
+        // Guarantee the node is fully hijacked BEFORE the graphics card paints it
+        hijackHUDMakerNode(SceneManager._scene, HMU_MEMENTOS_GROUP);
 
         $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY; 
         this._mementosCatWindow.show();
