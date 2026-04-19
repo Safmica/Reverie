@@ -1990,7 +1990,7 @@
             if (!text) return ["", "", ""];
             let lines = text.split('\n');
             let result = [];
-            const maxLen = 45; 
+            const maxLen = 45; // Maximum characters per line. Tweak this if it clips!
 
             for (let line of lines) {
                 while (line.length > maxLen) {
@@ -2009,17 +2009,31 @@
             const descLines = formatAbilDesc(hoveredAbilItem.description);
             $gameTemp.abilHoverDesc1 = descLines[0];
             $gameTemp.abilHoverDesc2 = descLines[1];
-            $gameTemp.abilHoverDesc3 = descLines[2]; 
+            $gameTemp.abilHoverDesc3 = descLines[2];
+            
+            // --- NEW: COST TRACKING (MP ONLY) ---
+            const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+            if (actor) {
+                $gameTemp.abilHoverMpCost = actor.skillMpCost(hoveredAbilItem);
+            } else {
+                $gameTemp.abilHoverMpCost = hoveredAbilItem.mpCost;
+            }
+            $gameTemp.abilHasMpCost = $gameTemp.abilHoverMpCost > 0;
+
         } else if (isAbilHoveringNothing) {
             $gameTemp.abilHoverName = "-------";
             $gameTemp.abilHoverDesc1 = "";
             $gameTemp.abilHoverDesc2 = "";
             $gameTemp.abilHoverDesc3 = "";
+            $gameTemp.abilHoverMpCost = 0;
+            $gameTemp.abilHasMpCost = false;
         } else {
             $gameTemp.abilHoverName = "";
             $gameTemp.abilHoverDesc1 = "";
             $gameTemp.abilHoverDesc2 = "";
             $gameTemp.abilHoverDesc3 = "";
+            $gameTemp.abilHoverMpCost = 0;
+            $gameTemp.abilHasMpCost = false;
         }
 
         if (this._mementosItemWindow && this._mementosItemWindow.active) {
