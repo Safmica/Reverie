@@ -34,6 +34,9 @@
     const HMU_MEMENTOS_DESC_GROUP = "MementosDescMenu"; 
 
     const HMU_ABILITIES_CAT_GROUP = "AbilitiesMenu";
+    const HMU_ABILITIES_TABS_GROUP = "AbilitiesTabsMenu";
+    const HMU_ABILITIES_LIST_GROUP = "AbilitiesListMenu";
+    const HMU_ABILITIES_DESC_GROUP = "AbilitiesDescMenu";
 
     const MAIN_MENU_CURSOR_Y_OFFSET = 7;
     const MEMENTOS_CAT_CURSOR_Y_OFFSET = 7;
@@ -83,6 +86,52 @@
     const EQUIP_TABS_FONT_SIZE = 20;      
     const EQUIP_TABS_ITEM_HEIGHT = 24;    
     const EQUIP_TABS_ITEM_GAP = 0;       
+
+    // =======================================================
+    // 1.1 COMBAT SKILL LOCK OVERRIDE (FORCE 4 SLOTS IN BATTLE)
+    // =======================================================
+    const _Game_Actor_skills = Game_Actor.prototype.skills;
+    Game_Actor.prototype.skills = function() {
+        if ($gameParty.inBattle()) {
+            const battleSkills = [];
+            this._equippedSkills = this._equippedSkills || [null, null, null, null];
+            this._equippedBonds = this._equippedBonds || [null, null, null, null];
+            
+            this._equippedSkills.forEach(id => { if (id && this.isLearnedSkill(id)) battleSkills.push($dataSkills[id]); });
+            this._equippedBonds.forEach(id => { if (id && this.isLearnedSkill(id)) battleSkills.push($dataSkills[id]); });
+            
+            return battleSkills;
+        }
+        return _Game_Actor_skills.call(this);
+    };
+
+    // =======================================================
+    // 1.15 ACTOR INITIALIZATION (AUTO-EQUIP SKILLS ON NEW GAME)
+    // =======================================================
+    const _Game_Actor_setup = Game_Actor.prototype.setup;
+    Game_Actor.prototype.setup = function(actorId) {
+        _Game_Actor_setup.call(this, actorId);
+        
+        // Create fresh, empty arrays for the new character
+        this._equippedSkills = [null, null, null, null];
+        this._equippedBonds = [null, null, null, null];
+        
+        let skillCount = 0;
+        let bondCount = 0;
+        
+        // Look at the skills they naturally start with and auto-equip the first 4
+        const initialSkills = this.skills();
+        for (let i = 0; i < initialSkills.length; i++) {
+            const skill = initialSkills[i];
+            if (skill && skill.stypeId === 2 && skillCount < 4) { // Skill Type 2: Skills
+                this._equippedSkills[skillCount] = skill.id;
+                skillCount++;
+            } else if (skill && skill.stypeId === 3 && bondCount < 4) { // Skill Type 3: Bonds
+                this._equippedBonds[bondCount] = skill.id;
+                bondCount++;
+            }
+        }
+    };
 
     // =======================================================
     // 1.2. PIXI WEBGL HIJACK ENGINE
@@ -320,7 +369,7 @@
             Scene_Base.prototype.update.call(this); 
             this.updateHUDMakerBridge(); 
 
-            // Equip Card Animation State Machine
+            // Equip/Abilities Card Animation State Machine
             if ($gameTemp.equipAnimState > 0 && $gameTemp.equipAnimState < 4) {
                 if ($gameTemp.equipAnimTimer < CURSOR_ANIMATION_DELAY) {
                     $gameTemp.equipAnimTimer++;
@@ -331,13 +380,17 @@
                         $gameTemp.equipAnimState = 3; // Skip Left Movement if it's the 1st character
                     }
                     if ($gameTemp.equipAnimState === 4) {
-                        if (this._equipTabsWindow) {
+                        if ($gameTemp.activeMenuSymbol === 'equip' && this._equipTabsWindow) {
                             $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
                             this._equipTabsWindow.show();
                             this._equipTabsWindow.activate();
-                            
                             this._equipTabsWindow.select(1);
                             $gameTemp.equipDescInTimer = CURSOR_ANIMATION_DELAY;
+                        } else if ($gameTemp.activeMenuSymbol === 'abilities' && this._abilitiesCatWindow) {
+                            $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                            this._abilitiesCatWindow.show();
+                            this._abilitiesCatWindow.activate();
+                            this._abilitiesCatWindow.select(0);
                         }
                     }
                 }
@@ -364,6 +417,7 @@
                 $gameTemp.equipAnimProgress = 1 - Math.pow(1 - progress, 3); 
             }
 
+            // MEMENTOS HIJACKS
             if (this._mementosCatWindow && (this._mementosCatWindow.visible || this._mementosCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
                 const isCatClosing = () => this._mementosCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
                 const catDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._mementosCatWindow._closingDelay;
@@ -387,11 +441,64 @@
                 hijackHUDMakerNode(this, HMU_MEMENTOS_CONFIRM_GROUP, () => this._mementosConfirmWindow.active, isConfirmClosing, confirmDelay, 0, SLIDE_Y_OFFSET_CONFIRM, () => this._mementosConfirmWindow.visible);
             }
 
+            // ABILITIES HIJACKS
             if (this._abilitiesCatWindow && (this._abilitiesCatWindow.visible || this._abilitiesCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
                 const isAbilClosing = () => this._abilitiesCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
                 const abilDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._abilitiesCatWindow._closingDelay;
-                hijackHUDMakerNode(this, HMU_ABILITIES_CAT_GROUP, () => this._abilitiesCatWindow.active, isAbilClosing, abilDelay, 0, SLIDE_Y_OFFSET_CAT, () => this._abilitiesCatWindow.visible); // Reusing Mementos slide height
+                hijackHUDMakerNode(this, HMU_ABILITIES_CAT_GROUP, () => this._abilitiesCatWindow.active, isAbilClosing, abilDelay, 0, SLIDE_Y_OFFSET_CAT, () => this._abilitiesCatWindow.visible);
             }
+            if (this._abilitiesTabsWindow && (this._abilitiesTabsWindow.visible || this._abilitiesTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
+                const isClosing = () => this._abilitiesTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
+                const delay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._abilitiesTabsWindow._closingDelay;
+                const isActive = () => this._abilitiesTabsWindow.active && !$gameTemp.hudShowAbilitiesDesc;
+                hijackHUDMakerNode(this, HMU_ABILITIES_TABS_GROUP, isActive, isClosing, delay, 0, SLIDE_Y_OFFSET_EQUIP_TABS, () => this._abilitiesTabsWindow.visible);
+            }
+            if (this._abilitiesListWindow && (this._abilitiesListWindow.visible || this._abilitiesListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
+                const isClosing = () => this._abilitiesListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
+                const delay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._abilitiesListWindow._closingDelay;
+                hijackHUDMakerNode(this, HMU_ABILITIES_LIST_GROUP, () => this._abilitiesListWindow.active, isClosing, delay, SLIDE_X_OFFSET_EQUIP_LIST, 0, () => this._abilitiesListWindow.visible);
+            }
+            
+            // ABILITIES CASCADE ANIMATIONS
+            if ($gameTemp.abilTabsInTimer > 0) {
+                $gameTemp.abilTabsInTimer--;
+                if ($gameTemp.abilTabsInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                    this._abilitiesTabsWindow.show();
+                    this._abilitiesTabsWindow.activate();
+                    this._abilitiesTabsWindow.select(0);
+                    $gameTemp.abilDescInTimer = CURSOR_ANIMATION_DELAY;
+                }
+            }
+            if ($gameTemp.abilDescInTimer > 0) {
+                $gameTemp.abilDescInTimer--;
+                if ($gameTemp.abilDescInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                    $gameTemp.hudShowAbilitiesDesc = true;
+                    $gameTemp.abilDescIsAnimatingIn = true;
+                }
+            }
+            if ($gameTemp.abilDescOutDelay > 0) {
+                $gameTemp.abilDescOutDelay--;
+                if ($gameTemp.abilDescOutDelay === 0) {
+                    $gameTemp.hudShowAbilitiesDesc = false;
+                    this._abilitiesTabsWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+                    $gameTemp.abilCatInTimer = CURSOR_ANIMATION_DELAY; 
+                }
+            }
+            if ($gameTemp.abilCatInTimer > 0) {
+                $gameTemp.abilCatInTimer--;
+                if ($gameTemp.abilCatInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                    this._abilitiesCatWindow.show();
+                    this._abilitiesCatWindow.activate();
+                }
+            }
+
+            const isAbilDescClosing = () => $gameTemp.abilDescOutDelay > 0 || $gameTemp._globalClosingDelay > 0;
+            const abilDescDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : $gameTemp.abilDescOutDelay;
+            hijackHUDMakerNode(this, HMU_ABILITIES_DESC_GROUP, () => $gameTemp.abilDescIsAnimatingIn, isAbilDescClosing, abilDescDelay, SLIDE_X_OFFSET_EQUIP_DESC, 0, () => $gameTemp.hudShowAbilitiesDesc);
+
 
             // EQUIP CASCADE IN SEQUENCES
             if ($gameTemp.equipDescInTimer > 0) {
@@ -421,6 +528,7 @@
             if ($gameTemp._menuCursorDelay === 0) {
                 $gameTemp.equipDescIsAnimatingIn = false;
                 $gameTemp.equipStatIsAnimatingIn = false;
+                $gameTemp.abilDescIsAnimatingIn = false;
             }
 
             // EQUIP CASCADE OUT SEQUENCES (Reverse order: Stat -> Desc -> Tabs)
@@ -460,7 +568,7 @@
             const descDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : $gameTemp.equipDescOutDelay;
             hijackHUDMakerNode(this, HMU_EQUIP_DESC_GROUP, () => $gameTemp.equipDescIsAnimatingIn, isDescClosing, descDelay, SLIDE_X_OFFSET_EQUIP_DESC, 0, () => $gameTemp.hudShowEquipDesc);
 
-            // NEW: Stat Hijack
+            // Stat Hijack
             const isStatClosing = () => $gameTemp.equipStatOutDelay > 0 || $gameTemp._globalClosingDelay > 0;
             const statDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : $gameTemp.equipStatOutDelay;
             hijackHUDMakerNode(this, HMU_EQUIP_STAT_GROUP, () => $gameTemp.equipStatIsAnimatingIn, isStatClosing, statDelay, 0, SLIDE_Y_OFFSET_EQUIP_STAT, () => $gameTemp.hudShowEquipStat);
@@ -476,6 +584,8 @@
                 {win: this._mementosActionWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_ACTION}, 
                 {win: this._mementosConfirmWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_CONFIRM},
                 {win: this._abilitiesCatWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_CAT},
+                {win: this._abilitiesTabsWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_EQUIP_TABS},
+                {win: this._abilitiesListWindow, offsetX: SLIDE_X_OFFSET_EQUIP_LIST, offsetY: 0},
                 {win: this._equipTabsWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_EQUIP_TABS},
                 {win: this._equipListWindow, offsetX: SLIDE_X_OFFSET_EQUIP_LIST, offsetY: 0}
             ];
@@ -492,6 +602,7 @@
                     if (win && win.active && win.visible) {
                         // Prevent the Skeleton window from re-sliding when the Description IN animation triggers
                         if (win === this._equipTabsWindow && $gameTemp.hudShowEquipDesc) return;
+                        if (win === this._abilitiesTabsWindow && $gameTemp.hudShowAbilitiesDesc) return;
 
                         const currentOffsetX = item.offsetX * (1 - easeOut);
                         const currentOffsetY = item.offsetY * (1 - easeOut);
@@ -507,6 +618,7 @@
                         if (win && win.active && win.visible) {
                             // Don't mess with the coordinates if it was skipped
                             if (win === this._equipTabsWindow && $gameTemp.hudShowEquipDesc) return;
+                            if (win === this._abilitiesTabsWindow && $gameTemp.hudShowAbilitiesDesc) return;
 
                             win.x = win._baseX;
                             win.y = win._baseY;
@@ -549,6 +661,9 @@
                     $gameTemp.hudShowMementosAction = false;
                     $gameTemp.hudShowMementosConfirm = false;
                     $gameTemp.hudShowAbilitiesCat = false;
+                    $gameTemp.hudShowAbilitiesTabs = false;
+                    $gameTemp.hudShowAbilitiesList = false;
+                    $gameTemp.hudShowAbilitiesDesc = false;
                     $gameTemp.hudShowEquipTabs = false;
                     $gameTemp.hudShowEquipList = false;
                     $gameTemp.hudShowEquipDesc = false;
@@ -624,6 +739,11 @@
         if ($gameTemp.equipStatInTimer > 0) return true;
         if ($gameTemp.equipDescOutDelay > 0) return true;
         if ($gameTemp.equipStatOutDelay > 0) return true;
+
+        if ($gameTemp.abilTabsInTimer > 0) return true;
+        if ($gameTemp.abilDescInTimer > 0) return true;
+        if ($gameTemp.abilDescOutDelay > 0) return true;
+        if ($gameTemp.abilCatInTimer > 0) return true;
         
         // 2. Prevent the "Invisible Active Window" crash by checking if ANY submenu is currently sliding away
         const scn = SceneManager._scene;
@@ -633,6 +753,8 @@
             if (scn._mementosActionWindow && scn._mementosActionWindow._closingDelay > 0) return true;
             if (scn._mementosConfirmWindow && scn._mementosConfirmWindow._closingDelay > 0) return true;
             if (scn._abilitiesCatWindow && scn._abilitiesCatWindow._closingDelay > 0) return true;
+            if (scn._abilitiesTabsWindow && scn._abilitiesTabsWindow._closingDelay > 0) return true;
+            if (scn._abilitiesListWindow && scn._abilitiesListWindow._closingDelay > 0) return true;
         }
         return false;
     };
@@ -819,7 +941,7 @@
     Window_MenuMementosCat.prototype.customCursorOffsetY = MEMENTOS_CAT_CURSOR_Y_OFFSET;
 
     // =======================================================
-    // 6.5. ABILITIES: CATEGORIES
+    // 6.5. ABILITIES: CATEGORIES & TABS & LIST
     // =======================================================
     function Window_MenuAbilitiesCat() { this.initialize(...arguments); }
     Window_MenuAbilitiesCat.prototype = Object.create(Window_HorzCommand.prototype);
@@ -827,14 +949,139 @@
     applySkeletonStyle(Window_MenuAbilitiesCat);
     
     Window_MenuAbilitiesCat.prototype.maxCols = function() { return 5; }; 
-    
     Window_MenuAbilitiesCat.prototype.makeCommandList = function() {
         this.addCommand("Skills", 'skills');
         this.addCommand("Bonds", 'bonds');
     };
     Window_MenuAbilitiesCat.prototype.drawItem = customDrawItemWithCursor;
     Window_MenuAbilitiesCat.prototype.select = customSelectRefresh;
-    Window_MenuAbilitiesCat.prototype.customCursorOffsetY = MEMENTOS_CAT_CURSOR_Y_OFFSET; // Reusing Mementos Y offset
+    Window_MenuAbilitiesCat.prototype.customCursorOffsetY = MEMENTOS_CAT_CURSOR_Y_OFFSET; 
+
+    function Window_MenuAbilitiesTabs() { this.initialize(...arguments); }
+    Window_MenuAbilitiesTabs.prototype = Object.create(Window_Command.prototype);
+    Window_MenuAbilitiesTabs.prototype.constructor = Window_MenuAbilitiesTabs;
+    applySkeletonStyle(Window_MenuAbilitiesTabs);
+    Window_MenuAbilitiesTabs.prototype.resetFontSettings = function() {
+        Window_Command.prototype.resetFontSettings.call(this);
+        this.contents.fontSize = EQUIP_TABS_FONT_SIZE;
+    };
+    Window_MenuAbilitiesTabs.prototype.lineHeight = function() { return EQUIP_TABS_ITEM_HEIGHT; };
+    Window_MenuAbilitiesTabs.prototype.itemRect = function(index) {
+        const x = 0;
+        const y = index * (this.itemHeight() + EQUIP_TABS_ITEM_GAP);
+        return new Rectangle(x, y, this.innerWidth, this.itemHeight());
+    };
+    Window_MenuAbilitiesTabs.prototype.setActorAndCategory = function(actor, category) {
+        this._actor = actor;
+        this._category = category;
+        this.refresh();
+    };
+    Window_MenuAbilitiesTabs.prototype.makeCommandList = function() {
+        // Always build exactly 4 slots so the engine doesn't crash on startup
+        for (let i = 0; i < 4; i++) {
+            let name = "-------";
+            if (this._actor) {
+                this._actor._equippedSkills = this._actor._equippedSkills || [null, null, null, null];
+                this._actor._equippedBonds = this._actor._equippedBonds || [null, null, null, null];
+                const arr = this._category === 'skills' ? this._actor._equippedSkills : this._actor._equippedBonds;
+                const skillId = arr[i];
+                if (skillId && $dataSkills[skillId]) name = $dataSkills[skillId].name;
+            }
+            this.addCommand(name, 'ability_slot', true, { slotId: i }); // Always enabled
+        }
+    };
+    Window_MenuAbilitiesTabs.prototype.drawItem = function(index) {
+        const rect = this.itemLineRect(index);
+        const clearX = rect.x - CURSOR_DRAW_SIZE - 20;
+        const clearW = rect.width + CURSOR_DRAW_SIZE + 40;
+        this.contents.clearRect(clearX, rect.y, clearW, rect.height);
+        
+        const name = this.commandName(index);
+        this.changePaintOpacity(this.isCommandEnabled(index));
+        const textWidth = this.textWidth(name);
+        const textX = rect.x + CURSOR_DRAW_SIZE + 10; 
+        if (DEBUG_MODE) this.drawText(name, textX, rect.y, textWidth, 'left');
+
+        if (this.index() === index && this.active) {
+            const cursorX = textX - CURSOR_DRAW_SIZE - 5 + EQUIP_TABS_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET; 
+            const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + EQUIP_TABS_CURSOR_Y_OFFSET; 
+            const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
+            if (cursorBmp.isReady()) {
+                this.contents.blt(cursorBmp, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, cursorX, cursorY, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
+            } else {
+                cursorBmp.addLoadListener(() => this.redrawItem(index));
+            }
+        }
+    };
+    Window_MenuAbilitiesTabs.prototype.select = customSelectRefresh;
+
+    function Window_MenuAbilitiesList() { this.initialize(...arguments); }
+    Window_MenuAbilitiesList.prototype = Object.create(Window_ItemList.prototype);
+    Window_MenuAbilitiesList.prototype.constructor = Window_MenuAbilitiesList;
+    applySkeletonStyle(Window_MenuAbilitiesList);
+    
+    Window_MenuAbilitiesList.prototype.maxCols = function() { return 2; }; 
+    Window_MenuAbilitiesList.prototype.itemHeight = function() { return Math.floor(this.innerHeight / 2); };
+    Window_MenuAbilitiesList.prototype.rowSpacing = function() { return 0; };
+    Window_MenuAbilitiesList.prototype.colSpacing = function() { return 0; };
+    Window_MenuAbilitiesList.prototype.topRow = function() { return Math.round(this.scrollY() / this.itemHeight()); };
+    Window_MenuAbilitiesList.prototype.ensureCursorVisible = function(smooth) {
+        const row = Math.floor(this.index() / this.maxCols());
+        const maxVisible = 2;
+        let currentTopRow = this.topRow();
+        if (row < currentTopRow) {
+            this.scrollTo(0, row * this.itemHeight());
+        } else if (row >= currentTopRow + maxVisible) {
+            this.scrollTo(0, (row - maxVisible + 1) * this.itemHeight());
+        }
+    };
+    Window_MenuAbilitiesList.prototype.isEnabled = function(item) { return true; };
+    Window_MenuAbilitiesList.prototype.setActorAndSlot = function(actor, slotId, category) {
+        this._actor = actor;
+        this._slotId = slotId;
+        this._category = category;
+        this.scrollTo(0, 0); 
+        this.refresh();
+    };
+    Window_MenuAbilitiesList.prototype.includes = function(item) {
+        if (!item || !this._actor) return false;
+        
+        const targetStype = this._category === 'skills' ? 2 : 3; 
+        if (item.stypeId !== targetStype) return false;
+
+        const equippedArray = this._category === 'skills' ? this._actor._equippedSkills : this._actor._equippedBonds;
+        
+        if (equippedArray.includes(item.id)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    Window_MenuAbilitiesList.prototype.makeItemList = function() {
+        this._data = this._actor ? this._actor.skills().filter(skill => this.includes(skill)) : [];
+    };
+    Window_MenuAbilitiesList.prototype.drawItem = function(index) {
+        const item = this.itemAt(index);
+        const rect = this.itemLineRect(index); 
+        this.contents.clearRect(rect.x - 40, rect.y, rect.width + 80, rect.height);
+        
+        const itemName = item ? item.name : "";
+        const textY = rect.y + (rect.height - this.lineHeight()) / 2;
+        if (DEBUG_MODE) this.drawText(itemName, rect.x + CURSOR_DRAW_SIZE + 10, textY, rect.width, 'left');
+
+        if (this.index() === index && this.active && item) {
+             const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
+             if (cursorBmp.isReady()) {
+                 const cursorX = rect.x + 10 + EQUIP_LIST_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET;; 
+                 const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + EQUIP_LIST_CURSOR_Y_OFFSET;
+                 this.contents.blt(cursorBmp, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, cursorX, cursorY, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
+             } else {
+                 cursorBmp.addLoadListener(() => this.redrawItem(index));
+             }
+        }
+    };
+    Window_MenuAbilitiesList.prototype.select = customSelectRefresh;
 
     // =======================================================
     // 7. MEMENTOS: ITEM LIST & ACTIONS
@@ -1111,7 +1358,7 @@
         this.createMementosActionWindow();
         this.createMementosConfirmWindow();
 
-        this.createAbilitiesCatWindow();
+        this.createAbilitiesSubWindows();
         
         this.createEquipSubWindows();
 
@@ -1148,12 +1395,50 @@
         this._equipListWindow.hide();
     };
 
+    Scene_Map.prototype.createAbilitiesSubWindows = function() {
+        const h = this.calcWindowHeight(1, true);
+        const y = MENU_MARGIN_Y + h; 
+        
+        const fullWidth = Graphics.boxWidth - (MENU_MARGIN_X * 2);
+        const catRect = new Rectangle(MENU_MARGIN_X, y, fullWidth, h);
+        
+        this._abilitiesCatWindow = new Window_MenuAbilitiesCat(catRect);
+        this._abilitiesCatWindow._baseX = catRect.x;
+        this._abilitiesCatWindow._baseY = y; 
+        this._abilitiesCatWindow.setHandler('ok', this.onAbilitiesCatOk.bind(this));
+        this._abilitiesCatWindow.setHandler('cancel', this.onAbilitiesCancel.bind(this));
+        this.addWindow(this._abilitiesCatWindow);
+        this._abilitiesCatWindow.hide(); 
+        this._abilitiesCatWindow.deactivate();
+
+        const tabsH = this.calcWindowHeight(4, true);
+        this._abilitiesTabsWindow = new Window_MenuAbilitiesTabs(new Rectangle(MENU_MARGIN_X, EQUIP_TABS_RESTING_Y, fullWidth, EQUIP_TABS_HEIGHT));
+        this._abilitiesTabsWindow._baseX = this._abilitiesTabsWindow.x;
+        this._abilitiesTabsWindow._baseY = this._abilitiesTabsWindow.y;
+        this._abilitiesTabsWindow.setHandler('ability_slot', this.onAbilitiesTabsOk.bind(this));
+        this._abilitiesTabsWindow.setHandler('cancel', this.onAbilitiesTabsCancel.bind(this));
+        this.addWindow(this._abilitiesTabsWindow);
+        this._abilitiesTabsWindow.hide();
+        this._abilitiesTabsWindow.deactivate();
+
+        const listW = EQUIP_LIST_WIDTH; 
+        const listX = EQUIP_LIST_RESTING_X;
+        this._abilitiesListWindow = new Window_MenuAbilitiesList(new Rectangle(listX, EQUIP_LIST_RESTING_Y, listW, EQUIP_LIST_HEIGHT));
+        this._abilitiesListWindow._baseX = this._abilitiesListWindow.x;
+        this._abilitiesListWindow._baseY = this._abilitiesListWindow.y;
+        this._abilitiesListWindow.setHandler('ok', this.onAbilitiesListOk.bind(this));
+        this._abilitiesListWindow.setHandler('cancel', this.onAbilitiesListCancel.bind(this));
+        this.addWindow(this._abilitiesListWindow);
+        this._abilitiesListWindow.hide();
+        this._abilitiesListWindow.deactivate();
+    };
+
     Scene_Map.prototype.createCommandWindow = function() {
         const rect = this.commandWindowRect();
         this._commandWindow = new Window_MenuCommand(rect);
         this._commandWindow.setHandler('equip', this.commandPersonal.bind(this));
         this._commandWindow.setHandler('mementos', this.commandMementos.bind(this));
-        this._commandWindow.setHandler('abilities', this.commandAbilities.bind(this)); // NEW
+        this._commandWindow.setHandler('abilities', this.commandPersonal.bind(this)); // Routes to Status Window to pick Actor first!
         this._commandWindow.setHandler('cancel', this.closeCustomOmoriMenu.bind(this));
         this.addWindow(this._commandWindow);
     };
@@ -1234,21 +1519,6 @@
         this._mementosConfirmWindow.deactivate();
     };
 
-    Scene_Map.prototype.createAbilitiesCatWindow = function() {
-        const h = this.calcWindowHeight(1, true);
-        const y = MENU_MARGIN_Y + h; 
-        const rect = new Rectangle(MENU_MARGIN_X, y, Graphics.boxWidth - (MENU_MARGIN_X * 2), h);
-        
-        this._abilitiesCatWindow = new Window_MenuAbilitiesCat(rect);
-        this._abilitiesCatWindow._baseX = rect.x;
-        this._abilitiesCatWindow._baseY = y; 
-        this._abilitiesCatWindow.setHandler('ok', this.onAbilitiesCatOk.bind(this));
-        this._abilitiesCatWindow.setHandler('cancel', this.onAbilitiesCancel.bind(this));
-        this.addWindow(this._abilitiesCatWindow);
-        this._abilitiesCatWindow.hide(); 
-        this._abilitiesCatWindow.deactivate();
-    };
-
     // --- OVERLAY LOGIC HANDLERS ---
     Scene_Map.prototype.openCustomOmoriMenu = function() {
         $gameTemp._customMenuOpen = true;
@@ -1259,13 +1529,18 @@
         $gameTemp.equipAnimTimer = 0;
         $gameTemp.equipAnimProgress = 0.0;
         $gameTemp.equipSelectedActor = -1;
+        
         $gameTemp.hudShowEquipDesc = false; 
         $gameTemp.equipDescOutDelay = 0;
-
         $gameTemp.hudShowEquipStat = false; 
         $gameTemp.equipStatOutDelay = 0;   
         $gameTemp.equipStatInTimer = 0;     
         $gameTemp.equipStatIsAnimatingIn = false; 
+
+        $gameTemp.abilTabsInTimer = 0;
+        $gameTemp.abilDescInTimer = 0;
+        $gameTemp.abilDescOutDelay = 0;
+        $gameTemp.abilCatInTimer = 0;
 
         if (!this._reverieBlurFilter) {
             this._reverieBlurFilter = new PIXI.filters.BlurFilter();
@@ -1397,22 +1672,67 @@
         this._mementosActionWindow.activate();
     };
 
-    Scene_Map.prototype.commandAbilities = function() {
-        $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY; 
-        this._abilitiesCatWindow.show();
-        this._abilitiesCatWindow.activate();
-        this._abilitiesCatWindow.select(0); 
-    };
-
     Scene_Map.prototype.onAbilitiesCatOk = function() {
-        SoundManager.playBuzzer();
-        this._abilitiesCatWindow.activate();
+        this._abilitiesCatWindow.deactivate();
+        this._abilitiesCatWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+        
+        $gameTemp.abilTabsInTimer = CURSOR_ANIMATION_DELAY;
+        $gameTemp.currentAbilityCategory = this._abilitiesCatWindow.currentSymbol();
+        
+        const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+        this._abilitiesTabsWindow.setActorAndCategory(actor, $gameTemp.currentAbilityCategory);
     };
 
     Scene_Map.prototype.onAbilitiesCancel = function() {
         this._abilitiesCatWindow.deactivate();
         this._abilitiesCatWindow._closingDelay = CURSOR_ANIMATION_DELAY;
-        this._commandWindow.activate();
+        $gameTemp.equipAnimState = 5; 
+        $gameTemp.equipAnimTimer = 0;
+    };
+
+    Scene_Map.prototype.onAbilitiesTabsOk = function() {
+        this._abilitiesTabsWindow.deactivate();
+        $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+        
+        const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+        const slotId = this._abilitiesTabsWindow.currentExt().slotId;
+        this._abilitiesListWindow.setActorAndSlot(actor, slotId, $gameTemp.currentAbilityCategory);
+        
+        this._abilitiesListWindow.show();
+        this._abilitiesListWindow.activate();
+        this._abilitiesListWindow.select(0);
+    };
+
+    Scene_Map.prototype.onAbilitiesTabsCancel = function() {
+        this._abilitiesTabsWindow.deactivate();
+        $gameTemp.abilDescOutDelay = CURSOR_ANIMATION_DELAY;
+    };
+
+    Scene_Map.prototype.onAbilitiesListOk = function() {
+        const item = this._abilitiesListWindow.item();
+        
+        if (!item) {
+            SoundManager.playBuzzer();
+            this._abilitiesListWindow.activate();
+            return;
+        }
+
+        SoundManager.playEquip();
+        const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+        const slotId = this._abilitiesListWindow._slotId;
+        
+        const targetArr = $gameTemp.currentAbilityCategory === 'skills' ? actor._equippedSkills : actor._equippedBonds;
+        targetArr[slotId] = item.id;
+        
+        this._abilitiesTabsWindow.refresh();
+        this._abilitiesListWindow.refresh();
+        this._abilitiesListWindow.activate();
+    };
+
+    Scene_Map.prototype.onAbilitiesListCancel = function() {
+        this._abilitiesListWindow.deactivate();
+        this._abilitiesListWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+        this._abilitiesTabsWindow.activate();
     };
 
     Scene_Map.prototype.onEquipTabOk = function() {
@@ -1503,10 +1823,18 @@
                 this._statusWindow.activate();
             }
         } else if (symbol === 'equip') {
+            $gameTemp.activeMenuSymbol = 'equip';
             $gameTemp.equipSelectedActor = actorIndex;
             $gameTemp.equipAnimState = 1; 
             $gameTemp.equipAnimTimer = 0;
             this._equipTabsWindow.setActor(actor); 
+            this._statusWindow.deselect();
+            this._statusWindow.deactivate();
+        } else if (symbol === 'abilities') {
+            $gameTemp.activeMenuSymbol = 'abilities';
+            $gameTemp.equipSelectedActor = actorIndex; // Reuse for card sliding
+            $gameTemp.equipAnimState = 1; 
+            $gameTemp.equipAnimTimer = 0;
             this._statusWindow.deselect();
             this._statusWindow.deactivate();
         } else {
@@ -1537,6 +1865,8 @@
         $gameTemp.hudShowMementosConfirm = !!(this._mementosConfirmWindow && (this._mementosConfirmWindow.visible || this._mementosConfirmWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
 
         $gameTemp.hudShowAbilitiesCat = !!(this._abilitiesCatWindow && (this._abilitiesCatWindow.visible || this._abilitiesCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
+        $gameTemp.hudShowAbilitiesTabs = !!(this._abilitiesTabsWindow && (this._abilitiesTabsWindow.visible || this._abilitiesTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
+        $gameTemp.hudShowAbilitiesList = !!(this._abilitiesListWindow && (this._abilitiesListWindow.visible || this._abilitiesListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
 
         $gameTemp.hudShowEquipTabs = !!(this._equipTabsWindow && (this._equipTabsWindow.visible || this._equipTabsWindow._closingDelay > 0));
         $gameTemp.hudShowEquipList = !!(this._equipListWindow && (this._equipListWindow.visible || this._equipListWindow._closingDelay > 0));
@@ -1547,52 +1877,83 @@
             const equips = actor.equips();
             $gameTemp.equipCurrentWeaponName = equips[0] ? equips[0].name : "-------";
             $gameTemp.equipCurrentCharmName = equips[1] ? equips[1].name : "-------";
+            
+            // Track 4 equipped Abilities for the Tabs
+            actor._equippedSkills = actor._equippedSkills || [null, null, null, null];
+            actor._equippedBonds = actor._equippedBonds || [null, null, null, null];
+            const targetArr = $gameTemp.currentAbilityCategory === 'skills' ? actor._equippedSkills : actor._equippedBonds;
+            for (let i = 0; i < 4; i++) {
+                const sId = targetArr[i];
+                $gameTemp['abilTabName' + i] = (sId && $dataSkills[sId]) ? $dataSkills[sId].name : "-------";
+            }
         } else {
             $gameTemp.equipCurrentWeaponName = "";
             $gameTemp.equipCurrentCharmName = "";
+            for (let i = 0; i < 4; i++) $gameTemp['abilTabName' + i] = "";
         }
 
-        // 2. Track the 4 Visible Grid Items for the List
+        // 2. Track the 4 Visible Grid Items for the Equip List
         if (this._equipListWindow && this._equipListWindow._data) {
-            // Bypass MZ's broken pixel scroll math and use strict logical cursor rows
             let cursorRow = Math.floor(this._equipListWindow.index() / this._equipListWindow.maxCols());
             if (cursorRow < 0) cursorRow = 0;
-            
             let logicalTopRow = cursorRow > 1 ? cursorRow - 1 : 0;
             const topIndex = logicalTopRow * this._equipListWindow.maxCols(); 
-            
             for (let i = 0; i < 4; i++) {
                 const item = this._equipListWindow._data[topIndex + i];
-                if (item === undefined) {
-                    $gameTemp['equipListSlot' + i] = "";
-                } else if (item === null) {
-                    $gameTemp['equipListSlot' + i] = "-------";
-                } else {
-                    $gameTemp['equipListSlot' + i] = item.name;
-                }
+                if (item === undefined) $gameTemp['equipListSlot' + i] = "";
+                else if (item === null) $gameTemp['equipListSlot' + i] = "-------";
+                else $gameTemp['equipListSlot' + i] = item.name;
+            }
+        }
+        
+        // 2B. Track the 4 Visible Grid Items for the Abilities List
+        if (this._abilitiesListWindow && this._abilitiesListWindow._data) {
+            let cursorRow = Math.floor(this._abilitiesListWindow.index() / this._abilitiesListWindow.maxCols());
+            if (cursorRow < 0) cursorRow = 0;
+            let logicalTopRow = cursorRow > 1 ? cursorRow - 1 : 0;
+            const topIndex = logicalTopRow * this._abilitiesListWindow.maxCols(); 
+            for (let i = 0; i < 4; i++) {
+                const item = this._abilitiesListWindow._data[topIndex + i];
+                if (item === undefined) $gameTemp['abilListSlot' + i] = "";
+                else $gameTemp['abilListSlot' + i] = item.name; // No nulls in Abilities List
             }
         }
 
-        // 3. Track the Hovered Item for the Description Window
+        // 3. Track the Hovered Item for Description Windows
         let hoveredEquipItem = null;
         let isHoveringNothing = false;
+        
+        let hoveredAbilItem = null;
+        let isAbilHoveringNothing = false;
 
+        // Equip Hover tracking
         if (this._equipListWindow && this._equipListWindow.active) {
             hoveredEquipItem = this._equipListWindow.item();
-            if (hoveredEquipItem === null) isHoveringNothing = true; // Hovering the 'Unequip' line
+            if (hoveredEquipItem === null) isHoveringNothing = true; 
         } else if (this._equipTabsWindow && this._equipTabsWindow.active && $gameTemp.equipSelectedActor >= 0) {
             const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
             const index = this._equipTabsWindow.index();
-            if (index === 1) { // Hovering Weapon Slot
+            if (index === 1) { 
                 hoveredEquipItem = actor.equips()[0];
                 if (!hoveredEquipItem) isHoveringNothing = true;
-            } else if (index === 3) { // Hovering Charm Slot
+            } else if (index === 3) { 
                 hoveredEquipItem = actor.equips()[1];
                 if (!hoveredEquipItem) isHoveringNothing = true;
             }
         }
+        
+        // Abilities Hover tracking
+        if (this._abilitiesListWindow && this._abilitiesListWindow.active) {
+            hoveredAbilItem = this._abilitiesListWindow.item();
+        } else if (this._abilitiesTabsWindow && this._abilitiesTabsWindow.active && $gameTemp.equipSelectedActor >= 0) {
+            const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+            const arr = $gameTemp.currentAbilityCategory === 'skills' ? actor._equippedSkills : actor._equippedBonds;
+            const sId = arr[this._abilitiesTabsWindow.index()];
+            if (sId) hoveredAbilItem = $dataSkills[sId];
+            else isAbilHoveringNothing = true;
+        }
 
-        // 4. Output Hover Info
+        // 4. Output Equip Hover Info
         if (hoveredEquipItem) {
             $gameTemp.equipHoverName = hoveredEquipItem.name;
             if (hoveredEquipItem.description) {
@@ -1622,6 +1983,43 @@
             $gameTemp.equipHoverName = "";
             $gameTemp.equipHoverDesc1 = "";
             $gameTemp.equipHoverDesc2 = "";
+        }
+        
+        // 4B. Output Abilities Hover Info
+        const formatAbilDesc = (text) => {
+            if (!text) return ["", "", ""];
+            let lines = text.split('\n');
+            let result = [];
+            const maxLen = 45; 
+
+            for (let line of lines) {
+                while (line.length > maxLen) {
+                    let splitIdx = line.lastIndexOf(' ', maxLen);
+                    if (splitIdx === -1) splitIdx = maxLen; // Force split if no spaces exist
+                    result.push(line.substring(0, splitIdx).trim());
+                    line = line.substring(splitIdx).trim();
+                }
+                result.push(line.trim());
+            }
+            return [result[0] || "", result[1] || "", result[2] || ""];
+        };
+
+        if (hoveredAbilItem) {
+            $gameTemp.abilHoverName = hoveredAbilItem.name;
+            const descLines = formatAbilDesc(hoveredAbilItem.description);
+            $gameTemp.abilHoverDesc1 = descLines[0];
+            $gameTemp.abilHoverDesc2 = descLines[1];
+            $gameTemp.abilHoverDesc3 = descLines[2]; 
+        } else if (isAbilHoveringNothing) {
+            $gameTemp.abilHoverName = "-------";
+            $gameTemp.abilHoverDesc1 = "";
+            $gameTemp.abilHoverDesc2 = "";
+            $gameTemp.abilHoverDesc3 = "";
+        } else {
+            $gameTemp.abilHoverName = "";
+            $gameTemp.abilHoverDesc1 = "";
+            $gameTemp.abilHoverDesc2 = "";
+            $gameTemp.abilHoverDesc3 = "";
         }
 
         if (this._mementosItemWindow && this._mementosItemWindow.active) {
@@ -1656,7 +2054,7 @@
             $gameTemp.mementosItemAmount = 0;
         }
 
-        // 5. Stat Comparison Math
+        // 5. Stat Comparison Math (Unchanged)
         if (this._equipTabsWindow || this._equipListWindow) {
             let statMode = 0; // 0 = Tabs (--), 1 = List Mode
             if (this._equipListWindow && this._equipListWindow.active && $gameTemp.equipSelectedActor >= 0) {
