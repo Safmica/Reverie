@@ -611,21 +611,47 @@
     // =======================================================
     // 1.8. THE "STUN" LOCK
     // =======================================================
+    const isReverieMenuLocked = function(win) {
+        if (!$gameTemp) return false;
+        if ($gameTemp._menuCursorDelay > 0) return true;
+        if ($gameTemp._globalClosingDelay > 0) return true;
+        if (win && win._closingDelay > 0) return true;
+        
+        // 1. Prevent sequence corruption during Equip transitions (Exclude state 4)
+        if ($gameTemp.equipAnimState > 0 && $gameTemp.equipAnimState < 9 && $gameTemp.equipAnimState !== 4) return true;
+        
+        if ($gameTemp.equipDescInTimer > 0) return true;
+        if ($gameTemp.equipStatInTimer > 0) return true;
+        if ($gameTemp.equipDescOutDelay > 0) return true;
+        if ($gameTemp.equipStatOutDelay > 0) return true;
+        
+        // 2. Prevent the "Invisible Active Window" crash by checking if ANY submenu is currently sliding away
+        const scn = SceneManager._scene;
+        if (scn) {
+            if (scn._equipListWindow && scn._equipListWindow._closingDelay > 0) return true;
+            if (scn._mementosItemWindow && scn._mementosItemWindow._closingDelay > 0) return true;
+            if (scn._mementosActionWindow && scn._mementosActionWindow._closingDelay > 0) return true;
+            if (scn._mementosConfirmWindow && scn._mementosConfirmWindow._closingDelay > 0) return true;
+            if (scn._abilitiesCatWindow && scn._abilitiesCatWindow._closingDelay > 0) return true;
+        }
+        return false;
+    };
+
     const _Window_Selectable_processCursorMove = Window_Selectable.prototype.processCursorMove;
     Window_Selectable.prototype.processCursorMove = function() {
-        if ($gameTemp && ($gameTemp._menuCursorDelay > 0 || this._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) return; 
+        if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processCursorMove.call(this);
     };
 
     const _Window_Selectable_processHandling = Window_Selectable.prototype.processHandling;
     Window_Selectable.prototype.processHandling = function() {
-        if ($gameTemp && ($gameTemp._menuCursorDelay > 0 || this._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) return; 
+        if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processHandling.call(this);
     };
 
     const _Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
     Window_Selectable.prototype.processTouch = function() {
-        if ($gameTemp && ($gameTemp._menuCursorDelay > 0 || this._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) return; 
+        if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processTouch.call(this);
     };
 
