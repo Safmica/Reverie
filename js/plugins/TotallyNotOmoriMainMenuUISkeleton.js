@@ -87,6 +87,15 @@
     const EQUIP_TABS_ITEM_HEIGHT = 24;    
     const EQUIP_TABS_ITEM_GAP = 0;       
 
+    const PASS_ANIM_IN_MAX = 45;
+    const PASS_ANIM_SHIFT_MAX = 30;
+    const PASS_ANIM_FADE_MAX = 0;
+    const PASS_ANIM_DROP_MAX = 60;
+    const PASS_ANIM_WAIT_MAX = 90;
+    const PASS_BG_ANIM_MAX = 30;
+    const PASS_SLOT_DIST_X = 220; 
+    const PASS_SLOT_DIST_Y = 220;
+
     // =======================================================
     // 1.1 COMBAT SKILL LOCK OVERRIDE (FORCE 4 SLOTS IN BATTLE)
     // =======================================================
@@ -103,6 +112,20 @@
             return battleSkills;
         }
         return _Game_Actor_skills.call(this);
+    };
+
+    // =======================================================
+    // 1.14 PREVENT HUD MAKER IMAGE CRASHES
+    // =======================================================
+    const _Game_Temp_initialize = Game_Temp.prototype.initialize;
+    Game_Temp.prototype.initialize = function() {
+        if (_Game_Temp_initialize) _Game_Temp_initialize.call(this);
+        this.passMidImage = "img/pictures/sora_bg_black.png";
+        this.passCardImage0 = "img/pictures/sora_bg_black.png";
+        this.passCardImage1 = "img/pictures/sora_bg_black.png";
+        this.passCardImage2 = "img/pictures/sora_bg_black.png";
+        this.passCardImage3 = "img/pictures/sora_bg_black.png";
+        this.passPhotoName = "img/pictures/pass_sora_to_gin.png";
     };
 
     // =======================================================
@@ -345,6 +368,10 @@
                         }
                     }
                     
+                    if ($gameTemp && $gameTemp.passBgOffsetBottom) {
+                        target.y += $gameTemp.passBgOffsetBottom;
+                    }
+                    
                     target.updateTransform();
                     if (originalMethod) originalMethod.call(target, renderer);
                     
@@ -360,6 +387,104 @@
         }
     };
 
+    const hijackPassNode = (parent) => {
+        if (!parent || !parent.children) return;
+        for (let i = 0; i < parent.children.length; i++) {
+            const child = parent.children[i];
+            let targetIndex = -1;
+            let isPhoto = false;
+            
+            let nameStr = "";
+            const checkName = (val) => { if (typeof val === 'string') nameStr += val.toLowerCase() + "|"; };
+            checkName(child.name);
+            if (child._component) checkName(child._component.name);
+            if (child.component) checkName(child.component.name);
+            if (child._data) { checkName(child._data.name); checkName(child._data.Name); }
+            if (child.data) { checkName(child.data.name); checkName(child.data.Name); }
+            
+            if (nameStr.includes("passcard0")) targetIndex = 0;
+            else if (nameStr.includes("passcard1")) targetIndex = 1;
+            else if (nameStr.includes("passcard2")) targetIndex = 2;
+            else if (nameStr.includes("passcard3")) targetIndex = 3;
+            else if (nameStr.includes("passphoto")) isPhoto = true;
+
+            if ((targetIndex !== -1 || isPhoto) && !child._reveriePassHijacked) {
+                child._reveriePassHijacked = true;
+                const originalRender = child.render;
+                const originalRenderCanvas = child.renderCanvas;
+
+                const applyPassAnim = function(target, renderer, originalMethod) {
+                    const originalX = target.x;
+                    const originalY = target.y;
+                    const originalAlpha = target.alpha !== undefined ? target.alpha : 1;
+                    let shouldRender = true;
+                    
+                    if (!$gameTemp || !$gameTemp.hudShowPass) {
+                        shouldRender = false; // FIX: Completely abort rendering to prevent 1-frame flashes!
+                    } else {
+                        if (targetIndex >= 0) {
+                            target.x = originalX + ($gameTemp.passCardX[targetIndex] || 0);
+                            target.y = originalY + ($gameTemp.passCardY[targetIndex] || 0);
+                            target.alpha = originalAlpha * (($gameTemp.passCardOpacity[targetIndex] !== undefined ? $gameTemp.passCardOpacity[targetIndex] : 255) / 255);
+                        } else if (isPhoto) {
+                            target.y = originalY + ($gameTemp.passPhotoY || 0);
+                        }
+                    }
+                    
+                    if (shouldRender) {
+                        target.updateTransform();
+                        if (originalMethod) originalMethod.call(target, renderer);
+                    }
+                    
+                    target.x = originalX;
+                    target.y = originalY;
+                    target.alpha = originalAlpha;
+                    target.updateTransform();
+                };
+
+                if (originalRender) child.render = function(renderer) { applyPassAnim(this, renderer, originalRender); };
+                if (originalRenderCanvas) child.renderCanvas = function(renderer) { applyPassAnim(this, renderer, originalRenderCanvas); };
+            }
+            hijackPassNode(child);
+        }
+    };
+
+    const hijackMainMenuGroup = (parent) => {
+        if (!parent || !parent.children) return;
+        for (let i = 0; i < parent.children.length; i++) {
+            const child = parent.children[i];
+            let isTarget = false;
+            let nameStr = "";
+            
+            const checkName = (val) => { if (typeof val === 'string') nameStr += val.toLowerCase() + "|"; };
+            
+            checkName(child.name);
+            if (child._component) checkName(child._component.name);
+            if (child.component) checkName(child.component.name);
+            if (child._data) { checkName(child._data.name); checkName(child._data.Name); }
+            if (child.data) { checkName(child.data.name); checkName(child.data.Name); }
+            
+            if (nameStr.includes("mainmenu")) isTarget = true;
+
+            if (isTarget && !child._reverieMainMenuHijacked) {
+                child._reverieMainMenuHijacked = true;
+                const originalRender = child.render;
+                const applyMainMenuAnim = function(target, renderer, originalMethod) {
+                    const originalY = target.y;
+                    if ($gameTemp && $gameTemp.passBgOffsetTop) {
+                        target.y += $gameTemp.passBgOffsetTop;
+                    }
+                    target.updateTransform();
+                    if (originalMethod) originalMethod.call(target, renderer);
+                    target.y = originalY;
+                    target.updateTransform();
+                };
+                if (originalRender) child.render = function(renderer) { applyMainMenuAnim(this, renderer, originalRender); };
+            }
+            hijackMainMenuGroup(child);
+        }
+    };
+
     // =======================================================
     // 1.5. OVERLAY ENGINE
     // =======================================================
@@ -367,6 +492,8 @@
     Scene_Map.prototype.update = function() {
         if ($gameTemp && ($gameTemp._customMenuOpen || $gameTemp._globalClosingDelay > 0)) {
             Scene_Base.prototype.update.call(this); 
+
+            this.updatePassAnimations();
             this.updateHUDMakerBridge(); 
 
             // Equip/Abilities Card Animation State Machine
@@ -577,6 +704,14 @@
             hijackPopNode(this, HMU_EQUIP_RECT2_GROUP, () => $gameTemp.equipStatIsAnimatingIn, isStatClosing, statDelay, () => $gameTemp.hudShowEquipStat, 2, -1);
 
             hijackActorCardNode(this);
+            hijackPassNode(this);
+            hijackMainMenuGroup(this); 
+
+            if ($gameTemp && $gameTemp.passBgOffsetTop) {
+                this._commandWindow.y = this._commandWindow._baseY + $gameTemp.passBgOffsetTop;
+            } else if (this._commandWindow.y !== this._commandWindow._baseY) {
+                this._commandWindow.y = this._commandWindow._baseY;
+            }
 
             const allWindows = [
                 {win: this._mementosCatWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_CAT}, 
@@ -655,7 +790,19 @@
                             this._spriteset.filters = filters;
                         }
                     }
-                    
+
+                    $gameTemp.hudShowPass = false;
+                    $gameTemp.passPhotoVis = false;
+                    $gameTemp.passMidCardVis = false;
+                    $gameTemp.passLeaderTextVis = false;
+                    $gameTemp.passPhotoName = ""; 
+                    $gameTemp.passBgOffsetTop = 0;
+                    $gameTemp.passBgOffsetBottom = 0;
+                    for (let i = 0; i < 4; i++) {
+                        $gameTemp['passCardVis' + i] = false;
+                        $gameTemp.passCardOpacity[i] = 0;
+                    }
+
                     $gameTemp.hudShowMementos = false;
                     $gameTemp.hudShowMementosList = false;
                     $gameTemp.hudShowMementosAction = false;
@@ -731,6 +878,7 @@
         if ($gameTemp._menuCursorDelay > 0) return true;
         if ($gameTemp._globalClosingDelay > 0) return true;
         if (win && win._closingDelay > 0) return true;
+        if ($gameTemp.passAnimState > 0 && $gameTemp.passAnimState !== 3) return true;
         
         // 1. Prevent sequence corruption during Equip transitions (Exclude state 4)
         if ($gameTemp.equipAnimState > 0 && $gameTemp.equipAnimState < 9 && $gameTemp.equipAnimState !== 4) return true;
@@ -895,7 +1043,7 @@
     Window_MenuCommand.prototype.maxCols = function() { return 5; };
     Window_MenuCommand.prototype.numVisibleRows = function() { return 1; }; 
     Window_MenuCommand.prototype.makeCommandList = function() {
-        this.addCommand("Tag", 'tag', false); 
+        this.addCommand("Pass", 'pass', true);
         this.addCommand("Equip", 'equip');
         this.addCommand("Mementos", 'mementos');
         this.addCommand("Abilities", 'abilities'); 
@@ -922,6 +1070,222 @@
             this.drawText(this.actor(index).name(), rect.x, rect.y, rect.width, 'center');
         }
     };
+
+    // PASS MENU CONTROLLER
+    function Window_MenuPass() { this.initialize(...arguments); }
+    Window_MenuPass.prototype = Object.create(Window_Selectable.prototype);
+    Window_MenuPass.prototype.constructor = Window_MenuPass;
+    applySkeletonStyle(Window_MenuPass);
+
+    // FIX: Force MZ to read inputs even if the window list is empty!
+    Window_MenuPass.prototype.processCursorMove = function() {
+        if (this.active) {
+            if (Input.isRepeated("right")) this.cursorRight();
+            if (Input.isRepeated("left")) this.cursorLeft();
+        }
+    };
+    Window_MenuPass.prototype.processHandling = function() {
+        if (this.active) {
+            if (Input.isTriggered("ok")) this.processOk();
+            else if (Input.isTriggered("cancel")) this.processCancel();
+        }
+    };
+
+    Window_MenuPass.prototype.cursorRight = function() {
+        if ($gameTemp.passAnimState !== 3) return; // 3 is Idle
+        const len = $gameParty.members().length;
+        if (len <= 1) return;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passPrevIndex = $gameTemp.passSelectedIndex;
+        $gameTemp.passSelectedIndex = ($gameTemp.passSelectedIndex + 1) % len;
+        $gameTemp.passAnimState = 4; // Shift
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playCursor();
+    };
+    Window_MenuPass.prototype.cursorLeft = function() {
+        if ($gameTemp.passAnimState !== 3) return;
+        const len = $gameParty.members().length;
+        if (len <= 1) return;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passPrevIndex = $gameTemp.passSelectedIndex;
+        $gameTemp.passSelectedIndex = ($gameTemp.passSelectedIndex - 1 + len) % len;
+        $gameTemp.passAnimState = 4; // Shift
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playCursor();
+    };
+    Window_MenuPass.prototype.processOk = function() {
+        if (this.active) this.callOkHandler();
+    };
+    Window_MenuPass.prototype.processCancel = function() {
+        if (this.active) this.callCancelHandler();
+    };
+
+    Scene_Map.prototype.updatePassAnimations = function() {
+        if (!$gameTemp || !$gameTemp.hudShowPass || $gameTemp.passAnimState === 0) return;
+
+        const getSlotX = (slot) => slot === 0 ? 0 : slot === 1 ? PASS_SLOT_DIST_X : slot === 2 ? 0 : -PASS_SLOT_DIST_X;
+        const getSlotY = (slot) => slot === 0 ? -PASS_SLOT_DIST_Y : slot === 1 ? 0 : slot === 2 ? PASS_SLOT_DIST_Y : 0;
+        const getOrigX = (slot) => slot === 0 ? 15 : slot === 1 ? -15 : slot === 2 ? -15 : 15;
+        const getOrigY = (slot) => slot === 0 ? 15 : slot === 1 ? 15 : slot === 2 ? -15 : -15;
+        
+        $gameTemp.passAnimTimer++;
+        const state = $gameTemp.passAnimState;
+        
+        if (state === 1) { // 1. BG OUT
+            const prog = Math.pow($gameTemp.passAnimTimer / PASS_BG_ANIM_MAX, 3);
+            $gameTemp.passBgOffsetTop = -150 * prog; // Main Menu UP
+            $gameTemp.passBgOffsetBottom = 350 * prog; // Status Cards DOWN
+            if ($gameTemp.passAnimTimer >= PASS_BG_ANIM_MAX) {
+                $gameTemp.passAnimState = 2;
+                $gameTemp.passAnimTimer = 0;
+                $gameTemp.passMidCardVis = true;
+            }
+        }
+        else if (state === 2) { // 2. Emerge IN (SWIRLED)
+            const rawProg = $gameTemp.passAnimTimer / PASS_ANIM_IN_MAX;
+            const prog = 1 - Math.pow(1 - rawProg, 3); // Ease Out
+            
+            // Math.sin(rawProg * PI) creates an arc that peaks at 50% of the animation
+            const arcPower = Math.sin(rawProg * Math.PI) * 150; 
+
+            for (let i = 0; i < 4; i++) {
+                const currentSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                const startX = getOrigX(currentSlot);
+                const startY = getOrigY(currentSlot);
+                
+                let arcX = 0;
+                let arcY = 0;
+                // Add an outward bulge to the trajectory based on the target slot
+                if (currentSlot === 0) arcX = arcPower;      // Top card arcs Right
+                else if (currentSlot === 1) arcY = arcPower; // Right card arcs Down
+                else if (currentSlot === 2) arcX = -arcPower;// Bottom card arcs Left
+                else if (currentSlot === 3) arcY = -arcPower;// Left card arcs Up
+
+                $gameTemp.passCardX[i] = startX + ((getSlotX(currentSlot) - startX) * prog) + arcX;
+                $gameTemp.passCardY[i] = startY + ((getSlotY(currentSlot) - startY) * prog) + arcY;
+                $gameTemp.passCardOpacity[i] = 255 * prog;
+            }
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_IN_MAX) {
+                $gameTemp.passAnimState = 3; 
+                $gameTemp.passLeaderTextVis = true;
+            }
+        }
+        else if (state === 3) { // 3. Idle
+            for (let i = 0; i < 4; i++) {
+                const currentSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                $gameTemp.passCardX[i] = getSlotX(currentSlot);
+                $gameTemp.passCardY[i] = getSlotY(currentSlot);
+                $gameTemp.passCardOpacity[i] = 255;
+            }
+        }
+        else if (state === 4) { // 4. Shift Left/Right
+            const rawProg = $gameTemp.passAnimTimer / PASS_ANIM_SHIFT_MAX;
+            const prog = rawProg < 0.5 ? 4 * rawProg * rawProg * rawProg : 1 - Math.pow(-2 * rawProg + 2, 3) / 2;
+            for (let i = 0; i < 4; i++) {
+                const prevSlot = (i - $gameTemp.passPrevIndex + 4) % 4;
+                const nextSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                const startX = getSlotX(prevSlot); const startY = getSlotY(prevSlot);
+                const endX = getSlotX(nextSlot);   const endY = getSlotY(nextSlot);
+                $gameTemp.passCardX[i] = startX + ((endX - startX) * prog);
+                $gameTemp.passCardY[i] = startY + ((endY - startY) * prog);
+            }
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_SHIFT_MAX) {
+                $gameTemp.passAnimState = 3;
+                $gameTemp.passLeaderTextVis = true;
+            }
+        }
+        else if (state === 5) { // 5. Cancel OUT (SWIRLED)
+            const rawProg = $gameTemp.passAnimTimer / PASS_ANIM_IN_MAX;
+            const prog = Math.pow(rawProg, 3); // Ease In
+            
+            // Reversing the arc power
+            const arcPower = Math.sin((1 - rawProg) * Math.PI) * 150;
+
+            for (let i = 0; i < 4; i++) {
+                const currentSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                const startX = getOrigX(currentSlot);
+                const startY = getOrigY(currentSlot);
+                
+                let arcX = 0;
+                let arcY = 0;
+                if (currentSlot === 0) arcX = arcPower;      
+                else if (currentSlot === 1) arcY = arcPower; 
+                else if (currentSlot === 2) arcX = -arcPower;
+                else if (currentSlot === 3) arcY = -arcPower;
+
+                $gameTemp.passCardX[i] = getSlotX(currentSlot) + ((startX - getSlotX(currentSlot)) * prog) + arcX;
+                $gameTemp.passCardY[i] = getSlotY(currentSlot) + ((startY - getSlotY(currentSlot)) * prog) + arcY;
+                $gameTemp.passCardOpacity[i] = 255 * (1 - prog);
+            }
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_IN_MAX) {
+                $gameTemp.passAnimState = 6;
+                $gameTemp.passAnimTimer = 0;
+                $gameTemp.passMidCardVis = false;
+            }
+        }
+        else if (state === 6) { // 6. BG IN (Cancel Finish)
+            const prog = 1 - Math.pow(1 - ($gameTemp.passAnimTimer / PASS_BG_ANIM_MAX), 3); 
+            $gameTemp.passBgOffsetTop = -150 * (1 - prog);
+            $gameTemp.passBgOffsetBottom = 350 * (1 - prog);
+            if ($gameTemp.passAnimTimer >= PASS_BG_ANIM_MAX) {
+                $gameTemp.passAnimState = 0;
+                $gameTemp.hudShowPass = false;
+            
+                $gameTemp.passBgOffsetTop = 0;
+                $gameTemp.passBgOffsetBottom = 0;
+                
+                this._commandWindow.activate(); 
+            }
+        }
+        else if (state === 7) { // 7. Enter Confirm Fade
+            const prog = $gameTemp.passAnimTimer / PASS_ANIM_FADE_MAX;
+            $gameTemp.passMidCardVis = false; 
+            for (let i = 0; i < 4; i++) $gameTemp.passCardOpacity[i] = 255 * (1 - prog);
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_FADE_MAX) {
+                $gameTemp.passAnimState = 8;
+                $gameTemp.passAnimTimer = 0;
+                $gameTemp.passPhotoVis = true;
+            }
+        }
+        else if (state === 8) { // 8. Photo Drop In
+            const prog = 1 - Math.pow(1 - ($gameTemp.passAnimTimer / PASS_ANIM_DROP_MAX), 3); 
+            $gameTemp.passPhotoY = -800 + (800 * prog);
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_DROP_MAX) {
+                $gameTemp.passAnimState = 9;
+                $gameTemp.passAnimTimer = 0;
+            }
+        }
+        else if (state === 9) { // 9. Photo Pause
+            $gameTemp.passPhotoY = 0;
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_WAIT_MAX) {
+                $gameTemp.passAnimState = 10;
+                $gameTemp.passAnimTimer = 0;
+            }
+        }
+        else if (state === 10) { // 10. Photo Drop Out & Swap
+            const prog = Math.pow($gameTemp.passAnimTimer / PASS_ANIM_DROP_MAX, 3);
+            $gameTemp.passPhotoY = 800 * prog;
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_DROP_MAX) {
+                const nextIndex = $gameTemp.passSelectedIndex;
+                if (nextIndex > 0 && nextIndex < $gameParty.members().length) {
+                    $gameParty.swapOrder(0, nextIndex);
+                    $gamePlayer.refresh();
+                }
+                $gameTemp.passAnimState = 0;
+                
+                $gameTemp.passPhotoVis = false;
+                $gameTemp.passMidCardVis = false;
+                $gameTemp.passLeaderTextVis = false;
+                for (let i = 0; i < 4; i++) {
+                    $gameTemp['passCardVis' + i] = false;
+                    $gameTemp.passCardOpacity[i] = 0;
+                }
+                
+
+                this.closeCustomOmoriMenu();
+            }
+        }
+    };    
 
     // =======================================================
     // 6. MEMENTOS: CATEGORIES
@@ -1353,6 +1717,7 @@
     Scene_Map.prototype.createCustomOmoriMenu = function() {
         this.createCommandWindow();
         this.createStatusWindow();
+        this.createPassWindow();
         
         this.createMementosSubWindow();
         this.createMementosItemList();
@@ -1437,11 +1802,72 @@
     Scene_Map.prototype.createCommandWindow = function() {
         const rect = this.commandWindowRect();
         this._commandWindow = new Window_MenuCommand(rect);
+        
+        this._commandWindow._baseX = this._commandWindow.x;
+        this._commandWindow._baseY = this._commandWindow.y;
+        
+        this._commandWindow.setHandler('pass', this.commandPass.bind(this));
         this._commandWindow.setHandler('equip', this.commandPersonal.bind(this));
         this._commandWindow.setHandler('mementos', this.commandMementos.bind(this));
         this._commandWindow.setHandler('abilities', this.commandPersonal.bind(this)); // Routes to Status Window to pick Actor first!
         this._commandWindow.setHandler('cancel', this.closeCustomOmoriMenu.bind(this));
         this.addWindow(this._commandWindow);
+    };
+
+    Scene_Map.prototype.createPassWindow = function() {
+        this._passWindow = new Window_MenuPass(new Rectangle(0, 0, Graphics.boxWidth, Graphics.boxHeight));
+        this._passWindow._baseX = 0;
+        this._passWindow._baseY = 0;
+        this._passWindow.setHandler('ok', this.onPassOk.bind(this));
+        this._passWindow.setHandler('cancel', this.onPassCancel.bind(this));
+        this.addWindow(this._passWindow);
+        this._passWindow.hide();
+        this._passWindow.deactivate();
+    };
+
+    Scene_Map.prototype.onPassOk = function() {
+        if ($gameTemp.passAnimState !== 3) {
+            this._passWindow.activate();
+            return;
+        }
+        if ($gameTemp.passSelectedIndex === 0) {
+            SoundManager.playBuzzer(); 
+            this._passWindow.activate();
+            return;
+        }
+        $gameTemp.passLeaderTextVis = false;
+        const curName = $gameParty.members()[0].name().toLowerCase();
+        const nextName = $gameParty.members()[$gameTemp.passSelectedIndex].name().toLowerCase();
+        
+        $gameTemp.passPhotoName = "img/pictures/pass_" + curName + "_to_" + nextName + ".png";
+        
+        $gameTemp.passAnimState = 7;
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playOk();
+    };
+
+    Scene_Map.prototype.onPassCancel = function() {
+        if ($gameTemp.passAnimState !== 3) {
+            this._passWindow.activate();
+            return;
+        }
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passAnimState = 5;
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playCancel();
+    };
+
+    Scene_Map.prototype.commandPass = function() {
+        this._commandWindow.deactivate();
+        $gameTemp.hudShowPass = true;
+        $gameTemp.passAnimState = 1; // BG OUT
+        $gameTemp.passAnimTimer = 0;
+        $gameTemp.passSelectedIndex = 0;
+        $gameTemp.passPrevIndex = 0;
+        $gameTemp.passMidCardVis = false;
+        $gameTemp.passBgOffsetTop = 0;
+        $gameTemp.passBgOffsetBottom = 0;
+        this._passWindow.activate(); 
     };
 
     Scene_Map.prototype.createStatusWindow = function() {
@@ -1542,6 +1968,20 @@
         $gameTemp.abilDescInTimer = 0;
         $gameTemp.abilDescOutDelay = 0;
         $gameTemp.abilCatInTimer = 0;
+
+        $gameTemp.hudShowPass = false;
+        $gameTemp.passAnimState = 0; 
+        $gameTemp.passAnimTimer = 0;
+        $gameTemp.passSelectedIndex = 0;
+        $gameTemp.passPrevIndex = 0;
+        $gameTemp.passMidCardVis = false;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passPhotoVis = false;
+        $gameTemp.passCardX = [0,0,0,0];
+        $gameTemp.passCardY = [0,0,0,0];
+        $gameTemp.passCardOpacity = [0,0,0,0];
+
+        $gameTemp.passPhotoY = -800;
 
         if (!this._reverieBlurFilter) {
             this._reverieBlurFilter = new PIXI.filters.BlurFilter();
@@ -1871,6 +2311,17 @@
 
         $gameTemp.hudShowEquipTabs = !!(this._equipTabsWindow && (this._equipTabsWindow.visible || this._equipTabsWindow._closingDelay > 0));
         $gameTemp.hudShowEquipList = !!(this._equipListWindow && (this._equipListWindow.visible || this._equipListWindow._closingDelay > 0));
+
+        const leader = $gameParty.members()[0];
+        $gameTemp.passMidImage = leader ? "img/pictures/" + leader.name().toLowerCase() + "_bg_black.png" : "img/pictures/sora_bg_black.png";
+        for (let i = 0; i < 4; i++) {
+            const actor = $gameParty.members()[i];
+            $gameTemp['passCardVis' + i] = !!actor; 
+            $gameTemp['passCardImage' + i] = actor ? "img/pictures/" + actor.name().toLowerCase() + "_bg_black.png" : "img/pictures/sora_bg_black.png";
+        }
+        if (!$gameTemp.passPhotoName || $gameTemp.passPhotoName === "") {
+            $gameTemp.passPhotoName = "img/pictures/pass_sora_to_gin.png";
+        }
 
         // 1. Track Currently Equipped Names for the Tabs
         if ($gameTemp.equipSelectedActor >= 0 && $gameParty.members()[$gameTemp.equipSelectedActor]) {
