@@ -773,10 +773,11 @@
 
     const _Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
     Window_Selectable.prototype.processTouch = function() {
+        if ($gameTemp && $gameTemp._customMenuOpen) return; 
+
         if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processTouch.call(this);
     };
-
     // =======================================================
     // 2. ANNIHILATE UNWANTED UI ELEMENTS
     // =======================================================
