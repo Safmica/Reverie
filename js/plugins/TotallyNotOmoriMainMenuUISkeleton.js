@@ -8,7 +8,10 @@
     // =======================================================
     // 1. SETTINGS & CONSTANTS
     // =======================================================
-    const DEBUG_MODE = true; 
+    const DEBUG_MODE = false; 
+    
+    const CURSOR_ANIMATION_DELAY = 20; 
+    const GLOBAL_CURSOR_X_OFFSET = -6;
 
     const MENU_MARGIN_X = 12; 
     const MENU_MARGIN_Y = 12; 
@@ -17,16 +20,29 @@
     const CURSOR_NATIVE_SIZE = 14; 
     const CURSOR_DRAW_SIZE = 24;
 
+    const HMU_EQUIP_TABS_GROUP = "EquipTabsMenu";
+    const HMU_EQUIP_LIST_GROUP = "EquipListMenu";
+    const HMU_EQUIP_DESC_GROUP = "EquipDescMenu";
+    const HMU_EQUIP_STAT_GROUP = "EquipStatMenu";
+    const HMU_EQUIP_RECT1_GROUP = "EquipRectangle1"; 
+    const HMU_EQUIP_RECT2_GROUP = "EquipRectangle2";
+
     const HMU_MEMENTOS_GROUP = "MementosMenu";
     const HMU_MEMENTOS_LIST_GROUP = "MementosListMenu";
     const HMU_MEMENTOS_ACTION_GROUP = "MementosActionMenu";
     const HMU_MEMENTOS_CONFIRM_GROUP = "MementosConfirmMenu";
     const HMU_MEMENTOS_DESC_GROUP = "MementosDescMenu"; 
-    
-    const HMU_EQUIP_TABS_GROUP = "EquipTabsMenu";
-    const HMU_EQUIP_LIST_GROUP = "EquipListMenu";
 
-    const CURSOR_ANIMATION_DELAY = 30; 
+    const HMU_ABILITIES_CAT_GROUP = "AbilitiesMenu";
+    const HMU_ABILITIES_TABS_GROUP = "AbilitiesTabsMenu";
+    const HMU_ABILITIES_LIST_GROUP = "AbilitiesListMenu";
+    const HMU_ABILITIES_DESC_GROUP = "AbilitiesDescMenu";
+
+    const MAIN_MENU_CURSOR_Y_OFFSET = 7;
+    const MEMENTOS_CAT_CURSOR_Y_OFFSET = 7;
+    const MEMENTOS_LIST_CURSOR_Y_OFFSET = 8;
+    const MEMENTOS_ACTION_CURSOR_Y_OFFSET = 8;
+    const MEMENTOS_CONFIRM_CURSOR_Y_OFFSET = 8;
 
     const SLIDE_Y_OFFSET_CAT     = -68; 
     const SLIDE_Y_OFFSET_LIST    = -68; 
@@ -34,17 +50,17 @@
     const SLIDE_Y_OFFSET_CONFIRM = -110; 
     const SLIDE_Y_OFFSET_DESC    = -108; 
 
-    const SLIDE_Y_OFFSET_EQUIP_TABS = 110;  
-    const SLIDE_X_OFFSET_EQUIP_LIST = 100;  
+    const SLIDE_Y_OFFSET_EQUIP_TABS = 200;  
+    const SLIDE_X_OFFSET_EQUIP_LIST = -200;  
+    const SLIDE_X_OFFSET_EQUIP_DESC = -200;
+    const SLIDE_Y_OFFSET_EQUIP_STAT = 200;
 
     const MEMENTOS_LIST_VISIBLE_ITEMS = 4;
     const MEMENTOS_LIST_ITEM_PADDING = 0; 
     const MEMENTOS_LIST_ITEM_HEIGHT = 36; 
     const MEMENTOS_LIST_FONT_SIZE = 16; 
     const MEMENTOS_LIST_TEXT_Y_OFFSET = 10; 
-
     const MEMENTOS_LIST_CURSOR_X_OFFSET = -12;
-
     const MEMENTOS_LIST_Y_OFFSET = 3; 
     const MEMENTOS_ACTION_Y_OFFSET = -9; 
     const MEMENTOS_CONFIRM_Y_OFFSET = 5;
@@ -53,9 +69,9 @@
     const ACTOR_CARD_DOWN_OFFSET = 300;  
     const ACTOR_CARD_GAP = 196; 
 
-    const EQUIP_TABS_CURSOR_X_OFFSET = 0;
-    const EQUIP_TABS_CURSOR_Y_OFFSET = 0;
-    const EQUIP_LIST_CURSOR_X_OFFSET = 0;
+    const EQUIP_TABS_CURSOR_X_OFFSET = -8;
+    const EQUIP_TABS_CURSOR_Y_OFFSET = 2;
+    const EQUIP_LIST_CURSOR_X_OFFSET = 14;
     const EQUIP_LIST_CURSOR_Y_OFFSET = 0;
 
     const EQUIP_LIST_RESTING_X = 200; 
@@ -70,6 +86,75 @@
     const EQUIP_TABS_FONT_SIZE = 20;      
     const EQUIP_TABS_ITEM_HEIGHT = 24;    
     const EQUIP_TABS_ITEM_GAP = 0;       
+
+    const PASS_ANIM_IN_MAX = 45;
+    const PASS_ANIM_SHIFT_MAX = 30;
+    const PASS_ANIM_FADE_MAX = 0;
+    const PASS_ANIM_DROP_MAX = 60;
+    const PASS_ANIM_WAIT_MAX = 90;
+    const PASS_BG_ANIM_MAX = 30;
+    const PASS_SLOT_DIST_X = 220; 
+    const PASS_SLOT_DIST_Y = 220;
+
+    // =======================================================
+    // 1.1 COMBAT SKILL LOCK OVERRIDE (FORCE 4 SLOTS IN BATTLE)
+    // =======================================================
+    const _Game_Actor_skills = Game_Actor.prototype.skills;
+    Game_Actor.prototype.skills = function() {
+        if ($gameParty.inBattle()) {
+            const battleSkills = [];
+            this._equippedSkills = this._equippedSkills || [null, null, null, null];
+            this._equippedBonds = this._equippedBonds || [null, null, null, null];
+            
+            this._equippedSkills.forEach(id => { if (id && this.isLearnedSkill(id)) battleSkills.push($dataSkills[id]); });
+            this._equippedBonds.forEach(id => { if (id && this.isLearnedSkill(id)) battleSkills.push($dataSkills[id]); });
+            
+            return battleSkills;
+        }
+        return _Game_Actor_skills.call(this);
+    };
+
+    // =======================================================
+    // 1.14 PREVENT HUD MAKER IMAGE CRASHES
+    // =======================================================
+    const _Game_Temp_initialize = Game_Temp.prototype.initialize;
+    Game_Temp.prototype.initialize = function() {
+        if (_Game_Temp_initialize) _Game_Temp_initialize.call(this);
+        this.passMidImage = "img/pictures/sora_bg_black.png";
+        this.passCardImage0 = "img/pictures/sora_bg_black.png";
+        this.passCardImage1 = "img/pictures/sora_bg_black.png";
+        this.passCardImage2 = "img/pictures/sora_bg_black.png";
+        this.passCardImage3 = "img/pictures/sora_bg_black.png";
+        this.passPhotoName = "img/pictures/pass_sora_to_gin.png";
+    };
+
+    // =======================================================
+    // 1.15 ACTOR INITIALIZATION (AUTO-EQUIP SKILLS ON NEW GAME)
+    // =======================================================
+    const _Game_Actor_setup = Game_Actor.prototype.setup;
+    Game_Actor.prototype.setup = function(actorId) {
+        _Game_Actor_setup.call(this, actorId);
+        
+        // Create fresh, empty arrays for the new character
+        this._equippedSkills = [null, null, null, null];
+        this._equippedBonds = [null, null, null, null];
+        
+        let skillCount = 0;
+        let bondCount = 0;
+        
+        // Look at the skills they naturally start with and auto-equip the first 4
+        const initialSkills = this.skills();
+        for (let i = 0; i < initialSkills.length; i++) {
+            const skill = initialSkills[i];
+            if (skill && skill.stypeId === 2 && skillCount < 4) { // Skill Type 2: Skills
+                this._equippedSkills[skillCount] = skill.id;
+                skillCount++;
+            } else if (skill && skill.stypeId === 3 && bondCount < 4) { // Skill Type 3: Bonds
+                this._equippedBonds[bondCount] = skill.id;
+                bondCount++;
+            }
+        }
+    };
 
     // =======================================================
     // 1.2. PIXI WEBGL HIJACK ENGINE
@@ -161,6 +246,80 @@
         }
     };
 
+    const hijackPopNode = (parent, targetName, isActiveFn, isClosingFn, getClosingDelayFn, isVisibleFn, popOrder, floatDir) => {
+        if (!parent || !parent.children) return;
+        
+        for (let i = 0; i < parent.children.length; i++) {
+            const child = parent.children[i];
+            
+            let isTarget = false;
+            if (child.name === targetName) isTarget = true;
+            else if (child._component && child._component.name === targetName) isTarget = true;
+            else if (child.component && child.component.name === targetName) isTarget = true;
+            else if (child._data && (child._data.name === targetName || child._data.Name === targetName)) isTarget = true;
+            else if (child.data && (child.data.name === targetName || child.data.Name === targetName)) isTarget = true;
+            
+            if (isTarget && !child._reveriePopHijacked) {
+                child._reveriePopHijacked = true;
+                
+                const originalRender = child.render;
+                const originalRenderCanvas = child.renderCanvas;
+
+                const applyPopAnim = function(target, renderer, originalMethod) {
+                    const originalY = target.y;
+                    const originalAlpha = target.alpha !== undefined ? target.alpha : 1;
+                    let shouldRender = true;
+                    let currentAlpha = originalAlpha;
+
+                    // Absolute Ban: Menu closed or formally hidden
+                    if (!$gameTemp || !$gameTemp._customMenuOpen || (isVisibleFn && !isVisibleFn())) {
+                        shouldRender = false;
+                    } 
+                    // IN Animation (Split 20 frames into two sequential 10-frame chunks)
+                    else if ($gameTemp._menuCursorDelay > 0 && isActiveFn && isActiveFn()) {
+                        const delay = $gameTemp._menuCursorDelay;
+                        let progress = 0;
+                        if (popOrder === 1) progress = delay > 10 ? (20 - delay) / 10 : 1; // 1st pops frame 20->10
+                        else progress = delay <= 10 ? (10 - delay) / 10 : 0;               // 2nd pops frame 10->0
+                        
+                        currentAlpha = originalAlpha * progress;
+                        if (progress === 0) shouldRender = false;
+                    } 
+                    // OUT Animation (Reversed 10-frame chunks)
+                    else if (isClosingFn && isClosingFn() && getClosingDelayFn) {
+                        const delay = getClosingDelayFn();
+                        let progress = 0;
+                        if (popOrder === 1) progress = delay <= 10 ? delay / 10 : 1;       // 1st leaves frame 10->0
+                        else progress = delay > 10 ? (delay - 10) / 10 : 0;                // 2nd leaves frame 20->10
+                        
+                        currentAlpha = originalAlpha * progress;
+                        if (progress === 0) shouldRender = false;
+                    }
+
+                    if (shouldRender) {
+                        target.alpha = currentAlpha;
+                        
+                        // IDLE FLOAT MATH: Graphics.frameCount ensures endless smooth bobbing
+                        const floatY = Math.sin(Graphics.frameCount * 0.08) * 8 * floatDir;
+                        target.y = originalY + floatY;
+                        
+                        target.updateTransform();
+                        if (originalMethod) originalMethod.call(target, renderer);
+                    }
+
+                    // Restore completely to prevent permanent PIXI coordinate breakage
+                    target.y = originalY;
+                    target.alpha = originalAlpha;
+                    target.updateTransform(); 
+                };
+
+                if (originalRender) child.render = function(renderer) { applyPopAnim(this, renderer, originalRender); };
+                if (originalRenderCanvas) child.renderCanvas = function(renderer) { applyPopAnim(this, renderer, originalRenderCanvas); };
+            }
+            hijackPopNode(child, targetName, isActiveFn, isClosingFn, getClosingDelayFn, isVisibleFn, popOrder, floatDir);
+        }
+    };
+
     const hijackActorCardNode = (parent) => {
         if (!parent || !parent.children) return;
         for (let i = 0; i < parent.children.length; i++) {
@@ -209,6 +368,10 @@
                         }
                     }
                     
+                    if ($gameTemp && $gameTemp.passBgOffsetBottom) {
+                        target.y += $gameTemp.passBgOffsetBottom;
+                    }
+                    
                     target.updateTransform();
                     if (originalMethod) originalMethod.call(target, renderer);
                     
@@ -224,6 +387,104 @@
         }
     };
 
+    const hijackPassNode = (parent) => {
+        if (!parent || !parent.children) return;
+        for (let i = 0; i < parent.children.length; i++) {
+            const child = parent.children[i];
+            let targetIndex = -1;
+            let isPhoto = false;
+            
+            let nameStr = "";
+            const checkName = (val) => { if (typeof val === 'string') nameStr += val.toLowerCase() + "|"; };
+            checkName(child.name);
+            if (child._component) checkName(child._component.name);
+            if (child.component) checkName(child.component.name);
+            if (child._data) { checkName(child._data.name); checkName(child._data.Name); }
+            if (child.data) { checkName(child.data.name); checkName(child.data.Name); }
+            
+            if (nameStr.includes("passcard0")) targetIndex = 0;
+            else if (nameStr.includes("passcard1")) targetIndex = 1;
+            else if (nameStr.includes("passcard2")) targetIndex = 2;
+            else if (nameStr.includes("passcard3")) targetIndex = 3;
+            else if (nameStr.includes("passphoto")) isPhoto = true;
+
+            if ((targetIndex !== -1 || isPhoto) && !child._reveriePassHijacked) {
+                child._reveriePassHijacked = true;
+                const originalRender = child.render;
+                const originalRenderCanvas = child.renderCanvas;
+
+                const applyPassAnim = function(target, renderer, originalMethod) {
+                    const originalX = target.x;
+                    const originalY = target.y;
+                    const originalAlpha = target.alpha !== undefined ? target.alpha : 1;
+                    let shouldRender = true;
+                    
+                    if (!$gameTemp || !$gameTemp.hudShowPass) {
+                        shouldRender = false; // FIX: Completely abort rendering to prevent 1-frame flashes!
+                    } else {
+                        if (targetIndex >= 0) {
+                            target.x = originalX + ($gameTemp.passCardX[targetIndex] || 0);
+                            target.y = originalY + ($gameTemp.passCardY[targetIndex] || 0);
+                            target.alpha = originalAlpha * (($gameTemp.passCardOpacity[targetIndex] !== undefined ? $gameTemp.passCardOpacity[targetIndex] : 255) / 255);
+                        } else if (isPhoto) {
+                            target.y = originalY + ($gameTemp.passPhotoY || 0);
+                        }
+                    }
+                    
+                    if (shouldRender) {
+                        target.updateTransform();
+                        if (originalMethod) originalMethod.call(target, renderer);
+                    }
+                    
+                    target.x = originalX;
+                    target.y = originalY;
+                    target.alpha = originalAlpha;
+                    target.updateTransform();
+                };
+
+                if (originalRender) child.render = function(renderer) { applyPassAnim(this, renderer, originalRender); };
+                if (originalRenderCanvas) child.renderCanvas = function(renderer) { applyPassAnim(this, renderer, originalRenderCanvas); };
+            }
+            hijackPassNode(child);
+        }
+    };
+
+    const hijackMainMenuGroup = (parent) => {
+        if (!parent || !parent.children) return;
+        for (let i = 0; i < parent.children.length; i++) {
+            const child = parent.children[i];
+            let isTarget = false;
+            let nameStr = "";
+            
+            const checkName = (val) => { if (typeof val === 'string') nameStr += val.toLowerCase() + "|"; };
+            
+            checkName(child.name);
+            if (child._component) checkName(child._component.name);
+            if (child.component) checkName(child.component.name);
+            if (child._data) { checkName(child._data.name); checkName(child._data.Name); }
+            if (child.data) { checkName(child.data.name); checkName(child.data.Name); }
+            
+            if (nameStr.includes("mainmenu")) isTarget = true;
+
+            if (isTarget && !child._reverieMainMenuHijacked) {
+                child._reverieMainMenuHijacked = true;
+                const originalRender = child.render;
+                const applyMainMenuAnim = function(target, renderer, originalMethod) {
+                    const originalY = target.y;
+                    if ($gameTemp && $gameTemp.passBgOffsetTop) {
+                        target.y += $gameTemp.passBgOffsetTop;
+                    }
+                    target.updateTransform();
+                    if (originalMethod) originalMethod.call(target, renderer);
+                    target.y = originalY;
+                    target.updateTransform();
+                };
+                if (originalRender) child.render = function(renderer) { applyMainMenuAnim(this, renderer, originalRender); };
+            }
+            hijackMainMenuGroup(child);
+        }
+    };
+
     // =======================================================
     // 1.5. OVERLAY ENGINE
     // =======================================================
@@ -231,9 +492,11 @@
     Scene_Map.prototype.update = function() {
         if ($gameTemp && ($gameTemp._customMenuOpen || $gameTemp._globalClosingDelay > 0)) {
             Scene_Base.prototype.update.call(this); 
+
+            this.updatePassAnimations();
             this.updateHUDMakerBridge(); 
 
-            // Equip Card Animation State Machine
+            // Equip/Abilities Card Animation State Machine
             if ($gameTemp.equipAnimState > 0 && $gameTemp.equipAnimState < 4) {
                 if ($gameTemp.equipAnimTimer < CURSOR_ANIMATION_DELAY) {
                     $gameTemp.equipAnimTimer++;
@@ -244,13 +507,17 @@
                         $gameTemp.equipAnimState = 3; // Skip Left Movement if it's the 1st character
                     }
                     if ($gameTemp.equipAnimState === 4) {
-                        if (this._equipTabsWindow) {
+                        if ($gameTemp.activeMenuSymbol === 'equip' && this._equipTabsWindow) {
                             $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
                             this._equipTabsWindow.show();
                             this._equipTabsWindow.activate();
-                            
-                            // Always select the Weapon Name (index 1) to skip the unselectable header
                             this._equipTabsWindow.select(1);
+                            $gameTemp.equipDescInTimer = CURSOR_ANIMATION_DELAY;
+                        } else if ($gameTemp.activeMenuSymbol === 'abilities' && this._abilitiesCatWindow) {
+                            $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                            this._abilitiesCatWindow.show();
+                            this._abilitiesCatWindow.activate();
+                            this._abilitiesCatWindow.select(0);
                         }
                     }
                 }
@@ -277,6 +544,7 @@
                 $gameTemp.equipAnimProgress = 1 - Math.pow(1 - progress, 3); 
             }
 
+            // MEMENTOS HIJACKS
             if (this._mementosCatWindow && (this._mementosCatWindow.visible || this._mementosCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
                 const isCatClosing = () => this._mementosCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
                 const catDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._mementosCatWindow._closingDelay;
@@ -300,25 +568,159 @@
                 hijackHUDMakerNode(this, HMU_MEMENTOS_CONFIRM_GROUP, () => this._mementosConfirmWindow.active, isConfirmClosing, confirmDelay, 0, SLIDE_Y_OFFSET_CONFIRM, () => this._mementosConfirmWindow.visible);
             }
 
+            // ABILITIES HIJACKS
+            if (this._abilitiesCatWindow && (this._abilitiesCatWindow.visible || this._abilitiesCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
+                const isAbilClosing = () => this._abilitiesCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
+                const abilDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._abilitiesCatWindow._closingDelay;
+                hijackHUDMakerNode(this, HMU_ABILITIES_CAT_GROUP, () => this._abilitiesCatWindow.active, isAbilClosing, abilDelay, 0, SLIDE_Y_OFFSET_CAT, () => this._abilitiesCatWindow.visible);
+            }
+            if (this._abilitiesTabsWindow && (this._abilitiesTabsWindow.visible || this._abilitiesTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
+                const isClosing = () => this._abilitiesTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
+                const delay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._abilitiesTabsWindow._closingDelay;
+                const isActive = () => this._abilitiesTabsWindow.active && !$gameTemp.hudShowAbilitiesDesc;
+                hijackHUDMakerNode(this, HMU_ABILITIES_TABS_GROUP, isActive, isClosing, delay, 0, SLIDE_Y_OFFSET_EQUIP_TABS, () => this._abilitiesTabsWindow.visible);
+            }
+            if (this._abilitiesListWindow && (this._abilitiesListWindow.visible || this._abilitiesListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
+                const isClosing = () => this._abilitiesListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
+                const delay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._abilitiesListWindow._closingDelay;
+                hijackHUDMakerNode(this, HMU_ABILITIES_LIST_GROUP, () => this._abilitiesListWindow.active, isClosing, delay, SLIDE_X_OFFSET_EQUIP_LIST, 0, () => this._abilitiesListWindow.visible);
+            }
+            
+            // ABILITIES CASCADE ANIMATIONS
+            if ($gameTemp.abilTabsInTimer > 0) {
+                $gameTemp.abilTabsInTimer--;
+                if ($gameTemp.abilTabsInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                    this._abilitiesTabsWindow.show();
+                    this._abilitiesTabsWindow.activate();
+                    this._abilitiesTabsWindow.select(0);
+                    $gameTemp.abilDescInTimer = CURSOR_ANIMATION_DELAY;
+                }
+            }
+            if ($gameTemp.abilDescInTimer > 0) {
+                $gameTemp.abilDescInTimer--;
+                if ($gameTemp.abilDescInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                    $gameTemp.hudShowAbilitiesDesc = true;
+                    $gameTemp.abilDescIsAnimatingIn = true;
+                }
+            }
+            if ($gameTemp.abilDescOutDelay > 0) {
+                $gameTemp.abilDescOutDelay--;
+                if ($gameTemp.abilDescOutDelay === 0) {
+                    $gameTemp.hudShowAbilitiesDesc = false;
+                    this._abilitiesTabsWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+                    $gameTemp.abilCatInTimer = CURSOR_ANIMATION_DELAY; 
+                }
+            }
+            if ($gameTemp.abilCatInTimer > 0) {
+                $gameTemp.abilCatInTimer--;
+                if ($gameTemp.abilCatInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+                    this._abilitiesCatWindow.show();
+                    this._abilitiesCatWindow.activate();
+                }
+            }
+
+            const isAbilDescClosing = () => $gameTemp.abilDescOutDelay > 0 || $gameTemp._globalClosingDelay > 0;
+            const abilDescDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : $gameTemp.abilDescOutDelay;
+            hijackHUDMakerNode(this, HMU_ABILITIES_DESC_GROUP, () => $gameTemp.abilDescIsAnimatingIn, isAbilDescClosing, abilDescDelay, SLIDE_X_OFFSET_EQUIP_DESC, 0, () => $gameTemp.hudShowAbilitiesDesc);
+
+
+            // EQUIP CASCADE IN SEQUENCES
+            if ($gameTemp.equipDescInTimer > 0) {
+                $gameTemp.equipDescInTimer--;
+                if ($gameTemp.equipDescInTimer === 0) {
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY; // Trigger Desc IN animation
+                    $gameTemp.hudShowEquipDesc = true;
+                    $gameTemp.equipDescIsAnimatingIn = true; 
+                    
+                    // START STAT IN TIMER (Wait for Desc to finish sliding)
+                    $gameTemp.equipStatInTimer = CURSOR_ANIMATION_DELAY;
+                }
+            }
+
+            if ($gameTemp.equipStatInTimer > 0) {
+                $gameTemp.equipStatInTimer--;
+                if ($gameTemp.equipStatInTimer === 0) {
+                    $gameTemp.equipDescIsAnimatingIn = false;
+                    
+                    $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY; // Trigger Stat IN animation
+                    $gameTemp.hudShowEquipStat = true;
+                    $gameTemp.equipStatIsAnimatingIn = true;
+                }
+            }
+            
+            // Turn off specific IN flags when all animations are completely done
+            if ($gameTemp._menuCursorDelay === 0) {
+                $gameTemp.equipDescIsAnimatingIn = false;
+                $gameTemp.equipStatIsAnimatingIn = false;
+                $gameTemp.abilDescIsAnimatingIn = false;
+            }
+
+            // EQUIP CASCADE OUT SEQUENCES (Reverse order: Stat -> Desc -> Tabs)
+            if ($gameTemp.equipStatOutDelay > 0) {
+                $gameTemp.equipStatOutDelay--;
+                if ($gameTemp.equipStatOutDelay === 0) {
+                    $gameTemp.hudShowEquipStat = false;
+                    $gameTemp.equipDescOutDelay = CURSOR_ANIMATION_DELAY; // Now slide Desc out
+                }
+            }
+
+            if ($gameTemp.equipDescOutDelay > 0) {
+                $gameTemp.equipDescOutDelay--;
+                if ($gameTemp.equipDescOutDelay === 0) {
+                    $gameTemp.hudShowEquipDesc = false;
+                    this._equipTabsWindow._closingDelay = CURSOR_ANIMATION_DELAY; // Now slide Tabs out
+                    $gameTemp.equipAnimState = 5; // Now reverse actor cards
+                    $gameTemp.equipAnimTimer = 0;
+                }
+            }
+
             // EQUIP UI HIJACKS
             if (this._equipTabsWindow && (this._equipTabsWindow.visible || this._equipTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
                 const isClosing = () => this._equipTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
                 const delay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._equipTabsWindow._closingDelay;
-                hijackHUDMakerNode(this, HMU_EQUIP_TABS_GROUP, () => this._equipTabsWindow.active, isClosing, delay, 0, SLIDE_Y_OFFSET_EQUIP_TABS, () => this._equipTabsWindow.visible);
+                const isActive = () => this._equipTabsWindow.active && !$gameTemp.hudShowEquipDesc && !$gameTemp.hudShowEquipStat; // Prevents tabs from re-sliding
+                hijackHUDMakerNode(this, HMU_EQUIP_TABS_GROUP, isActive, isClosing, delay, 0, SLIDE_Y_OFFSET_EQUIP_TABS, () => this._equipTabsWindow.visible);
             }
             if (this._equipListWindow && (this._equipListWindow.visible || this._equipListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) {
                 const isClosing = () => this._equipListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0;
                 const delay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : this._equipListWindow._closingDelay;
                 hijackHUDMakerNode(this, HMU_EQUIP_LIST_GROUP, () => this._equipListWindow.active, isClosing, delay, SLIDE_X_OFFSET_EQUIP_LIST, 0, () => this._equipListWindow.visible);
             }
+            
+            // Desc Hijack
+            const isDescClosing = () => $gameTemp.equipDescOutDelay > 0 || $gameTemp._globalClosingDelay > 0;
+            const descDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : $gameTemp.equipDescOutDelay;
+            hijackHUDMakerNode(this, HMU_EQUIP_DESC_GROUP, () => $gameTemp.equipDescIsAnimatingIn, isDescClosing, descDelay, SLIDE_X_OFFSET_EQUIP_DESC, 0, () => $gameTemp.hudShowEquipDesc);
+
+            // Stat Hijack
+            const isStatClosing = () => $gameTemp.equipStatOutDelay > 0 || $gameTemp._globalClosingDelay > 0;
+            const statDelay = () => $gameTemp._globalClosingDelay > 0 ? $gameTemp._globalClosingDelay : $gameTemp.equipStatOutDelay;
+            hijackHUDMakerNode(this, HMU_EQUIP_STAT_GROUP, () => $gameTemp.equipStatIsAnimatingIn, isStatClosing, statDelay, 0, SLIDE_Y_OFFSET_EQUIP_STAT, () => $gameTemp.hudShowEquipStat);
+
+            hijackPopNode(this, HMU_EQUIP_RECT1_GROUP, () => $gameTemp.equipStatIsAnimatingIn, isStatClosing, statDelay, () => $gameTemp.hudShowEquipStat, 1, 1);
+            hijackPopNode(this, HMU_EQUIP_RECT2_GROUP, () => $gameTemp.equipStatIsAnimatingIn, isStatClosing, statDelay, () => $gameTemp.hudShowEquipStat, 2, -1);
 
             hijackActorCardNode(this);
+            hijackPassNode(this);
+            hijackMainMenuGroup(this); 
+
+            if ($gameTemp && $gameTemp.passBgOffsetTop) {
+                this._commandWindow.y = this._commandWindow._baseY + $gameTemp.passBgOffsetTop;
+            } else if (this._commandWindow.y !== this._commandWindow._baseY) {
+                this._commandWindow.y = this._commandWindow._baseY;
+            }
 
             const allWindows = [
                 {win: this._mementosCatWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_CAT}, 
                 {win: this._mementosItemWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_LIST}, 
                 {win: this._mementosActionWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_ACTION}, 
                 {win: this._mementosConfirmWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_CONFIRM},
+                {win: this._abilitiesCatWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_CAT},
+                {win: this._abilitiesTabsWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_EQUIP_TABS},
+                {win: this._abilitiesListWindow, offsetX: SLIDE_X_OFFSET_EQUIP_LIST, offsetY: 0},
                 {win: this._equipTabsWindow, offsetX: 0, offsetY: SLIDE_Y_OFFSET_EQUIP_TABS},
                 {win: this._equipListWindow, offsetX: SLIDE_X_OFFSET_EQUIP_LIST, offsetY: 0}
             ];
@@ -333,6 +735,10 @@
                 allWindows.forEach(item => {
                     const win = item.win;
                     if (win && win.active && win.visible) {
+                        // Prevent the Skeleton window from re-sliding when the Description IN animation triggers
+                        if (win === this._equipTabsWindow && $gameTemp.hudShowEquipDesc) return;
+                        if (win === this._abilitiesTabsWindow && $gameTemp.hudShowAbilitiesDesc) return;
+
                         const currentOffsetX = item.offsetX * (1 - easeOut);
                         const currentOffsetY = item.offsetY * (1 - easeOut);
                         win.x = win._baseX + currentOffsetX;
@@ -345,13 +751,17 @@
                     allWindows.forEach(item => {
                         const win = item.win;
                         if (win && win.active && win.visible) {
+                            // Don't mess with the coordinates if it was skipped
+                            if (win === this._equipTabsWindow && $gameTemp.hudShowEquipDesc) return;
+                            if (win === this._abilitiesTabsWindow && $gameTemp.hudShowAbilitiesDesc) return;
+
                             win.x = win._baseX;
                             win.y = win._baseY;
                             if (win.index && win.index() >= 0) win.redrawItem(win.index());
                         }
                     });
                 }
-            } 
+            }
             
             // Global OUT Animation (When leaving entire menu)
             if ($gameTemp._globalClosingDelay > 0) {
@@ -370,7 +780,7 @@
                 });
 
                 if ($gameTemp._globalClosingDelay === 0) {
-                    $gameTemp._customMenuOpen = false; // Finally close it completely
+                    $gameTemp._customMenuOpen = false; 
 
                     if (this._spriteset && this._reverieBlurFilter) {
                         const filters = this._spriteset.filters || [];
@@ -380,13 +790,31 @@
                             this._spriteset.filters = filters;
                         }
                     }
-                    
+
+                    $gameTemp.hudShowPass = false;
+                    $gameTemp.passPhotoVis = false;
+                    $gameTemp.passMidCardVis = false;
+                    $gameTemp.passLeaderTextVis = false;
+                    $gameTemp.passPhotoName = ""; 
+                    $gameTemp.passBgOffsetTop = 0;
+                    $gameTemp.passBgOffsetBottom = 0;
+                    for (let i = 0; i < 4; i++) {
+                        $gameTemp['passCardVis' + i] = false;
+                        $gameTemp.passCardOpacity[i] = 0;
+                    }
+
                     $gameTemp.hudShowMementos = false;
                     $gameTemp.hudShowMementosList = false;
                     $gameTemp.hudShowMementosAction = false;
                     $gameTemp.hudShowMementosConfirm = false;
+                    $gameTemp.hudShowAbilitiesCat = false;
+                    $gameTemp.hudShowAbilitiesTabs = false;
+                    $gameTemp.hudShowAbilitiesList = false;
+                    $gameTemp.hudShowAbilitiesDesc = false;
                     $gameTemp.hudShowEquipTabs = false;
                     $gameTemp.hudShowEquipList = false;
+                    $gameTemp.hudShowEquipDesc = false;
+                    $gameTemp.hudShowEquipStat = false;
 
                     this._commandWindow.hide();
                     this._commandWindow.deactivate();
@@ -445,24 +873,59 @@
     // =======================================================
     // 1.8. THE "STUN" LOCK
     // =======================================================
+    const isReverieMenuLocked = function(win) {
+        if (!$gameTemp) return false;
+        if ($gameTemp._menuCursorDelay > 0) return true;
+        if ($gameTemp._globalClosingDelay > 0) return true;
+        if (win && win._closingDelay > 0) return true;
+        if ($gameTemp.passAnimState > 0 && $gameTemp.passAnimState !== 3) return true;
+        
+        // 1. Prevent sequence corruption during Equip transitions (Exclude state 4)
+        if ($gameTemp.equipAnimState > 0 && $gameTemp.equipAnimState < 9 && $gameTemp.equipAnimState !== 4) return true;
+        
+        if ($gameTemp.equipDescInTimer > 0) return true;
+        if ($gameTemp.equipStatInTimer > 0) return true;
+        if ($gameTemp.equipDescOutDelay > 0) return true;
+        if ($gameTemp.equipStatOutDelay > 0) return true;
+
+        if ($gameTemp.abilTabsInTimer > 0) return true;
+        if ($gameTemp.abilDescInTimer > 0) return true;
+        if ($gameTemp.abilDescOutDelay > 0) return true;
+        if ($gameTemp.abilCatInTimer > 0) return true;
+        
+        // 2. Prevent the "Invisible Active Window" crash by checking if ANY submenu is currently sliding away
+        const scn = SceneManager._scene;
+        if (scn) {
+            if (scn._equipListWindow && scn._equipListWindow._closingDelay > 0) return true;
+            if (scn._mementosItemWindow && scn._mementosItemWindow._closingDelay > 0) return true;
+            if (scn._mementosActionWindow && scn._mementosActionWindow._closingDelay > 0) return true;
+            if (scn._mementosConfirmWindow && scn._mementosConfirmWindow._closingDelay > 0) return true;
+            if (scn._abilitiesCatWindow && scn._abilitiesCatWindow._closingDelay > 0) return true;
+            if (scn._abilitiesTabsWindow && scn._abilitiesTabsWindow._closingDelay > 0) return true;
+            if (scn._abilitiesListWindow && scn._abilitiesListWindow._closingDelay > 0) return true;
+        }
+        return false;
+    };
+
     const _Window_Selectable_processCursorMove = Window_Selectable.prototype.processCursorMove;
     Window_Selectable.prototype.processCursorMove = function() {
-        if ($gameTemp && ($gameTemp._menuCursorDelay > 0 || this._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) return; 
+        if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processCursorMove.call(this);
     };
 
     const _Window_Selectable_processHandling = Window_Selectable.prototype.processHandling;
     Window_Selectable.prototype.processHandling = function() {
-        if ($gameTemp && ($gameTemp._menuCursorDelay > 0 || this._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) return; 
+        if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processHandling.call(this);
     };
 
     const _Window_Selectable_processTouch = Window_Selectable.prototype.processTouch;
     Window_Selectable.prototype.processTouch = function() {
-        if ($gameTemp && ($gameTemp._menuCursorDelay > 0 || this._closingDelay > 0 || $gameTemp._globalClosingDelay > 0)) return; 
+        if ($gameTemp && $gameTemp._customMenuOpen) return; 
+
+        if (isReverieMenuLocked(this)) return; 
         _Window_Selectable_processTouch.call(this);
     };
-
     // =======================================================
     // 2. ANNIHILATE UNWANTED UI ELEMENTS
     // =======================================================
@@ -540,8 +1003,8 @@
         if (DEBUG_MODE) this.drawText(name, textX, rect.y, textWidth, 'left');
 
         if (this.index() === index && this.active) {
-            const cursorX = textX - CURSOR_DRAW_SIZE - 5; 
-            const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2; 
+            const cursorX = textX - CURSOR_DRAW_SIZE - 5 + GLOBAL_CURSOR_X_OFFSET;; 
+            const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + (this.customCursorOffsetY || 0); 
             const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
             
             if (cursorBmp.isReady()) {
@@ -565,6 +1028,7 @@
     applySkeletonStyle(Window_MenuStatus);
     Window_MenuCommand.prototype.drawItem = customDrawItemWithCursor;
     Window_MenuCommand.prototype.select = customSelectRefresh;
+    Window_MenuCommand.prototype.customCursorOffsetY = MAIN_MENU_CURSOR_Y_OFFSET; // Added offset
     Window_MenuStatus.prototype.select = customSelectRefresh;
 
     // =======================================================
@@ -579,11 +1043,11 @@
     Window_MenuCommand.prototype.maxCols = function() { return 5; };
     Window_MenuCommand.prototype.numVisibleRows = function() { return 1; }; 
     Window_MenuCommand.prototype.makeCommandList = function() {
+        this.addCommand("Pass", 'pass', true);
         this.addCommand("Equip", 'equip');
-        this.addCommand("Skill", 'skill');    
-        this.addCommand("Bond", 'bond');      
         this.addCommand("Mementos", 'mementos');
-        this.addCommand("Options", 'options');
+        this.addCommand("Abilities", 'abilities'); 
+        this.addCommand("Options", 'options', false);
     };
 
     Scene_Map.prototype.statusWindowRect = function() {
@@ -607,6 +1071,222 @@
         }
     };
 
+    // PASS MENU CONTROLLER
+    function Window_MenuPass() { this.initialize(...arguments); }
+    Window_MenuPass.prototype = Object.create(Window_Selectable.prototype);
+    Window_MenuPass.prototype.constructor = Window_MenuPass;
+    applySkeletonStyle(Window_MenuPass);
+
+    // FIX: Force MZ to read inputs even if the window list is empty!
+    Window_MenuPass.prototype.processCursorMove = function() {
+        if (this.active) {
+            if (Input.isRepeated("right")) this.cursorRight();
+            if (Input.isRepeated("left")) this.cursorLeft();
+        }
+    };
+    Window_MenuPass.prototype.processHandling = function() {
+        if (this.active) {
+            if (Input.isTriggered("ok")) this.processOk();
+            else if (Input.isTriggered("cancel")) this.processCancel();
+        }
+    };
+
+    Window_MenuPass.prototype.cursorRight = function() {
+        if ($gameTemp.passAnimState !== 3) return; // 3 is Idle
+        const len = $gameParty.members().length;
+        if (len <= 1) return;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passPrevIndex = $gameTemp.passSelectedIndex;
+        $gameTemp.passSelectedIndex = ($gameTemp.passSelectedIndex + 1) % len;
+        $gameTemp.passAnimState = 4; // Shift
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playCursor();
+    };
+    Window_MenuPass.prototype.cursorLeft = function() {
+        if ($gameTemp.passAnimState !== 3) return;
+        const len = $gameParty.members().length;
+        if (len <= 1) return;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passPrevIndex = $gameTemp.passSelectedIndex;
+        $gameTemp.passSelectedIndex = ($gameTemp.passSelectedIndex - 1 + len) % len;
+        $gameTemp.passAnimState = 4; // Shift
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playCursor();
+    };
+    Window_MenuPass.prototype.processOk = function() {
+        if (this.active) this.callOkHandler();
+    };
+    Window_MenuPass.prototype.processCancel = function() {
+        if (this.active) this.callCancelHandler();
+    };
+
+    Scene_Map.prototype.updatePassAnimations = function() {
+        if (!$gameTemp || !$gameTemp.hudShowPass || $gameTemp.passAnimState === 0) return;
+
+        const getSlotX = (slot) => slot === 0 ? 0 : slot === 1 ? PASS_SLOT_DIST_X : slot === 2 ? 0 : -PASS_SLOT_DIST_X;
+        const getSlotY = (slot) => slot === 0 ? -PASS_SLOT_DIST_Y : slot === 1 ? 0 : slot === 2 ? PASS_SLOT_DIST_Y : 0;
+        const getOrigX = (slot) => slot === 0 ? 15 : slot === 1 ? -15 : slot === 2 ? -15 : 15;
+        const getOrigY = (slot) => slot === 0 ? 15 : slot === 1 ? 15 : slot === 2 ? -15 : -15;
+        
+        $gameTemp.passAnimTimer++;
+        const state = $gameTemp.passAnimState;
+        
+        if (state === 1) { // 1. BG OUT
+            const prog = Math.pow($gameTemp.passAnimTimer / PASS_BG_ANIM_MAX, 3);
+            $gameTemp.passBgOffsetTop = -150 * prog; // Main Menu UP
+            $gameTemp.passBgOffsetBottom = 350 * prog; // Status Cards DOWN
+            if ($gameTemp.passAnimTimer >= PASS_BG_ANIM_MAX) {
+                $gameTemp.passAnimState = 2;
+                $gameTemp.passAnimTimer = 0;
+                $gameTemp.passMidCardVis = true;
+            }
+        }
+        else if (state === 2) { // 2. Emerge IN (SWIRLED)
+            const rawProg = $gameTemp.passAnimTimer / PASS_ANIM_IN_MAX;
+            const prog = 1 - Math.pow(1 - rawProg, 3); // Ease Out
+            
+            // Math.sin(rawProg * PI) creates an arc that peaks at 50% of the animation
+            const arcPower = Math.sin(rawProg * Math.PI) * 150; 
+
+            for (let i = 0; i < 4; i++) {
+                const currentSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                const startX = getOrigX(currentSlot);
+                const startY = getOrigY(currentSlot);
+                
+                let arcX = 0;
+                let arcY = 0;
+                // Add an outward bulge to the trajectory based on the target slot
+                if (currentSlot === 0) arcX = arcPower;      // Top card arcs Right
+                else if (currentSlot === 1) arcY = arcPower; // Right card arcs Down
+                else if (currentSlot === 2) arcX = -arcPower;// Bottom card arcs Left
+                else if (currentSlot === 3) arcY = -arcPower;// Left card arcs Up
+
+                $gameTemp.passCardX[i] = startX + ((getSlotX(currentSlot) - startX) * prog) + arcX;
+                $gameTemp.passCardY[i] = startY + ((getSlotY(currentSlot) - startY) * prog) + arcY;
+                $gameTemp.passCardOpacity[i] = 255 * prog;
+            }
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_IN_MAX) {
+                $gameTemp.passAnimState = 3; 
+                $gameTemp.passLeaderTextVis = true;
+            }
+        }
+        else if (state === 3) { // 3. Idle
+            for (let i = 0; i < 4; i++) {
+                const currentSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                $gameTemp.passCardX[i] = getSlotX(currentSlot);
+                $gameTemp.passCardY[i] = getSlotY(currentSlot);
+                $gameTemp.passCardOpacity[i] = 255;
+            }
+        }
+        else if (state === 4) { // 4. Shift Left/Right
+            const rawProg = $gameTemp.passAnimTimer / PASS_ANIM_SHIFT_MAX;
+            const prog = rawProg < 0.5 ? 4 * rawProg * rawProg * rawProg : 1 - Math.pow(-2 * rawProg + 2, 3) / 2;
+            for (let i = 0; i < 4; i++) {
+                const prevSlot = (i - $gameTemp.passPrevIndex + 4) % 4;
+                const nextSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                const startX = getSlotX(prevSlot); const startY = getSlotY(prevSlot);
+                const endX = getSlotX(nextSlot);   const endY = getSlotY(nextSlot);
+                $gameTemp.passCardX[i] = startX + ((endX - startX) * prog);
+                $gameTemp.passCardY[i] = startY + ((endY - startY) * prog);
+            }
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_SHIFT_MAX) {
+                $gameTemp.passAnimState = 3;
+                $gameTemp.passLeaderTextVis = true;
+            }
+        }
+        else if (state === 5) { // 5. Cancel OUT (SWIRLED)
+            const rawProg = $gameTemp.passAnimTimer / PASS_ANIM_IN_MAX;
+            const prog = Math.pow(rawProg, 3); // Ease In
+            
+            // Reversing the arc power
+            const arcPower = Math.sin((1 - rawProg) * Math.PI) * 150;
+
+            for (let i = 0; i < 4; i++) {
+                const currentSlot = (i - $gameTemp.passSelectedIndex + 4) % 4;
+                const startX = getOrigX(currentSlot);
+                const startY = getOrigY(currentSlot);
+                
+                let arcX = 0;
+                let arcY = 0;
+                if (currentSlot === 0) arcX = arcPower;      
+                else if (currentSlot === 1) arcY = arcPower; 
+                else if (currentSlot === 2) arcX = -arcPower;
+                else if (currentSlot === 3) arcY = -arcPower;
+
+                $gameTemp.passCardX[i] = getSlotX(currentSlot) + ((startX - getSlotX(currentSlot)) * prog) + arcX;
+                $gameTemp.passCardY[i] = getSlotY(currentSlot) + ((startY - getSlotY(currentSlot)) * prog) + arcY;
+                $gameTemp.passCardOpacity[i] = 255 * (1 - prog);
+            }
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_IN_MAX) {
+                $gameTemp.passAnimState = 6;
+                $gameTemp.passAnimTimer = 0;
+                $gameTemp.passMidCardVis = false;
+            }
+        }
+        else if (state === 6) { // 6. BG IN (Cancel Finish)
+            const prog = 1 - Math.pow(1 - ($gameTemp.passAnimTimer / PASS_BG_ANIM_MAX), 3); 
+            $gameTemp.passBgOffsetTop = -150 * (1 - prog);
+            $gameTemp.passBgOffsetBottom = 350 * (1 - prog);
+            if ($gameTemp.passAnimTimer >= PASS_BG_ANIM_MAX) {
+                $gameTemp.passAnimState = 0;
+                $gameTemp.hudShowPass = false;
+            
+                $gameTemp.passBgOffsetTop = 0;
+                $gameTemp.passBgOffsetBottom = 0;
+                
+                this._commandWindow.activate(); 
+            }
+        }
+        else if (state === 7) { // 7. Enter Confirm Fade
+            const prog = $gameTemp.passAnimTimer / PASS_ANIM_FADE_MAX;
+            $gameTemp.passMidCardVis = false; 
+            for (let i = 0; i < 4; i++) $gameTemp.passCardOpacity[i] = 255 * (1 - prog);
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_FADE_MAX) {
+                $gameTemp.passAnimState = 8;
+                $gameTemp.passAnimTimer = 0;
+                $gameTemp.passPhotoVis = true;
+            }
+        }
+        else if (state === 8) { // 8. Photo Drop In
+            const prog = 1 - Math.pow(1 - ($gameTemp.passAnimTimer / PASS_ANIM_DROP_MAX), 3); 
+            $gameTemp.passPhotoY = -800 + (800 * prog);
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_DROP_MAX) {
+                $gameTemp.passAnimState = 9;
+                $gameTemp.passAnimTimer = 0;
+            }
+        }
+        else if (state === 9) { // 9. Photo Pause
+            $gameTemp.passPhotoY = 0;
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_WAIT_MAX) {
+                $gameTemp.passAnimState = 10;
+                $gameTemp.passAnimTimer = 0;
+            }
+        }
+        else if (state === 10) { // 10. Photo Drop Out & Swap
+            const prog = Math.pow($gameTemp.passAnimTimer / PASS_ANIM_DROP_MAX, 3);
+            $gameTemp.passPhotoY = 800 * prog;
+            if ($gameTemp.passAnimTimer >= PASS_ANIM_DROP_MAX) {
+                const nextIndex = $gameTemp.passSelectedIndex;
+                if (nextIndex > 0 && nextIndex < $gameParty.members().length) {
+                    $gameParty.swapOrder(0, nextIndex);
+                    $gamePlayer.refresh();
+                }
+                $gameTemp.passAnimState = 0;
+                
+                $gameTemp.passPhotoVis = false;
+                $gameTemp.passMidCardVis = false;
+                $gameTemp.passLeaderTextVis = false;
+                for (let i = 0; i < 4; i++) {
+                    $gameTemp['passCardVis' + i] = false;
+                    $gameTemp.passCardOpacity[i] = 0;
+                }
+                
+
+                this.closeCustomOmoriMenu();
+            }
+        }
+    };    
+
     // =======================================================
     // 6. MEMENTOS: CATEGORIES
     // =======================================================
@@ -623,6 +1303,150 @@
     };
     Window_MenuMementosCat.prototype.drawItem = customDrawItemWithCursor;
     Window_MenuMementosCat.prototype.select = customSelectRefresh;
+    Window_MenuMementosCat.prototype.customCursorOffsetY = MEMENTOS_CAT_CURSOR_Y_OFFSET;
+
+    // =======================================================
+    // 6.5. ABILITIES: CATEGORIES & TABS & LIST
+    // =======================================================
+    function Window_MenuAbilitiesCat() { this.initialize(...arguments); }
+    Window_MenuAbilitiesCat.prototype = Object.create(Window_HorzCommand.prototype);
+    Window_MenuAbilitiesCat.prototype.constructor = Window_MenuAbilitiesCat;
+    applySkeletonStyle(Window_MenuAbilitiesCat);
+    
+    Window_MenuAbilitiesCat.prototype.maxCols = function() { return 5; }; 
+    Window_MenuAbilitiesCat.prototype.makeCommandList = function() {
+        this.addCommand("Skills", 'skills');
+        this.addCommand("Bonds", 'bonds');
+    };
+    Window_MenuAbilitiesCat.prototype.drawItem = customDrawItemWithCursor;
+    Window_MenuAbilitiesCat.prototype.select = customSelectRefresh;
+    Window_MenuAbilitiesCat.prototype.customCursorOffsetY = MEMENTOS_CAT_CURSOR_Y_OFFSET; 
+
+    function Window_MenuAbilitiesTabs() { this.initialize(...arguments); }
+    Window_MenuAbilitiesTabs.prototype = Object.create(Window_Command.prototype);
+    Window_MenuAbilitiesTabs.prototype.constructor = Window_MenuAbilitiesTabs;
+    applySkeletonStyle(Window_MenuAbilitiesTabs);
+    Window_MenuAbilitiesTabs.prototype.resetFontSettings = function() {
+        Window_Command.prototype.resetFontSettings.call(this);
+        this.contents.fontSize = EQUIP_TABS_FONT_SIZE;
+    };
+    Window_MenuAbilitiesTabs.prototype.lineHeight = function() { return EQUIP_TABS_ITEM_HEIGHT; };
+    Window_MenuAbilitiesTabs.prototype.itemRect = function(index) {
+        const x = 0;
+        const y = index * (this.itemHeight() + EQUIP_TABS_ITEM_GAP);
+        return new Rectangle(x, y, this.innerWidth, this.itemHeight());
+    };
+    Window_MenuAbilitiesTabs.prototype.setActorAndCategory = function(actor, category) {
+        this._actor = actor;
+        this._category = category;
+        this.refresh();
+    };
+    Window_MenuAbilitiesTabs.prototype.makeCommandList = function() {
+        // Always build exactly 4 slots so the engine doesn't crash on startup
+        for (let i = 0; i < 4; i++) {
+            let name = "-------";
+            if (this._actor) {
+                this._actor._equippedSkills = this._actor._equippedSkills || [null, null, null, null];
+                this._actor._equippedBonds = this._actor._equippedBonds || [null, null, null, null];
+                const arr = this._category === 'skills' ? this._actor._equippedSkills : this._actor._equippedBonds;
+                const skillId = arr[i];
+                if (skillId && $dataSkills[skillId]) name = $dataSkills[skillId].name;
+            }
+            this.addCommand(name, 'ability_slot', true, { slotId: i }); // Always enabled
+        }
+    };
+    Window_MenuAbilitiesTabs.prototype.drawItem = function(index) {
+        const rect = this.itemLineRect(index);
+        const clearX = rect.x - CURSOR_DRAW_SIZE - 20;
+        const clearW = rect.width + CURSOR_DRAW_SIZE + 40;
+        this.contents.clearRect(clearX, rect.y, clearW, rect.height);
+        
+        const name = this.commandName(index);
+        this.changePaintOpacity(this.isCommandEnabled(index));
+        const textWidth = this.textWidth(name);
+        const textX = rect.x + CURSOR_DRAW_SIZE + 10; 
+        if (DEBUG_MODE) this.drawText(name, textX, rect.y, textWidth, 'left');
+
+        if (this.index() === index && this.active) {
+            const cursorX = textX - CURSOR_DRAW_SIZE - 5 + EQUIP_TABS_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET; 
+            const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + EQUIP_TABS_CURSOR_Y_OFFSET; 
+            const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
+            if (cursorBmp.isReady()) {
+                this.contents.blt(cursorBmp, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, cursorX, cursorY, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
+            } else {
+                cursorBmp.addLoadListener(() => this.redrawItem(index));
+            }
+        }
+    };
+    Window_MenuAbilitiesTabs.prototype.select = customSelectRefresh;
+
+    function Window_MenuAbilitiesList() { this.initialize(...arguments); }
+    Window_MenuAbilitiesList.prototype = Object.create(Window_ItemList.prototype);
+    Window_MenuAbilitiesList.prototype.constructor = Window_MenuAbilitiesList;
+    applySkeletonStyle(Window_MenuAbilitiesList);
+    
+    Window_MenuAbilitiesList.prototype.maxCols = function() { return 2; }; 
+    Window_MenuAbilitiesList.prototype.itemHeight = function() { return Math.floor(this.innerHeight / 2); };
+    Window_MenuAbilitiesList.prototype.rowSpacing = function() { return 0; };
+    Window_MenuAbilitiesList.prototype.colSpacing = function() { return 0; };
+    Window_MenuAbilitiesList.prototype.topRow = function() { return Math.round(this.scrollY() / this.itemHeight()); };
+    Window_MenuAbilitiesList.prototype.ensureCursorVisible = function(smooth) {
+        const row = Math.floor(this.index() / this.maxCols());
+        const maxVisible = 2;
+        let currentTopRow = this.topRow();
+        if (row < currentTopRow) {
+            this.scrollTo(0, row * this.itemHeight());
+        } else if (row >= currentTopRow + maxVisible) {
+            this.scrollTo(0, (row - maxVisible + 1) * this.itemHeight());
+        }
+    };
+    Window_MenuAbilitiesList.prototype.isEnabled = function(item) { return true; };
+    Window_MenuAbilitiesList.prototype.setActorAndSlot = function(actor, slotId, category) {
+        this._actor = actor;
+        this._slotId = slotId;
+        this._category = category;
+        this.scrollTo(0, 0); 
+        this.refresh();
+    };
+    Window_MenuAbilitiesList.prototype.includes = function(item) {
+        if (!item || !this._actor) return false;
+        
+        const targetStype = this._category === 'skills' ? 2 : 3; 
+        if (item.stypeId !== targetStype) return false;
+
+        const equippedArray = this._category === 'skills' ? this._actor._equippedSkills : this._actor._equippedBonds;
+        
+        if (equippedArray.includes(item.id)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    Window_MenuAbilitiesList.prototype.makeItemList = function() {
+        this._data = this._actor ? this._actor.skills().filter(skill => this.includes(skill)) : [];
+    };
+    Window_MenuAbilitiesList.prototype.drawItem = function(index) {
+        const item = this.itemAt(index);
+        const rect = this.itemLineRect(index); 
+        this.contents.clearRect(rect.x - 40, rect.y, rect.width + 80, rect.height);
+        
+        const itemName = item ? item.name : "";
+        const textY = rect.y + (rect.height - this.lineHeight()) / 2;
+        if (DEBUG_MODE) this.drawText(itemName, rect.x + CURSOR_DRAW_SIZE + 10, textY, rect.width, 'left');
+
+        if (this.index() === index && this.active && item) {
+             const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
+             if (cursorBmp.isReady()) {
+                 const cursorX = rect.x + 10 + EQUIP_LIST_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET;; 
+                 const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + EQUIP_LIST_CURSOR_Y_OFFSET;
+                 this.contents.blt(cursorBmp, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, cursorX, cursorY, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
+             } else {
+                 cursorBmp.addLoadListener(() => this.redrawItem(index));
+             }
+        }
+    };
+    Window_MenuAbilitiesList.prototype.select = customSelectRefresh;
 
     // =======================================================
     // 7. MEMENTOS: ITEM LIST & ACTIONS
@@ -655,8 +1479,8 @@
             if (this.index() === index && this.active) {
                  const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
                  if (cursorBmp.isReady()) {
-                     const cursorX = rect.x + 10 + MEMENTOS_LIST_CURSOR_X_OFFSET; 
-                     const cursorY = rect.y + (MEMENTOS_LIST_ITEM_HEIGHT - CURSOR_DRAW_SIZE) / 2;
+                     const cursorX = rect.x + 10 + MEMENTOS_LIST_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET;; 
+                     const cursorY = rect.y + (MEMENTOS_LIST_ITEM_HEIGHT - CURSOR_DRAW_SIZE) / 2 + MEMENTOS_LIST_CURSOR_Y_OFFSET;
                      this.contents.blt(cursorBmp, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, cursorX, cursorY, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
                  } else {
                      cursorBmp.addLoadListener(() => this.redrawItem(index));
@@ -695,6 +1519,7 @@
     };
     Window_MementosAction.prototype.drawItem = customDrawItemWithCursor;
     Window_MementosAction.prototype.select = customSelectRefresh;
+    Window_MementosAction.prototype.customCursorOffsetY = MEMENTOS_ACTION_CURSOR_Y_OFFSET;
 
     function Window_MementosConfirm() { this.initialize(...arguments); }
     Window_MementosConfirm.prototype = Object.create(Window_Command.prototype);
@@ -720,6 +1545,7 @@
     };
     Window_MementosConfirm.prototype.drawItem = customDrawItemWithCursor;
     Window_MementosConfirm.prototype.select = customSelectRefresh;
+    Window_MementosConfirm.prototype.customCursorOffsetY = MEMENTOS_CONFIRM_CURSOR_Y_OFFSET;
 
     // =======================================================
     // 7.5. EQUIP: TABS & LIST (SKELETONS)
@@ -791,7 +1617,7 @@
         if (DEBUG_MODE) this.drawText(name, textX, rect.y, textWidth, 'left');
 
         if (this.index() === index && this.active) {
-            const cursorX = textX - CURSOR_DRAW_SIZE - 5 + EQUIP_TABS_CURSOR_X_OFFSET; 
+            const cursorX = textX - CURSOR_DRAW_SIZE - 5 + EQUIP_TABS_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET;; 
             const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + EQUIP_TABS_CURSOR_Y_OFFSET; 
             const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
             if (cursorBmp.isReady()) {
@@ -807,15 +1633,40 @@
     Window_MenuEquipList.prototype = Object.create(Window_ItemList.prototype);
     Window_MenuEquipList.prototype.constructor = Window_MenuEquipList;
     applySkeletonStyle(Window_MenuEquipList);
+    
     Window_MenuEquipList.prototype.maxCols = function() { return 2; }; 
-    Window_MenuEquipList.prototype.numVisibleRows = function() { return 2; };
     Window_MenuEquipList.prototype.itemHeight = function() { return Math.floor(this.innerHeight / 2); };
+    
+    // ANNIHILATE MZ'S INVISIBLE PADDING: This stops the cursor from drifting/skipping rows
+    Window_MenuEquipList.prototype.rowSpacing = function() { return 0; };
+    Window_MenuEquipList.prototype.colSpacing = function() { return 0; };
+
+    // BULLETPROOF SCROLL SYNC: Forces the engine and HUD Maker to share the exact same integer math
+    Window_MenuEquipList.prototype.topRow = function() {
+        return Math.round(this.scrollY() / this.itemHeight());
+    };
+
+    Window_MenuEquipList.prototype.ensureCursorVisible = function(smooth) {
+        const row = Math.floor(this.index() / this.maxCols());
+        const maxVisible = 2;
+        let currentTopRow = this.topRow();
+        
+        if (row < currentTopRow) {
+            this.scrollTo(0, row * this.itemHeight());
+        } else if (row >= currentTopRow + maxVisible) {
+            this.scrollTo(0, (row - maxVisible + 1) * this.itemHeight());
+        }
+    };
+
     Window_MenuEquipList.prototype.isEnabled = function(item) { return true; };
+    
     Window_MenuEquipList.prototype.setActorAndSlot = function(actor, slotId) {
         this._actor = actor;
         this._slotId = slotId;
+        this.scrollTo(0, 0); // PREVENT MISSING CURSORS: Forces window back to the true top every time
         this.refresh();
     };
+    
     Window_MenuEquipList.prototype.includes = function(item) {
         if (item === null) return true; 
         if (!this._actor) return false;
@@ -823,10 +1674,15 @@
         if (item.etypeId !== etypeId) return false;
         return this._actor.canEquip(item);
     };
+    
+    // THE OMORI UX TRICK: Put the "-------" unequip option at the very TOP of the list
     Window_MenuEquipList.prototype.makeItemList = function() {
-        this._data = $gameParty.allItems().filter(item => item !== null && this.includes(item));
-        if (this.includes(null)) this._data.push(null); 
+        this._data = [];
+        if (this.includes(null)) this._data.push(null); // Push Null First!
+        const items = $gameParty.allItems().filter(item => item !== null && this.includes(item));
+        this._data = this._data.concat(items); // Append actual weapons after
     };
+
     Window_MenuEquipList.prototype.drawItem = function(index) {
         const item = this.itemAt(index);
         const rect = this.itemLineRect(index); 
@@ -839,7 +1695,7 @@
         if (this.index() === index && this.active) {
              const cursorBmp = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
              if (cursorBmp.isReady()) {
-                 const cursorX = rect.x + 10 + EQUIP_LIST_CURSOR_X_OFFSET; 
+                 const cursorX = rect.x + 10 + EQUIP_LIST_CURSOR_X_OFFSET + GLOBAL_CURSOR_X_OFFSET;; 
                  const cursorY = rect.y + (rect.height - CURSOR_DRAW_SIZE) / 2 + EQUIP_LIST_CURSOR_Y_OFFSET;
                  this.contents.blt(cursorBmp, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, cursorX, cursorY, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
              } else {
@@ -861,11 +1717,14 @@
     Scene_Map.prototype.createCustomOmoriMenu = function() {
         this.createCommandWindow();
         this.createStatusWindow();
+        this.createPassWindow();
         
         this.createMementosSubWindow();
         this.createMementosItemList();
         this.createMementosActionWindow();
         this.createMementosConfirmWindow();
+
+        this.createAbilitiesSubWindows();
         
         this.createEquipSubWindows();
 
@@ -902,15 +1761,113 @@
         this._equipListWindow.hide();
     };
 
+    Scene_Map.prototype.createAbilitiesSubWindows = function() {
+        const h = this.calcWindowHeight(1, true);
+        const y = MENU_MARGIN_Y + h; 
+        
+        const fullWidth = Graphics.boxWidth - (MENU_MARGIN_X * 2);
+        const catRect = new Rectangle(MENU_MARGIN_X, y, fullWidth, h);
+        
+        this._abilitiesCatWindow = new Window_MenuAbilitiesCat(catRect);
+        this._abilitiesCatWindow._baseX = catRect.x;
+        this._abilitiesCatWindow._baseY = y; 
+        this._abilitiesCatWindow.setHandler('ok', this.onAbilitiesCatOk.bind(this));
+        this._abilitiesCatWindow.setHandler('cancel', this.onAbilitiesCancel.bind(this));
+        this.addWindow(this._abilitiesCatWindow);
+        this._abilitiesCatWindow.hide(); 
+        this._abilitiesCatWindow.deactivate();
+
+        const tabsH = this.calcWindowHeight(4, true);
+        this._abilitiesTabsWindow = new Window_MenuAbilitiesTabs(new Rectangle(MENU_MARGIN_X, EQUIP_TABS_RESTING_Y, fullWidth, EQUIP_TABS_HEIGHT));
+        this._abilitiesTabsWindow._baseX = this._abilitiesTabsWindow.x;
+        this._abilitiesTabsWindow._baseY = this._abilitiesTabsWindow.y;
+        this._abilitiesTabsWindow.setHandler('ability_slot', this.onAbilitiesTabsOk.bind(this));
+        this._abilitiesTabsWindow.setHandler('cancel', this.onAbilitiesTabsCancel.bind(this));
+        this.addWindow(this._abilitiesTabsWindow);
+        this._abilitiesTabsWindow.hide();
+        this._abilitiesTabsWindow.deactivate();
+
+        const listW = EQUIP_LIST_WIDTH; 
+        const listX = EQUIP_LIST_RESTING_X;
+        this._abilitiesListWindow = new Window_MenuAbilitiesList(new Rectangle(listX, EQUIP_LIST_RESTING_Y, listW, EQUIP_LIST_HEIGHT));
+        this._abilitiesListWindow._baseX = this._abilitiesListWindow.x;
+        this._abilitiesListWindow._baseY = this._abilitiesListWindow.y;
+        this._abilitiesListWindow.setHandler('ok', this.onAbilitiesListOk.bind(this));
+        this._abilitiesListWindow.setHandler('cancel', this.onAbilitiesListCancel.bind(this));
+        this.addWindow(this._abilitiesListWindow);
+        this._abilitiesListWindow.hide();
+        this._abilitiesListWindow.deactivate();
+    };
+
     Scene_Map.prototype.createCommandWindow = function() {
         const rect = this.commandWindowRect();
         this._commandWindow = new Window_MenuCommand(rect);
+        
+        this._commandWindow._baseX = this._commandWindow.x;
+        this._commandWindow._baseY = this._commandWindow.y;
+        
+        this._commandWindow.setHandler('pass', this.commandPass.bind(this));
         this._commandWindow.setHandler('equip', this.commandPersonal.bind(this));
-        this._commandWindow.setHandler('skill', this.commandPersonal.bind(this)); 
-        this._commandWindow.setHandler('bond', this.commandPersonal.bind(this));  
         this._commandWindow.setHandler('mementos', this.commandMementos.bind(this));
+        this._commandWindow.setHandler('abilities', this.commandPersonal.bind(this)); // Routes to Status Window to pick Actor first!
         this._commandWindow.setHandler('cancel', this.closeCustomOmoriMenu.bind(this));
         this.addWindow(this._commandWindow);
+    };
+
+    Scene_Map.prototype.createPassWindow = function() {
+        this._passWindow = new Window_MenuPass(new Rectangle(0, 0, Graphics.boxWidth, Graphics.boxHeight));
+        this._passWindow._baseX = 0;
+        this._passWindow._baseY = 0;
+        this._passWindow.setHandler('ok', this.onPassOk.bind(this));
+        this._passWindow.setHandler('cancel', this.onPassCancel.bind(this));
+        this.addWindow(this._passWindow);
+        this._passWindow.hide();
+        this._passWindow.deactivate();
+    };
+
+    Scene_Map.prototype.onPassOk = function() {
+        if ($gameTemp.passAnimState !== 3) {
+            this._passWindow.activate();
+            return;
+        }
+        if ($gameTemp.passSelectedIndex === 0) {
+            SoundManager.playBuzzer(); 
+            this._passWindow.activate();
+            return;
+        }
+        $gameTemp.passLeaderTextVis = false;
+        const curName = $gameParty.members()[0].name().toLowerCase();
+        const nextName = $gameParty.members()[$gameTemp.passSelectedIndex].name().toLowerCase();
+        
+        $gameTemp.passPhotoName = "img/pictures/pass_" + curName + "_to_" + nextName + ".png";
+        
+        $gameTemp.passAnimState = 7;
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playOk();
+    };
+
+    Scene_Map.prototype.onPassCancel = function() {
+        if ($gameTemp.passAnimState !== 3) {
+            this._passWindow.activate();
+            return;
+        }
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passAnimState = 5;
+        $gameTemp.passAnimTimer = 0;
+        SoundManager.playCancel();
+    };
+
+    Scene_Map.prototype.commandPass = function() {
+        this._commandWindow.deactivate();
+        $gameTemp.hudShowPass = true;
+        $gameTemp.passAnimState = 1; // BG OUT
+        $gameTemp.passAnimTimer = 0;
+        $gameTemp.passSelectedIndex = 0;
+        $gameTemp.passPrevIndex = 0;
+        $gameTemp.passMidCardVis = false;
+        $gameTemp.passBgOffsetTop = 0;
+        $gameTemp.passBgOffsetBottom = 0;
+        this._passWindow.activate(); 
     };
 
     Scene_Map.prototype.createStatusWindow = function() {
@@ -999,6 +1956,32 @@
         $gameTemp.equipAnimTimer = 0;
         $gameTemp.equipAnimProgress = 0.0;
         $gameTemp.equipSelectedActor = -1;
+        
+        $gameTemp.hudShowEquipDesc = false; 
+        $gameTemp.equipDescOutDelay = 0;
+        $gameTemp.hudShowEquipStat = false; 
+        $gameTemp.equipStatOutDelay = 0;   
+        $gameTemp.equipStatInTimer = 0;     
+        $gameTemp.equipStatIsAnimatingIn = false; 
+
+        $gameTemp.abilTabsInTimer = 0;
+        $gameTemp.abilDescInTimer = 0;
+        $gameTemp.abilDescOutDelay = 0;
+        $gameTemp.abilCatInTimer = 0;
+
+        $gameTemp.hudShowPass = false;
+        $gameTemp.passAnimState = 0; 
+        $gameTemp.passAnimTimer = 0;
+        $gameTemp.passSelectedIndex = 0;
+        $gameTemp.passPrevIndex = 0;
+        $gameTemp.passMidCardVis = false;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passPhotoVis = false;
+        $gameTemp.passCardX = [0,0,0,0];
+        $gameTemp.passCardY = [0,0,0,0];
+        $gameTemp.passCardOpacity = [0,0,0,0];
+
+        $gameTemp.passPhotoY = -800;
 
         if (!this._reverieBlurFilter) {
             this._reverieBlurFilter = new PIXI.filters.BlurFilter();
@@ -1130,6 +2113,69 @@
         this._mementosActionWindow.activate();
     };
 
+    Scene_Map.prototype.onAbilitiesCatOk = function() {
+        this._abilitiesCatWindow.deactivate();
+        this._abilitiesCatWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+        
+        $gameTemp.abilTabsInTimer = CURSOR_ANIMATION_DELAY;
+        $gameTemp.currentAbilityCategory = this._abilitiesCatWindow.currentSymbol();
+        
+        const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+        this._abilitiesTabsWindow.setActorAndCategory(actor, $gameTemp.currentAbilityCategory);
+    };
+
+    Scene_Map.prototype.onAbilitiesCancel = function() {
+        this._abilitiesCatWindow.deactivate();
+        this._abilitiesCatWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+        $gameTemp.equipAnimState = 5; 
+        $gameTemp.equipAnimTimer = 0;
+    };
+
+    Scene_Map.prototype.onAbilitiesTabsOk = function() {
+        this._abilitiesTabsWindow.deactivate();
+        $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY;
+        
+        const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+        const slotId = this._abilitiesTabsWindow.currentExt().slotId;
+        this._abilitiesListWindow.setActorAndSlot(actor, slotId, $gameTemp.currentAbilityCategory);
+        
+        this._abilitiesListWindow.show();
+        this._abilitiesListWindow.activate();
+        this._abilitiesListWindow.select(0);
+    };
+
+    Scene_Map.prototype.onAbilitiesTabsCancel = function() {
+        this._abilitiesTabsWindow.deactivate();
+        $gameTemp.abilDescOutDelay = CURSOR_ANIMATION_DELAY;
+    };
+
+    Scene_Map.prototype.onAbilitiesListOk = function() {
+        const item = this._abilitiesListWindow.item();
+        
+        if (!item) {
+            SoundManager.playBuzzer();
+            this._abilitiesListWindow.activate();
+            return;
+        }
+
+        SoundManager.playEquip();
+        const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+        const slotId = this._abilitiesListWindow._slotId;
+        
+        const targetArr = $gameTemp.currentAbilityCategory === 'skills' ? actor._equippedSkills : actor._equippedBonds;
+        targetArr[slotId] = item.id;
+        
+        this._abilitiesTabsWindow.refresh();
+        this._abilitiesListWindow.refresh();
+        this._abilitiesListWindow.activate();
+    };
+
+    Scene_Map.prototype.onAbilitiesListCancel = function() {
+        this._abilitiesListWindow.deactivate();
+        this._abilitiesListWindow._closingDelay = CURSOR_ANIMATION_DELAY;
+        this._abilitiesTabsWindow.activate();
+    };
+
     Scene_Map.prototype.onEquipTabOk = function() {
         this._equipTabsWindow.deactivate();
         $gameTemp._menuCursorDelay = CURSOR_ANIMATION_DELAY; 
@@ -1167,9 +2213,7 @@
 
     Scene_Map.prototype.onEquipTabsCancel = function() {
         this._equipTabsWindow.deactivate();
-        this._equipTabsWindow._closingDelay = CURSOR_ANIMATION_DELAY;
-        $gameTemp.equipAnimState = 5; 
-        $gameTemp.equipAnimTimer = 0;
+        $gameTemp.equipStatOutDelay = CURSOR_ANIMATION_DELAY;
     };
 
     const _Window_MenuStatus_processOk = Window_MenuStatus.prototype.processOk;
@@ -1220,10 +2264,18 @@
                 this._statusWindow.activate();
             }
         } else if (symbol === 'equip') {
+            $gameTemp.activeMenuSymbol = 'equip';
             $gameTemp.equipSelectedActor = actorIndex;
             $gameTemp.equipAnimState = 1; 
             $gameTemp.equipAnimTimer = 0;
             this._equipTabsWindow.setActor(actor); 
+            this._statusWindow.deselect();
+            this._statusWindow.deactivate();
+        } else if (symbol === 'abilities') {
+            $gameTemp.activeMenuSymbol = 'abilities';
+            $gameTemp.equipSelectedActor = actorIndex; // Reuse for card sliding
+            $gameTemp.equipAnimState = 1; 
+            $gameTemp.equipAnimTimer = 0;
             this._statusWindow.deselect();
             this._statusWindow.deactivate();
         } else {
@@ -1253,16 +2305,187 @@
         
         $gameTemp.hudShowMementosConfirm = !!(this._mementosConfirmWindow && (this._mementosConfirmWindow.visible || this._mementosConfirmWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
 
+        $gameTemp.hudShowAbilitiesCat = !!(this._abilitiesCatWindow && (this._abilitiesCatWindow.visible || this._abilitiesCatWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
+        $gameTemp.hudShowAbilitiesTabs = !!(this._abilitiesTabsWindow && (this._abilitiesTabsWindow.visible || this._abilitiesTabsWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
+        $gameTemp.hudShowAbilitiesList = !!(this._abilitiesListWindow && (this._abilitiesListWindow.visible || this._abilitiesListWindow._closingDelay > 0 || $gameTemp._globalClosingDelay > 0));
+
         $gameTemp.hudShowEquipTabs = !!(this._equipTabsWindow && (this._equipTabsWindow.visible || this._equipTabsWindow._closingDelay > 0));
         $gameTemp.hudShowEquipList = !!(this._equipListWindow && (this._equipListWindow.visible || this._equipListWindow._closingDelay > 0));
 
-        if (this._equipListWindow && this._equipListWindow.active) {
-            const item = this._equipListWindow.item();
-            $gameTemp.equipItemName = item ? item.name : "-------";
-            $gameTemp.equipItemDesc = item ? item.description : "";
+        const leader = $gameParty.members()[0];
+        $gameTemp.passMidImage = leader ? "img/pictures/" + leader.name().toLowerCase() + "_bg_black.png" : "img/pictures/sora_bg_black.png";
+        for (let i = 0; i < 4; i++) {
+            const actor = $gameParty.members()[i];
+            $gameTemp['passCardVis' + i] = !!actor; 
+            $gameTemp['passCardImage' + i] = actor ? "img/pictures/" + actor.name().toLowerCase() + "_bg_black.png" : "img/pictures/sora_bg_black.png";
+        }
+        if (!$gameTemp.passPhotoName || $gameTemp.passPhotoName === "") {
+            $gameTemp.passPhotoName = "img/pictures/pass_sora_to_gin.png";
+        }
+
+        // 1. Track Currently Equipped Names for the Tabs
+        if ($gameTemp.equipSelectedActor >= 0 && $gameParty.members()[$gameTemp.equipSelectedActor]) {
+            const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+            const equips = actor.equips();
+            $gameTemp.equipCurrentWeaponName = equips[0] ? equips[0].name : "-------";
+            $gameTemp.equipCurrentCharmName = equips[1] ? equips[1].name : "-------";
+            
+            // Track 4 equipped Abilities for the Tabs
+            actor._equippedSkills = actor._equippedSkills || [null, null, null, null];
+            actor._equippedBonds = actor._equippedBonds || [null, null, null, null];
+            const targetArr = $gameTemp.currentAbilityCategory === 'skills' ? actor._equippedSkills : actor._equippedBonds;
+            for (let i = 0; i < 4; i++) {
+                const sId = targetArr[i];
+                $gameTemp['abilTabName' + i] = (sId && $dataSkills[sId]) ? $dataSkills[sId].name : "-------";
+            }
         } else {
-            $gameTemp.equipItemName = "";
-            $gameTemp.equipItemDesc = "";
+            $gameTemp.equipCurrentWeaponName = "";
+            $gameTemp.equipCurrentCharmName = "";
+            for (let i = 0; i < 4; i++) $gameTemp['abilTabName' + i] = "";
+        }
+
+        // 2. Track the 4 Visible Grid Items for the Equip List
+        if (this._equipListWindow && this._equipListWindow._data) {
+            let cursorRow = Math.floor(this._equipListWindow.index() / this._equipListWindow.maxCols());
+            if (cursorRow < 0) cursorRow = 0;
+            let logicalTopRow = cursorRow > 1 ? cursorRow - 1 : 0;
+            const topIndex = logicalTopRow * this._equipListWindow.maxCols(); 
+            for (let i = 0; i < 4; i++) {
+                const item = this._equipListWindow._data[topIndex + i];
+                if (item === undefined) $gameTemp['equipListSlot' + i] = "";
+                else if (item === null) $gameTemp['equipListSlot' + i] = "-------";
+                else $gameTemp['equipListSlot' + i] = item.name;
+            }
+        }
+        
+        // 2B. Track the 4 Visible Grid Items for the Abilities List
+        if (this._abilitiesListWindow && this._abilitiesListWindow._data) {
+            let cursorRow = Math.floor(this._abilitiesListWindow.index() / this._abilitiesListWindow.maxCols());
+            if (cursorRow < 0) cursorRow = 0;
+            let logicalTopRow = cursorRow > 1 ? cursorRow - 1 : 0;
+            const topIndex = logicalTopRow * this._abilitiesListWindow.maxCols(); 
+            for (let i = 0; i < 4; i++) {
+                const item = this._abilitiesListWindow._data[topIndex + i];
+                if (item === undefined) $gameTemp['abilListSlot' + i] = "";
+                else $gameTemp['abilListSlot' + i] = item.name; // No nulls in Abilities List
+            }
+        }
+
+        // 3. Track the Hovered Item for Description Windows
+        let hoveredEquipItem = null;
+        let isHoveringNothing = false;
+        
+        let hoveredAbilItem = null;
+        let isAbilHoveringNothing = false;
+
+        // Equip Hover tracking
+        if (this._equipListWindow && this._equipListWindow.active) {
+            hoveredEquipItem = this._equipListWindow.item();
+            if (hoveredEquipItem === null) isHoveringNothing = true; 
+        } else if (this._equipTabsWindow && this._equipTabsWindow.active && $gameTemp.equipSelectedActor >= 0) {
+            const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+            const index = this._equipTabsWindow.index();
+            if (index === 1) { 
+                hoveredEquipItem = actor.equips()[0];
+                if (!hoveredEquipItem) isHoveringNothing = true;
+            } else if (index === 3) { 
+                hoveredEquipItem = actor.equips()[1];
+                if (!hoveredEquipItem) isHoveringNothing = true;
+            }
+        }
+        
+        // Abilities Hover tracking
+        if (this._abilitiesListWindow && this._abilitiesListWindow.active) {
+            hoveredAbilItem = this._abilitiesListWindow.item();
+        } else if (this._abilitiesTabsWindow && this._abilitiesTabsWindow.active && $gameTemp.equipSelectedActor >= 0) {
+            const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+            const arr = $gameTemp.currentAbilityCategory === 'skills' ? actor._equippedSkills : actor._equippedBonds;
+            const sId = arr[this._abilitiesTabsWindow.index()];
+            if (sId) hoveredAbilItem = $dataSkills[sId];
+            else isAbilHoveringNothing = true;
+        }
+
+        // 4. Output Equip Hover Info
+        if (hoveredEquipItem) {
+            $gameTemp.equipHoverName = hoveredEquipItem.name;
+            if (hoveredEquipItem.description) {
+                if (hoveredEquipItem.description.includes('\n')) {
+                    const descParts = hoveredEquipItem.description.split('\n');
+                    $gameTemp.equipHoverDesc1 = descParts[0] || "";
+                    $gameTemp.equipHoverDesc2 = descParts[1] || "";
+                } else if (hoveredEquipItem.description.length > 50) {
+                    let splitIndex = hoveredEquipItem.description.lastIndexOf(' ', 50);
+                    if (splitIndex === -1) splitIndex = 50; 
+                    
+                    $gameTemp.equipHoverDesc1 = hoveredEquipItem.description.substring(0, splitIndex).trim();
+                    $gameTemp.equipHoverDesc2 = hoveredEquipItem.description.substring(splitIndex).trim();
+                } else {
+                    $gameTemp.equipHoverDesc1 = hoveredEquipItem.description;
+                    $gameTemp.equipHoverDesc2 = "";
+                }
+            } else {
+                $gameTemp.equipHoverDesc1 = "";
+                $gameTemp.equipHoverDesc2 = "";
+            }
+        } else if (isHoveringNothing) {
+            $gameTemp.equipHoverName = "-------";
+            $gameTemp.equipHoverDesc1 = "";
+            $gameTemp.equipHoverDesc2 = "";
+        } else {
+            $gameTemp.equipHoverName = "";
+            $gameTemp.equipHoverDesc1 = "";
+            $gameTemp.equipHoverDesc2 = "";
+        }
+        
+        // 4B. Output Abilities Hover Info
+        const formatAbilDesc = (text) => {
+            if (!text) return ["", "", ""];
+            let lines = text.split('\n');
+            let result = [];
+            const maxLen = 45; // Maximum characters per line. Tweak this if it clips!
+
+            for (let line of lines) {
+                while (line.length > maxLen) {
+                    let splitIdx = line.lastIndexOf(' ', maxLen);
+                    if (splitIdx === -1) splitIdx = maxLen; // Force split if no spaces exist
+                    result.push(line.substring(0, splitIdx).trim());
+                    line = line.substring(splitIdx).trim();
+                }
+                result.push(line.trim());
+            }
+            return [result[0] || "", result[1] || "", result[2] || ""];
+        };
+
+        if (hoveredAbilItem) {
+            $gameTemp.abilHoverName = hoveredAbilItem.name;
+            const descLines = formatAbilDesc(hoveredAbilItem.description);
+            $gameTemp.abilHoverDesc1 = descLines[0];
+            $gameTemp.abilHoverDesc2 = descLines[1];
+            $gameTemp.abilHoverDesc3 = descLines[2];
+            
+            // --- NEW: COST TRACKING (MP ONLY) ---
+            const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+            if (actor) {
+                $gameTemp.abilHoverMpCost = actor.skillMpCost(hoveredAbilItem);
+            } else {
+                $gameTemp.abilHoverMpCost = hoveredAbilItem.mpCost;
+            }
+            $gameTemp.abilHasMpCost = $gameTemp.abilHoverMpCost > 0;
+
+        } else if (isAbilHoveringNothing) {
+            $gameTemp.abilHoverName = "-------";
+            $gameTemp.abilHoverDesc1 = "";
+            $gameTemp.abilHoverDesc2 = "";
+            $gameTemp.abilHoverDesc3 = "";
+            $gameTemp.abilHoverMpCost = 0;
+            $gameTemp.abilHasMpCost = false;
+        } else {
+            $gameTemp.abilHoverName = "";
+            $gameTemp.abilHoverDesc1 = "";
+            $gameTemp.abilHoverDesc2 = "";
+            $gameTemp.abilHoverDesc3 = "";
+            $gameTemp.abilHoverMpCost = 0;
+            $gameTemp.abilHasMpCost = false;
         }
 
         if (this._mementosItemWindow && this._mementosItemWindow.active) {
@@ -1274,9 +2497,9 @@
                     const descParts = item.description.split('\n');
                     $gameTemp.mementosItemDesc1 = descParts[0] || "";
                     $gameTemp.mementosItemDesc2 = descParts[1] || "";
-                } else if (item.description.length > 45) {
-                    let splitIndex = item.description.lastIndexOf(' ', 45);
-                    if (splitIndex === -1) splitIndex = 45; 
+                } else if (item.description.length > 35) {
+                    let splitIndex = item.description.lastIndexOf(' ', 35);
+                    if (splitIndex === -1) splitIndex = 35; 
                     
                     $gameTemp.mementosItemDesc1 = item.description.substring(0, splitIndex).trim();
                     $gameTemp.mementosItemDesc2 = item.description.substring(splitIndex).trim();
@@ -1295,6 +2518,46 @@
             $gameTemp.mementosItemDesc1 = "";
             $gameTemp.mementosItemDesc2 = "";
             $gameTemp.mementosItemAmount = 0;
+        }
+
+        // 5. Stat Comparison Math (Unchanged)
+        if (this._equipTabsWindow || this._equipListWindow) {
+            let statMode = 0; // 0 = Tabs (--), 1 = List Mode
+            if (this._equipListWindow && this._equipListWindow.active && $gameTemp.equipSelectedActor >= 0) {
+                statMode = 1;
+            }
+
+            for (let i = 0; i < 8; i++) { // RMMZ has 8 base params (0: MHP, 1: MMP, 2: ATK, 3: DEF, 4: MAT, 5: MDF, 6: AGI, 7: LUK)
+                if ($gameTemp.equipSelectedActor < 0 || !$gameParty.members()[$gameTemp.equipSelectedActor]) {
+                    $gameTemp['equipStatCurrent' + i] = "";
+                    $gameTemp['equipStatState' + i] = -1;
+                    $gameTemp['equipStatValue' + i] = "";
+                } else {
+                    const actor = $gameParty.members()[$gameTemp.equipSelectedActor];
+                    const currentVal = actor.param(i);
+                    
+                    // ALWAYS expose the current base stat so it shows up in both Tabs and List mode
+                    $gameTemp['equipStatCurrent' + i] = currentVal; 
+
+                    if (statMode === 0) {
+                        $gameTemp['equipStatState' + i] = -1; // -1 means Tabs Mode (---)
+                        $gameTemp['equipStatValue' + i] = "---";
+                    } else {
+                        const slotId = this._equipListWindow._slotId;
+                        const oldItem = actor.equips()[slotId];
+                        const newItem = hoveredEquipItem;
+                        
+                        // Calculate difference (0 if unequipping or replacing nothing)
+                        const diff = (newItem ? newItem.params[i] : 0) - (oldItem ? oldItem.params[i] : 0);
+                        const newVal = currentVal + diff;
+
+                        $gameTemp['equipStatValue' + i] = newVal;
+                        if (diff > 0) $gameTemp['equipStatState' + i] = 2; // Higher (Green)
+                        else if (diff < 0) $gameTemp['equipStatState' + i] = 3; // Lower (Red)
+                        else $gameTemp['equipStatState' + i] = 1; // Same (White)
+                    }
+                }
+            }
         }
     };
 
