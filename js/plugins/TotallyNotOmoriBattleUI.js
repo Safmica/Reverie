@@ -822,6 +822,16 @@ Window_BattleLog.prototype.performHysteriaDamage = function(target, damage) {
     }
 };
 
+// COMPLETELY KILL MOUSE/TOUCH INPUT IN BATTLE
+const _TouchInput_update = TouchInput.update;
+TouchInput.update = function() {
+    if ($gameParty && $gameParty.inBattle()) {
+        this.clear(); // Instantly wipes all mouse clicks and touch data
+        return;
+    }
+    _TouchInput_update.call(this);
+};
+
 // THE  "FAILED TO LOAD" CRASH BYPASS
 Bitmap.prototype._onError = function() {
     this._hasError = false;
