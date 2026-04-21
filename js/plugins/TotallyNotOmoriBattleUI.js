@@ -813,5 +813,16 @@ Window_BattleLog.prototype.performHysteriaDamage = function(target, damage) {
     }
 };
 
-})();
+// THE  "FAILED TO LOAD" CRASH BYPASS
+Bitmap.prototype._onError = function() {
+    this._hasError = false;
+    
+    this._isLoading = false;
+    this._loadingState = 'loaded'; 
+    
+    if (this.resize) this.resize(1, 1);
+    
+    if (this._callLoadListeners) this._callLoadListeners();
+};
 
+})();
