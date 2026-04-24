@@ -25,5 +25,7 @@ var $plugins =
 {"name":"GabeMZ_FogEffects","status":true,"description":"[v2.1.0] Allows to create and display fog effects on maps and battles.","parameters":{"fogSettings":"[\"{\\\"fogFilename\\\":\\\"Fog\\\",\\\"fogOpacity\\\":\\\"225\\\",\\\"fogBlendMode\\\":\\\"0\\\",\\\"fogMoveX\\\":\\\"0.4\\\",\\\"fogMoveY\\\":\\\"0\\\"}\",\"{\\\"fogFilename\\\":\\\"FogGreen\\\",\\\"fogOpacity\\\":\\\"125.0\\\",\\\"fogBlendMode\\\":\\\"0\\\",\\\"fogMoveX\\\":\\\"0.7\\\",\\\"fogMoveY\\\":\\\"0\\\"}\"]","fogInMap":"true","fogInBattle":"true","fogOptionsMenuCommand":"===============================================","commandEnabled":"true","commandName":"Fog Effects"}},
 {"name":"CustomMessageBackground","status":true,"description":"Ganti background window tertentu dengan warna hitam solid dan border putih (style Undertale). Pilihan (choice) pakai ikon tangan di dalam box, teks rata kanan.","parameters":{}},
 {"name":"BattleCommandImage","status":true,"description":"","parameters":{}},
-{"name":"QuickSave","status":true,"description":"","parameters":{}}
+{"name":"QuickSave","status":true,"description":"","parameters":{}},
+{"name":"EventRegionRestrict","status":true,"description":"Membatasi pergerakan Event hanya pada Region ID tertentu.","parameters":{}},
+{"name":"SmoothEventMovement","status":true,"description":"Membuat pergerakan autonomous event menjadi lebih natural/smooth menggunakan pathfinding.","parameters":{}}
 ];
