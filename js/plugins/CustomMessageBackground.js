@@ -106,4 +106,17 @@
         const padding = 8 + (this._choiceCursorSprite ? this._choiceCursorSprite.width * 1.5 : 36) + 4;
         this.drawText(this.commandName(index), rect.x + padding, rect.y, rect.width - padding, "right");
     };
+
+    const _Window_Message_updatePlacement = Window_Message.prototype.updatePlacement;
+    Window_Message.prototype.updatePlacement = function() {
+        _Window_Message_updatePlacement.call(this);
+
+        const marginX = 10;
+        const marginBottom = 10;
+
+        this.x = marginX;
+        this.width = Graphics.boxWidth - marginX * 2;
+
+        this.y = Graphics.boxHeight - this.height - marginBottom;
+    };
 })();
