@@ -6,7 +6,7 @@ INPUT:
 - A plain dialogue transcript in the format:
   [Character] : "Text"
 - A speaker-to-actor mapping may be implied from the speaker name.
-- An expression database is provided below.
+- An expression database is provided below with image for your visualization.
 - Available text styling escape codes and plugin commands are provided below.
 
 OUTPUT:
@@ -54,70 +54,262 @@ RULES:
 
 EXPRESSION DATABASE:
 {
-  "sora": {
-    "default": {
-      "file": "sora_1",
-      "index": 0
+    "sora": {
+        "expressions": {
+            "normal": {
+                "file": "sora_1",
+                "index": 0
+            },
+            "smiling": {
+                "file": "sora_1",
+                "index": 1
+            },
+            "happy": {
+                "file": "sora_1",
+                "index": 2
+            },
+            "annoyed": {
+                "file": "sora_1",
+                "index": 3
+            },
+            "angry": {
+                "file": "sora_1",
+                "index": 4
+            },
+            "panicking": {
+                "file": "sora_1",
+                "index": 5
+            },
+            "relieved": {
+                "file": "sora_1",
+                "index": 6
+            },
+            "holding_tears": {
+                "file": "sora_1",
+                "index": 7
+            },
+            "confused": {
+                "file": "sora_2",
+                "index": 0
+            },
+            "horrified": {
+                "file": "sora_2",
+                "index": 1
+            },
+            "anxious": {
+                "file": "sora_2",
+                "index": 2
+            },
+            "smiling_empty": {
+                "file": "sora_2",
+                "index": 3
+            },
+            "exhausted": {
+                "file": "sora_2",
+                "index": 4
+            },
+            "hopeless": {
+                "file": "sora_2",
+                "index": 5
+            },
+            "complaining": {
+                "file": "sora_2",
+                "index": 6
+            }
+        }
     },
-    "expressions": {
-      "sad": {
-        "file": "sora_1",
-        "index": 0
-      },
-      "angry": {
-        "file": "sora_2",
-        "index": 1
-      }
-    }
-  },
-  "ann": {
-    "default": {
-      "file": "ann_1",
-      "index": 0
+    "ann": {
+        "expressions": {
+            "normal": {
+                "file": "ann_1",
+                "index": 0
+            },
+            "smiling": {
+                "file": "ann_1",
+                "index": 1
+            },
+            "happy": {
+                "file": "ann_1",
+                "index": 2
+            },
+            "annoyed": {
+                "file": "ann_1",
+                "index": 3
+            },
+            "angry": {
+                "file": "ann_1",
+                "index": 4
+            },
+            "panicking": {
+                "file": "ann_1",
+                "index": 5
+            },
+            "relieved": {
+                "file": "ann_1",
+                "index": 6
+            },
+            "holding_tears": {
+                "file": "ann_1",
+                "index": 7
+            },
+            "confused": {
+                "file": "ann_2",
+                "index": 0
+            },
+            "horrified": {
+                "file": "ann_2",
+                "index": 1
+            },
+            "anxious": {
+                "file": "ann_2",
+                "index": 2
+            },
+            "smiling_empty": {
+                "file": "ann_2",
+                "index": 3
+            },
+            "exhausted": {
+                "file": "ann_2",
+                "index": 4
+            },
+            "hopeless": {
+                "file": "ann_2",
+                "index": 5
+            },
+            "complaining": {
+                "file": "ann_2",
+                "index": 6
+            }
+        }
     },
-    "expressions": {
-      "sad": {
-        "file": "ann_1",
-        "index": 0
-      },
-      "angry": {
-        "file": "ann_2",
-        "index": 1
-      }
-    }
-  },
-  "gin": {
-    "default": {
-      "file": "gin_1",
-      "index": 0
+    "gin": {
+        "expressions": {
+            "normal": {
+                "file": "gin_1",
+                "index": 0
+            },
+            "smiling": {
+                "file": "gin_1",
+                "index": 1
+            },
+            "happy": {
+                "file": "gin_1",
+                "index": 2
+            },
+            "annoyed": {
+                "file": "gin_1",
+                "index": 3
+            },
+            "angry": {
+                "file": "gin_1",
+                "index": 4
+            },
+            "panicking": {
+                "file": "gin_1",
+                "index": 5
+            },
+            "relieved": {
+                "file": "gin_1",
+                "index": 6
+            },
+            "holding_tears": {
+                "file": "gin_1",
+                "index": 7
+            },
+            "confused": {
+                "file": "gin_2",
+                "index": 0
+            },
+            "horrified": {
+                "file": "gin_2",
+                "index": 1
+            },
+            "anxious": {
+                "file": "gin_2",
+                "index": 2
+            },
+            "smiling_empty": {
+                "file": "gin_2",
+                "index": 3
+            },
+            "exhausted": {
+                "file": "gin_2",
+                "index": 4
+            },
+            "hopeless": {
+                "file": "gin_2",
+                "index": 5
+            },
+            "complaining": {
+                "file": "gin_2",
+                "index": 6
+            }
+        }
     },
-    "expressions": {
-      "sad": {
-        "file": "gin_1",
-        "index": 0
-      },
-      "angry": {
-        "file": "gin_2",
-        "index": 1
-      }
+    "zuko": {
+        "expressions": {
+            "normal": {
+                "file": "zuko_1",
+                "index": 0
+            },
+            "smiling": {
+                "file": "zuko_1",
+                "index": 1
+            },
+            "happy": {
+                "file": "zuko_1",
+                "index": 2
+            },
+            "annoyed": {
+                "file": "zuko_1",
+                "index": 3
+            },
+            "angry": {
+                "file": "zuko_1",
+                "index": 4
+            },
+            "panicking": {
+                "file": "zuko_1",
+                "index": 5
+            },
+            "relieved": {
+                "file": "zuko_1",
+                "index": 6
+            },
+            "holding_tears": {
+                "file": "zuko_1",
+                "index": 7
+            },
+            "confused": {
+                "file": "zuko_2",
+                "index": 0
+            },
+            "horrified": {
+                "file": "zuko_2",
+                "index": 1
+            },
+            "anxious": {
+                "file": "zuko_2",
+                "index": 2
+            },
+            "smiling_empty": {
+                "file": "zuko_2",
+                "index": 3
+            },
+            "exhausted": {
+                "file": "zuko_2",
+                "index": 4
+            },
+            "hopeless": {
+                "file": "zuko_2",
+                "index": 5
+            },
+            "complaining": {
+                "file": "zuko_2",
+                "index": 6
+            }
+        }
     }
-  },
-  "zuko": {
-    "default": {
-      "file": "zuko_1",
-      "index": 0
-    },
-    "expressions": {
-      "sad": {
-        "file": "zuko_1",
-        "index": 0
-      },
-      "angry": {
-        "file": "zuko_2",
-        "index": 1
-      }
-    }
-  }
 }
 
 AVAILABLE TEXT STYLING COMMANDS:
@@ -216,7 +408,7 @@ Output:
           "type": "dialogue",
           "actor": "other",
           "expression": "default",
-          "text": "Hey, Sora! Come over here for a sec!"
+          "text": "Hey, Sora! \FX<PM, swing> Come over here for a sec!"
         }
       ]
     }

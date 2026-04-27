@@ -25,32 +25,260 @@ const fallbackTemplate = {
 };
 
 const fallbackExpressions = {
-  sora: {
-    default: { file: "potrait", index: 0 },
-    expressions: {
-      sad: { file: "potrait", index: 0 },
-      angry: { file: "potrait", index: 0 }
+  "sora": {
+    "expressions": {
+      "normal": {
+        "file": "sora_1",
+        "index": 0
+      },
+      "smiling": {
+        "file": "sora_1",
+        "index": 1
+      },
+      "happy": {
+        "file": "sora_1",
+        "index": 2
+      },
+      "annoyed": {
+        "file": "sora_1",
+        "index": 3
+      },
+      "angry": {
+        "file": "sora_1",
+        "index": 4
+      },
+      "panicking": {
+        "file": "sora_1",
+        "index": 5
+      },
+      "relieved": {
+        "file": "sora_1",
+        "index": 6
+      },
+      "holding_tears": {
+        "file": "sora_1",
+        "index": 7
+      },
+      "confused": {
+        "file": "sora_2",
+        "index": 0
+      },
+      "horrified": {
+        "file": "sora_2",
+        "index": 1
+      },
+      "anxious": {
+        "file": "sora_2",
+        "index": 2
+      },
+      "smiling_empty": {
+        "file": "sora_2",
+        "index": 3
+      },
+      "exhausted": {
+        "file": "sora_2",
+        "index": 4
+      },
+      "hopeless": {
+        "file": "sora_2",
+        "index": 5
+      },
+      "complaining": {
+        "file": "sora_2",
+        "index": 6
+      }
     }
   },
-  ann: {
-    default: { file: "potrait", index: 2 },
-    expressions: {
-      sad: { file: "potrait", index: 2 },
-      angry: { file: "potrait", index: 2 }
+  "ann": {
+    "expressions": {
+      "normal": {
+        "file": "ann_1",
+        "index": 0
+      },
+      "smiling": {
+        "file": "ann_1",
+        "index": 1
+      },
+      "happy": {
+        "file": "ann_1",
+        "index": 2
+      },
+      "annoyed": {
+        "file": "ann_1",
+        "index": 3
+      },
+      "angry": {
+        "file": "ann_1",
+        "index": 4
+      },
+      "panicking": {
+        "file": "ann_1",
+        "index": 5
+      },
+      "relieved": {
+        "file": "ann_1",
+        "index": 6
+      },
+      "holding_tears": {
+        "file": "ann_1",
+        "index": 7
+      },
+      "confused": {
+        "file": "ann_2",
+        "index": 0
+      },
+      "horrified": {
+        "file": "ann_2",
+        "index": 1
+      },
+      "anxious": {
+        "file": "ann_2",
+        "index": 2
+      },
+      "smiling_empty": {
+        "file": "ann_2",
+        "index": 3
+      },
+      "exhausted": {
+        "file": "ann_2",
+        "index": 4
+      },
+      "hopeless": {
+        "file": "ann_2",
+        "index": 5
+      },
+      "complaining": {
+        "file": "ann_2",
+        "index": 6
+      }
     }
   },
-  gin: {
-    default: { file: "potrait", index: 3 },
-    expressions: {
-      sad: { file: "potrait", index: 3 },
-      angry: { file: "potrait", index: 3 }
+  "gin": {
+    "expressions": {
+      "normal": {
+        "file": "gin_1",
+        "index": 0
+      },
+      "smiling": {
+        "file": "gin_1",
+        "index": 1
+      },
+      "happy": {
+        "file": "gin_1",
+        "index": 2
+      },
+      "annoyed": {
+        "file": "gin_1",
+        "index": 3
+      },
+      "angry": {
+        "file": "gin_1",
+        "index": 4
+      },
+      "panicking": {
+        "file": "gin_1",
+        "index": 5
+      },
+      "relieved": {
+        "file": "gin_1",
+        "index": 6
+      },
+      "holding_tears": {
+        "file": "gin_1",
+        "index": 7
+      },
+      "confused": {
+        "file": "gin_2",
+        "index": 0
+      },
+      "horrified": {
+        "file": "gin_2",
+        "index": 1
+      },
+      "anxious": {
+        "file": "gin_2",
+        "index": 2
+      },
+      "smiling_empty": {
+        "file": "gin_2",
+        "index": 3
+      },
+      "exhausted": {
+        "file": "gin_2",
+        "index": 4
+      },
+      "hopeless": {
+        "file": "gin_2",
+        "index": 5
+      },
+      "complaining": {
+        "file": "gin_2",
+        "index": 6
+      }
     }
   },
-  zuko: {
-    default: { file: "potrait", index: 1 },
-    expressions: {
-      sad: { file: "potrait", index: 1 },
-      angry: { file: "potrait", index: 1 }
+  "zuko": {
+    "expressions": {
+      "normal": {
+        "file": "zuko_1",
+        "index": 0
+      },
+      "smiling": {
+        "file": "zuko_1",
+        "index": 1
+      },
+      "happy": {
+        "file": "zuko_1",
+        "index": 2
+      },
+      "annoyed": {
+        "file": "zuko_1",
+        "index": 3
+      },
+      "angry": {
+        "file": "zuko_1",
+        "index": 4
+      },
+      "panicking": {
+        "file": "zuko_1",
+        "index": 5
+      },
+      "relieved": {
+        "file": "zuko_1",
+        "index": 6
+      },
+      "holding_tears": {
+        "file": "zuko_1",
+        "index": 7
+      },
+      "confused": {
+        "file": "zuko_2",
+        "index": 0
+      },
+      "horrified": {
+        "file": "zuko_2",
+        "index": 1
+      },
+      "anxious": {
+        "file": "zuko_2",
+        "index": 2
+      },
+      "smiling_empty": {
+        "file": "zuko_2",
+        "index": 3
+      },
+      "exhausted": {
+        "file": "zuko_2",
+        "index": 4
+      },
+      "hopeless": {
+        "file": "zuko_2",
+        "index": 5
+      },
+      "complaining": {
+        "file": "zuko_2",
+        "index": 6
+      }
     }
   }
 };
@@ -543,69 +771,69 @@ function updatePreviewFromInputs() {
 }
 
 const rmmzColors = [
-    "#ffffff", "#20a0d6", "#ff784c", "#66cc40", "#99ccff", "#ccc0ff", "#ffffa0", "#808080",
-    "#c0c0c0", "#2080cc", "#ff3810", "#00a010", "#3e9ade", "#a098ff", "#ffcc20", "#000000",
-    "#84aaff", "#ffff40", "#ff2020", "#202040", "#ff8000", "#ff4000", "#40a0ff", "#40c0ea",
-    "#80ff80", "#c0a0c0", "#4040ff", "#ff80ff", "#00a040", "#00e060", "#a060e0", "#c080ff"
+  "#ffffff", "#20a0d6", "#ff784c", "#66cc40", "#99ccff", "#ccc0ff", "#ffffa0", "#808080",
+  "#c0c0c0", "#2080cc", "#ff3810", "#00a010", "#3e9ade", "#a098ff", "#ffcc20", "#000000",
+  "#84aaff", "#ffff40", "#ff2020", "#202040", "#ff8000", "#ff4000", "#40a0ff", "#40c0ea",
+  "#80ff80", "#c0a0c0", "#4040ff", "#ff80ff", "#00a040", "#00e060", "#a060e0", "#c080ff"
 ];
 
 function formatRmmzText(text) {
-    // Strip VisuStella name box tags like \N<Name> or \NC<Name> so they don't break the preview
-    // We already use the speaker property for the Name Box.
-    let source = (text || "").replace(/\\N[A-Z]*<([^>]+)>/gi, '');
-    const regex = /\\C\[(\d+)\]|\\ResetColor|\\FX<([^>]+)>|\\RX/gi;
-    let result = "";
-    let lastIndex = 0;
-    
-    let activeColor = "";
-    let activeFx = "";
+  // Strip VisuStella name box tags like \N<Name> or \NC<Name> so they don't break the preview
+  // We already use the speaker property for the Name Box.
+  let source = (text || "").replace(/\\N[A-Z]*<([^>]+)>/gi, '');
+  const regex = /\\C\[(\d+)\]|\\ResetColor|\\FX<([^>]+)>|\\RX/gi;
+  let result = "";
+  let lastIndex = 0;
 
-    function openSpan() {
-        let classes = activeFx ? `fx-${activeFx.replace(/\s+/g, '-')}` : '';
-        let style = activeColor ? `color: ${activeColor};` : '';
-        if (!classes && !style) return '';
-        let clsAttr = classes ? ` class="${classes}"` : '';
-        let styAttr = style ? ` style="${style}"` : '';
-        return `<span${clsAttr}${styAttr}>`;
+  let activeColor = "";
+  let activeFx = "";
+
+  function openSpan() {
+    let classes = activeFx ? `fx-${activeFx.replace(/\s+/g, '-')}` : '';
+    let style = activeColor ? `color: ${activeColor};` : '';
+    if (!classes && !style) return '';
+    let clsAttr = classes ? ` class="${classes}"` : '';
+    let styAttr = style ? ` style="${style}"` : '';
+    return `<span${clsAttr}${styAttr}>`;
+  }
+
+  let match;
+  while ((match = regex.exec(source)) !== null) {
+    let textChunk = source.slice(lastIndex, match.index);
+    if (textChunk) {
+      let htmlChunk = escapeHtml(textChunk).replace(/\n/g, '<br>');
+      let span = openSpan();
+      if (span) result += span + htmlChunk + "</span>";
+      else result += htmlChunk;
     }
 
-    let match;
-    while ((match = regex.exec(source)) !== null) {
-        let textChunk = source.slice(lastIndex, match.index);
-        if (textChunk) {
-            let htmlChunk = escapeHtml(textChunk).replace(/\n/g, '<br>');
-            let span = openSpan();
-            if (span) result += span + htmlChunk + "</span>";
-            else result += htmlChunk;
-        }
-
-        let m0 = match[0].toUpperCase();
-        if (m0.startsWith("\\C[")) {
-            let idx = parseInt(match[1], 10);
-            activeColor = rmmzColors[idx] || activeColor;
-        } else if (m0.startsWith("\\RESETCOLOR")) {
-            activeColor = "";
-        } else if (m0.startsWith("\\FX<")) {
-            let args = match[2].split(',');
-            let cat = (args[0] || "").trim().toLowerCase();
-            let sub = (args[1] || "").trim().toLowerCase();
-            activeFx = `${cat}-${sub}`;
-        } else if (m0.startsWith("\\RX")) {
-            activeFx = "";
-        }
-        
-        lastIndex = regex.lastIndex;
+    let m0 = match[0].toUpperCase();
+    if (m0.startsWith("\\C[")) {
+      let idx = parseInt(match[1], 10);
+      activeColor = rmmzColors[idx] || activeColor;
+    } else if (m0.startsWith("\\RESETCOLOR")) {
+      activeColor = "";
+    } else if (m0.startsWith("\\FX<")) {
+      let args = match[2].split(',');
+      let cat = (args[0] || "").trim().toLowerCase();
+      let sub = (args[1] || "").trim().toLowerCase();
+      activeFx = `${cat}-${sub}`;
+    } else if (m0.startsWith("\\RX")) {
+      activeFx = "";
     }
 
-    let remainder = source.slice(lastIndex);
-    if (remainder) {
-        let htmlChunk = escapeHtml(remainder).replace(/\n/g, '<br>');
-        let span = openSpan();
-        if (span) result += span + htmlChunk + "</span>";
-        else result += htmlChunk;
-    }
+    lastIndex = regex.lastIndex;
+  }
 
-    return result;
+  let remainder = source.slice(lastIndex);
+  if (remainder) {
+    let htmlChunk = escapeHtml(remainder).replace(/\n/g, '<br>');
+    let span = openSpan();
+    if (span) result += span + htmlChunk + "</span>";
+    else result += htmlChunk;
+  }
+
+  return result;
 }
 
 function escapeHtml(value) {
