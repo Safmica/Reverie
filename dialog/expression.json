@@ -1,0 +1,66 @@
+{
+    "sora": {
+        "default": {
+            "file": "sora_1",
+            "index": 0
+        },
+        "expressions": {
+            "sad": {
+                "file": "sora_1",
+                "index": 0
+            },
+            "angry": {
+                "file": "sora_2",
+                "index": 1
+            }
+        }
+    },
+    "ann": {
+        "default": {
+            "file": "ann_1",
+            "index": 0
+        },
+        "expressions": {
+            "sad": {
+                "file": "ann_1",
+                "index": 0
+            },
+            "angry": {
+                "file": "ann_2",
+                "index": 1
+            }
+        }
+    },
+    "gin": {
+        "default": {
+            "file": "gin_1",
+            "index": 0
+        },
+        "expressions": {
+            "sad": {
+                "file": "gin_1",
+                "index": 0
+            },
+            "angry": {
+                "file": "gin_2",
+                "index": 1
+            }
+        }
+    },
+    "zuko": {
+        "default": {
+            "file": "zuko_1",
+            "index": 0
+        },
+        "expressions": {
+            "sad": {
+                "file": "zuko_1",
+                "index": 0
+            },
+            "angry": {
+                "file": "zuko_2",
+                "index": 1
+            }
+        }
+    }
+}
