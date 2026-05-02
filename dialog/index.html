@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dialogue Injector</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Dialogue Injector</h1>
+      <p>RPG Maker MZ event dialogue writer</p>
+    </div>
+    <div class="topbar-actions">
+      <button id="loadDefaultsBtn" type="button">Load default JSON</button>
+      <button id="pickDataBtn" type="button" class="primary">Pilih folder data</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="panel editor-panel" aria-labelledby="inputTitle">
+      <div class="panel-heading">
+        <div>
+          <h2 id="inputTitle">Input</h2>
+          <span id="sourceStatus" class="muted">Belum ada folder data</span>
+        </div>
+        <div class="button-row">
+          <button id="templateFileBtn" type="button">Template</button>
+          <button id="expressionFileBtn" type="button">Expression</button>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>Template JSON</span>
+        <textarea id="templateInput" spellcheck="false"></textarea>
+      </label>
+
+      <label class="field">
+        <span>Expression JSON</span>
+        <textarea id="expressionInput" spellcheck="false"></textarea>
+      </label>
+
+      <input id="templateFileInput" type="file" accept="application/json,.json" hidden>
+      <input id="expressionFileInput" type="file" accept="application/json,.json" hidden>
+    </section>
+
+    <section class="panel control-panel" aria-labelledby="settingsTitle">
+      <div class="panel-heading">
+        <div>
+          <h2 id="settingsTitle">Settings</h2>
+          <span class="muted">Target command 101 + 401</span>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <label class="field compact">
+          <span>Mode tulis</span>
+          <select id="writeMode">
+            <option value="append" selected>Append</option>
+            <option value="replace">Replace page</option>
+          </select>
+        </label>
+
+        <label class="field compact">
+          <span>Lebar baris</span>
+          <input id="lineWidth" type="number" min="20" max="80" value="52">
+        </label>
+
+        <label class="field compact">
+          <span>Background</span>
+          <select id="backgroundType">
+            <option value="0" selected>Window</option>
+            <option value="1">Dim</option>
+            <option value="2">Transparent</option>
+          </select>
+        </label>
+
+        <label class="field compact">
+          <span>Position</span>
+          <select id="positionType">
+            <option value="2" selected>Bottom</option>
+            <option value="1">Middle</option>
+            <option value="0">Top</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="toggle">
+        <input id="createMissing" type="checkbox" checked>
+        <span>Create missing event/page</span>
+      </label>
+
+      <label class="toggle">
+        <input id="createBackup" type="checkbox" checked>
+        <span>Buat backup Map sebelum tulis</span>
+      </label>
+
+      <div class="action-stack">
+        <button id="previewBtn" type="button">Preview</button>
+        <button id="writeBtn" type="button" class="primary">Tulis ke Map JSON</button>
+      </div>
+
+      <div id="statusBox" class="status">Ready.</div>
+
+      <label class="field">
+        <span>Log</span>
+        <textarea id="logOutput" class="log-output" spellcheck="false" readonly></textarea>
+      </label>
+    </section>
+
+    <section class="preview-panel" aria-labelledby="previewTitle">
+      <div class="preview-header">
+        <div>
+          <h2 id="previewTitle">Preview</h2>
+          <span id="previewMeta" class="muted">0 dialogue</span>
+        </div>
+        <div class="button-row">
+          <button id="prevBtn" type="button" aria-label="Previous dialogue">Prev</button>
+          <button id="nextBtn" type="button" aria-label="Next dialogue">Next</button>
+        </div>
+      </div>
+
+      <div class="game-stage" aria-live="polite">
+        <div class="stage-grid"></div>
+        <div id="nameBox" class="name-box">Name</div>
+        <div class="message-window">
+          <div id="faceFrame" class="face-frame">
+            <div id="faceSprite" class="face-sprite"></div>
+            <div id="faceFallback" class="face-fallback">Face</div>
+          </div>
+          <div class="message-copy">
+            <div id="messageText" class="message-text">Preview dialog akan muncul di sini.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-footer">
+        <span id="dialogueCounter">0 / 0</span>
+        <span id="targetInfo">No target</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

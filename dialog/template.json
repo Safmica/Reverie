@@ -1,0 +1,23 @@
+{
+    "map": "Map007",
+    "events": [
+        {
+            "id": "EV007",
+            "page": 0,
+            "commands": [
+                {
+                    "type": "dialogue",
+                    "actor": "sora",
+                    "expression": "sad",
+                    "text": "There is no way..."
+                },
+                {
+                    "type": "dialogue",
+                    "actor": "ann",
+                    "expression": "angry",
+                    "text": "We must fight!"
+                }
+            ]
+        }
+    ]
+}
