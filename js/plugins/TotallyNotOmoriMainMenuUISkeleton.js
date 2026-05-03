@@ -2959,7 +2959,55 @@
         SceneManager.push(Scene_Load);
     };
 
+    Scene_ReverieTitleOptions.prototype.onOptSysConfirmOpen = function() {
+        $gameTemp.optionsConfirmType = this._optionsListWindow.commandSymbol(this._optionsListWindow.index());
+        $gameTemp._menuCursorDelay = 1;
+        $gameTemp.hudShowOptionsConfirm = true;
+        this._optionsListWindow.deactivate();
+        this._optionsConfirmWindow._closingDelay = 0;
+        this._optionsConfirmWindow.openness = 255;
+        this._optionsConfirmWindow.show();
+        this._optionsConfirmWindow.activate();
+        this._optionsConfirmWindow.select(1);
+        this._optionsConfirmWindow.refresh();
+    };
+
+    Scene_ReverieTitleOptions.prototype.onOptConfirmNo = function() {
+        $gameTemp._menuCursorDelay = 0;
+        $gameTemp.hudShowOptionsConfirm = false;
+        this._optionsConfirmWindow.deactivate();
+        this._optionsConfirmWindow._closingDelay = 0;
+        this._optionsConfirmWindow.hide();
+        this._optionsListWindow.activate();
+    };
+
+    Scene_ReverieTitleOptions.prototype.clearTitleOptionsNoAnimLocks = function() {
+        if (!$gameTemp || !this._titleOptionsNoAnim) return;
+        $gameTemp._menuCursorDelay = 0;
+        if (this._optionsCatWindow) this._optionsCatWindow._closingDelay = 0;
+        if (this._optionsListWindow) this._optionsListWindow._closingDelay = 0;
+        if (this._optionsConfirmWindow && this._optionsConfirmWindow._closingDelay > 0) {
+            this._optionsConfirmWindow._closingDelay = 0;
+            this._optionsConfirmWindow.hide();
+        }
+    };
+
+    Scene_ReverieTitleOptions.prototype.updateTitleOptionsConfirmFallback = function() {
+        if (!$gameTemp || !this._titleOptionsNoAnim) return;
+        if (!this._optionsListWindow || !this._optionsListWindow.active) return;
+        if (this._optionsListWindow._category !== 'system') return;
+        if (this._optionsListWindow.commandSymbol(this._optionsListWindow.index()) !== 'sys_exit') return;
+        if (this._optionsConfirmWindow && this._optionsConfirmWindow.visible) return;
+        if (Input.isTriggered('ok')) {
+            SoundManager.playOk();
+            this.onOptSysConfirmOpen();
+        }
+    };
+
     Scene_ReverieTitleOptions.prototype.update = function() {
+        if ($gameTemp && this._titleOptionsNoAnim) {
+            this.clearTitleOptionsNoAnimLocks();
+        }
         Scene_Base.prototype.update.call(this);
         if (!$gameTemp) return;
 
@@ -2968,6 +3016,7 @@
         }
 
         this.updateOptionsRebind();
+        this.updateTitleOptionsConfirmFallback();
 
         if (this._titleOptionsNoAnim) {
             if (Scene_Map.prototype.updateHUDMakerBridge) {
@@ -3045,6 +3094,7 @@
         forceUltraHUDVisible(this);
 
         updateTitleOptionsKeyHints();
+        $gameTemp.hudShowOptionsConfirm = !!(this._optionsConfirmWindow && this._optionsConfirmWindow.visible);
 
         hijackHUDMakerNode(this, "MainMenu", () => false, () => false, null, 0, 0, () => false, OPT_ANIM_DELAY);
         hijackHUDMakerNode(this, "StatusCards", () => false, () => false, null, 0, 0, () => false, OPT_ANIM_DELAY);
