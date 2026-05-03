@@ -78,6 +78,8 @@
     const CUTSCENE_MAX_WAIT_CYCLES = 3;
     const CUTSCENE_MAX_BLOCKED_FRAMES = 60;
     const POST_BATTLE_ENCOUNTER_GRACE_FRAMES = 75;
+    const MONSTER_CHASE_SPEED_BONUS = 0.5;
+    const MONSTER_CHASE_LOSE_DISTANCE_BONUS = 2;
 
     const normalizeCutsceneParam = (value) => {
         if (value === undefined || value === null) return "";
@@ -916,8 +918,8 @@
                     isNowChasing = true;
                 }
             } else {
-                // Jika sedang agresif, cek apakah player sudah menjauh (Distance + 2 jarak kabur)
-                if (distance > this._monsterDist + 2) {
+                // Jika sedang agresif, cek apakah player sudah menjauh (Distance + bonus jarak kabur)
+                if (distance > this._monsterDist + MONSTER_CHASE_LOSE_DISTANCE_BONUS) {
                     isNowChasing = false;
                 } else {
                     isNowChasing = true;
@@ -937,7 +939,7 @@
             if (this._originalMoveSpeed === undefined) {
                 this._originalMoveSpeed = this.moveSpeed();
             }
-            this.setMoveSpeed(this._originalMoveSpeed + 1); // Tambah ngebut! (Bisa disesuaikan misal jd 4)
+            this.setMoveSpeed(this._originalMoveSpeed + MONSTER_CHASE_SPEED_BONUS); // Tambah ngebut! (Bisa disesuaikan misal jd 4)
 
             // Supaya gak langsung glith ngebut pas kaget, force tunggu balon bentar 
             this._waitCount = 30; // Stun kaget bentar
