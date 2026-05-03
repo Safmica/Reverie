@@ -2770,7 +2770,6 @@
 
     Scene_ReverieTitleOptions.prototype.start = function() {
         Scene_Base.prototype.start.call(this);
-        this.startFadeIn(this.fadeSpeed(), false);
     };
 
     Scene_ReverieTitleOptions.prototype.terminate = function() {
@@ -2822,6 +2821,9 @@
         if (!$gameTemp) return;
         this._titleOptionsClosing = false;
         this._titleOptionsNoAnim = true;
+        if (this._bg) {
+            this._bg.opacity = 255;
+        }
         $gameTemp._customMenuOpen = true;
         $gameTemp._menuCursorDelay = 0;
         $gameTemp._globalClosingDelay = 0;
@@ -2945,7 +2947,7 @@
         Scene_Base.prototype.update.call(this);
         if (!$gameTemp) return;
 
-        if (this._bg && this._bg.opacity < 255) {
+        if (!this._titleOptionsNoAnim && this._bg && this._bg.opacity < 255) {
             this._bg.opacity += 3;
         }
 

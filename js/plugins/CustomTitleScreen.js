@@ -137,6 +137,11 @@ FontManager.load("ReverieFontBold", "AmaticSC-Bold.ttf");
     Scene_Title.prototype.createBackground = function () {
         this._bg = new Sprite(ImageManager.loadTitle1(bgImage));
         this._bg.opacity = 0;
+        const fromTitleOptions = typeof Scene_ReverieTitleOptions !== "undefined" && SceneManager.isPreviousScene(Scene_ReverieTitleOptions);
+        const fromLoad = SceneManager.isPreviousScene(Scene_Load);
+        if (fromTitleOptions || fromLoad) {
+            this._bg.opacity = 255;
+        }
         this.addChild(this._bg);
     };
 
@@ -185,7 +190,11 @@ FontManager.load("ReverieFontBold", "AmaticSC-Bold.ttf");
         Scene_Base.prototype.start.call(this);
         SceneManager.clearStack();
         this.playTitleMusic();
-        this.startFadeIn(this.fadeSpeed(), false);
+        const fromTitleOptions = typeof Scene_ReverieTitleOptions !== "undefined" && SceneManager.isPreviousScene(Scene_ReverieTitleOptions);
+        const fromLoad = SceneManager.isPreviousScene(Scene_Load);
+        if (!fromTitleOptions && !fromLoad) {
+            this.startFadeIn(this.fadeSpeed(), false);
+        }
     };
 
     // ===== UPDATE =====
