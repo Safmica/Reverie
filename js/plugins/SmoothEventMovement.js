@@ -77,6 +77,7 @@
     const CUTSCENE_WAIT_FRAMES = 30;
     const CUTSCENE_MAX_WAIT_CYCLES = 3;
     const CUTSCENE_MAX_BLOCKED_FRAMES = 60;
+    const POST_BATTLE_ENCOUNTER_GRACE_FRAMES = 75;
 
     const normalizeCutsceneParam = (value) => {
         if (value === undefined || value === null) return "";
@@ -317,6 +318,37 @@
         this._cutsceneGathering = false;
         this._cutsceneEnding = false;
         this._cutsceneAllowedRegions = [];
+        this._postBattleEncounterGraceFrames = 0;
+        this._pendingBattleTouchEventMapId = 0;
+        this._pendingBattleTouchEventId = 0;
+    };
+
+    Game_Temp.prototype.setPendingBattleTouchEvent = function (mapId, eventId) {
+        this._pendingBattleTouchEventMapId = mapId || 0;
+        this._pendingBattleTouchEventId = eventId || 0;
+    };
+
+    Game_Temp.prototype.hasPendingBattleTouchEvent = function () {
+        return this._pendingBattleTouchEventMapId > 0 && this._pendingBattleTouchEventId > 0;
+    };
+
+    Game_Temp.prototype.clearPendingBattleTouchEvent = function () {
+        this._pendingBattleTouchEventMapId = 0;
+        this._pendingBattleTouchEventId = 0;
+    };
+
+    Game_Temp.prototype.startPostBattleEncounterGrace = function () {
+        this._postBattleEncounterGraceFrames = Math.max(this._postBattleEncounterGraceFrames || 0, POST_BATTLE_ENCOUNTER_GRACE_FRAMES);
+    };
+
+    Game_Temp.prototype.isPostBattleEncounterGraceActive = function () {
+        return (this._postBattleEncounterGraceFrames || 0) > 0;
+    };
+
+    Game_Temp.prototype.updatePostBattleEncounterGrace = function () {
+        if (!this.isPostBattleEncounterGraceActive()) return;
+        if ($gameMap && ($gameMap.isEventRunning() || $gameMessage.isBusy())) return;
+        this._postBattleEncounterGraceFrames--;
     };
 
     Game_Temp.prototype.isCutsceneGathering = function () {
@@ -683,13 +715,26 @@
         if (this._cutsceneControlled) {
             return;
         }
+        if ($gameTemp && $gameTemp.isPostBattleEncounterGraceActive() && this.isBattleTouchEvent()) {
+            this.clearSmartDestination();
+            return;
+        }
         _Game_Event_updateSelfMovement.call(this);
     };
 
     const _Game_Event_start = Game_Event.prototype.start;
     Game_Event.prototype.start = function () {
+        if ($gameTemp && $gameTemp.isPostBattleEncounterGraceActive() && this.isBattleTouchEvent()) {
+            return;
+        }
         _Game_Event_start.call(this);
         // tryStartCutscene dipindahkan ke Game_Interpreter.prototype.setup agar tidak tertimpa
+    };
+
+    Game_Event.prototype.isBattleTouchEvent = function () {
+        if (this._trigger !== 2) return false;
+        const list = this.list();
+        return !!(list && list.some(command => command && command.code === 301));
     };
 
     Game_Event.prototype.tryStartCutscene = function (interpreter) {
@@ -715,11 +760,34 @@
         }
     };
 
+    const _Game_Interpreter_command301 = Game_Interpreter.prototype.command301;
+    Game_Interpreter.prototype.command301 = function (params) {
+        const event = this._eventId > 0 ? $gameMap.event(this._eventId) : null;
+        const result = _Game_Interpreter_command301.call(this, params);
+        if ($gameTemp && event && event.isBattleTouchEvent && event.isBattleTouchEvent() && SceneManager.isNextScene(Scene_Battle)) {
+            $gameTemp.setPendingBattleTouchEvent($gameMap.mapId(), this._eventId);
+        }
+        return result;
+    };
+
+    const _BattleManager_endBattle = BattleManager.endBattle;
+    BattleManager.endBattle = function (result) {
+        const shouldStartGrace = $gameTemp && $gameTemp.hasPendingBattleTouchEvent() && (result === 0 || result === 1);
+        _BattleManager_endBattle.call(this, result);
+        if ($gameTemp && $gameTemp.hasPendingBattleTouchEvent()) {
+            if (shouldStartGrace) {
+                $gameTemp.startPostBattleEncounterGrace();
+            }
+            $gameTemp.clearPendingBattleTouchEvent();
+        }
+    };
+
     const _Game_Map_update = Game_Map.prototype.update;
     Game_Map.prototype.update = function (sceneActive) {
         _Game_Map_update.call(this, sceneActive);
         if ($gameTemp) {
             $gameTemp.updateCutscene();
+            $gameTemp.updatePostBattleEncounterGrace();
         }
     };
 
