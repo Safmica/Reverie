@@ -126,6 +126,7 @@ FontManager.load("ReverieFontBold", "AmaticSC-Bold.ttf");
         this.createCommandWindow();
         this.createTitle();
         this.createCommands();
+        this.createUltraHUD();
 
         this._index = 0;
         this.updateSelection();
@@ -137,6 +138,11 @@ FontManager.load("ReverieFontBold", "AmaticSC-Bold.ttf");
     Scene_Title.prototype.createBackground = function () {
         this._bg = new Sprite(ImageManager.loadTitle1(bgImage));
         this._bg.opacity = 0;
+        const fromTitleOptions = typeof Scene_ReverieTitleOptions !== "undefined" && SceneManager.isPreviousScene(Scene_ReverieTitleOptions);
+        const fromLoad = SceneManager.isPreviousScene(Scene_Load);
+        if (fromTitleOptions || fromLoad) {
+            this._bg.opacity = 255;
+        }
         this.addChild(this._bg);
     };
 
@@ -185,7 +191,65 @@ FontManager.load("ReverieFontBold", "AmaticSC-Bold.ttf");
         Scene_Base.prototype.start.call(this);
         SceneManager.clearStack();
         this.playTitleMusic();
-        this.startFadeIn(this.fadeSpeed(), false);
+        const fromTitleOptions = typeof Scene_ReverieTitleOptions !== "undefined" && SceneManager.isPreviousScene(Scene_ReverieTitleOptions);
+        const fromLoad = SceneManager.isPreviousScene(Scene_Load);
+        if (!fromTitleOptions && !fromLoad) {
+            this.startFadeIn(this.fadeSpeed(), false);
+        }
+        if ($gameTemp) {
+            $gameTemp.hudShowTitleOptionsKeys = true;
+            if (window.ReverieUpdateTitleOptionsKeyHints) {
+                window.ReverieUpdateTitleOptionsKeyHints();
+            }
+        }
+    };
+
+    Scene_Title.prototype.createUltraHUD = function () {
+        if (typeof Stage_UltraHUDContainer === "undefined") return;
+        this._ultraHudContainer = new Stage_UltraHUDContainer(true);
+        this._ultraHudContainer.createMapHUD();
+        this.addChild(this._ultraHudContainer);
+        this.updateUltraHUDContainerVisibility();
+    };
+
+    Scene_Title.prototype.shouldHUDBeAvailable = function () {
+        return true;
+    };
+
+    Scene_Title.prototype.ultraHUDVisibility = function () {
+        const hmu = SRD && SRD.HUDMakerUltra ? SRD.HUDMakerUltra : null;
+        const mapFunc = hmu && hmu.mapVisibilityFunc ? hmu.mapVisibilityFunc : null;
+        const baseVisible = mapFunc ? mapFunc() : true;
+        const globalVisible = typeof $gameUltraHUD === "undefined" ? true : $gameUltraHUD.globalVisibility;
+        return baseVisible && globalVisible;
+    };
+
+    Scene_Title.prototype.updateUltraHUDContainerVisibility = function () {
+        if (!this._ultraHudContainer) return;
+        this._ultraHudContainer.visible = this.ultraHUDVisibility();
+        this._ultraHudContainer.setVisibilityState(true);
+    };
+
+    Scene_Title.prototype.refreshUltraHUD = function () {
+        if (this._ultraHudContainer) this._ultraHudContainer.refreshUltraHUD();
+    };
+
+    Scene_Title.prototype.destroyUltraHUD = function () {
+        if (this._ultraHudContainer) {
+            this._ultraHudContainer.destroyCurrentHUD();
+            this.removeChild(this._ultraHudContainer);
+            this._ultraHudContainer.destroy();
+            this._ultraHudContainer = null;
+        }
+    };
+
+    const _Scene_Title_terminate = Scene_Title.prototype.terminate;
+    Scene_Title.prototype.terminate = function () {
+        if ($gameTemp) {
+            $gameTemp.hudShowTitleOptionsKeys = false;
+        }
+        this.destroyUltraHUD();
+        _Scene_Title_terminate.call(this);
     };
 
     // ===== UPDATE =====
@@ -285,7 +349,7 @@ FontManager.load("ReverieFontBold", "AmaticSC-Bold.ttf");
                 break;
 
             case "options":
-                SceneManager.push(Scene_Options);
+                SceneManager.push(Scene_ReverieTitleOptions);
                 break;
         }
 
