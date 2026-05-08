@@ -2653,7 +2653,17 @@
     };
 
     Scene_Map.prototype.onOptSysLoad = function() {
-        $gameTemp.returnToOmoriMenuAfterLoad = true;
+        $gameTemp.returnToOmoriMenuAfterLoad = false;
+        $gameTemp._reverieReturnToOmoriMenuAfterSaveLoadCancel = true;
+        $gameTemp._customMenuOpen = false;
+        $gameTemp.hudShowMainMenu = false;
+        $gameTemp.hudShowOptionsCat = false;
+        $gameTemp.hudShowOptionsList = false;
+        $gameTemp.hudShowOptionsDesc = false;
+        $gameTemp.hudShowOptionsConfirm = false;
+        $gameTemp.hudShowEquipDesc = false;
+        $gameTemp.hudShowEquipStat = false;
+        $gameTemp.hudShowPass = false;
         SceneManager.push(Scene_Load); // Opens native continue screen without Save
     };
 
