@@ -24,7 +24,7 @@
 (() => {
     "use strict";
 
-    const DEBUG_MODE = true;
+    const DEBUG_MODE = false;
     
     const SAVE_FILE_COUNT = 8;
     const MAX_SAVEFILES_WITH_AUTOSAVE = SAVE_FILE_COUNT + 1;
@@ -32,8 +32,27 @@
     const CURSOR_IMAGE_NAME = "FingerCursor";
     const CURSOR_NATIVE_SIZE = 14;
     const CURSOR_DRAW_SIZE = 24;
+
+    const SAVE_LOAD_TOP_Y = 48;
+    const SAVE_LOAD_MODE_X = 40;
+    const SAVE_LOAD_MODE_WIDTH = 180;
+    const SAVE_LOAD_FILE_X = 226;
+    const SAVE_LOAD_FILE_RIGHT_MARGIN = 40;
+    const SAVE_LOAD_FILE_WIDTH_BONUS = 0;
+    const SAVE_LOAD_FILE_BOTTOM_MARGIN = 24;
+    const SAVE_LOAD_FILE_ITEM_HEIGHT_BONUS = 5;
+    const SAVE_LOAD_FILE_ITEM_Y_OFFSET = -66;
+
+    const SAVE_LOAD_BACKGROUND_PICTURE = "save";
+
+    const CONFIRM_WINDOW_WIDTH = 300;
+    const CONFIRM_WINDOW_Y_OFFSET = 41;
+    const CONFIRM_COMMAND_Y_OFFSET = 0;
+
     const EMPTY_IMAGE =
         "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+    const FACE_IMAGE_CACHE = {};
+    const FACE_IMAGE_LOADING = {};
 
     const originalSavefileInfo = DataManager.savefileInfo;
     const originalMakeSavefileInfo = DataManager.makeSavefileInfo;
@@ -127,6 +146,8 @@
         info.reverieLeaderName = leader ? leader.name() : "";
         info.reverieLeaderFaceName = leader ? leader.faceName() : "";
         info.reverieLeaderFaceIndex = leader ? leader.faceIndex() : 0;
+        info.faces = leader ? [[leader.faceName(), leader.faceIndex()]] : [];
+        info.characters = leader ? [[leader.characterName(), leader.characterIndex()]] : [];
         info.reverieMainMapName = cleanMapName(chapterMapInfo ? chapterMapInfo.name : info.title);
         info.reverieLocationName = cleanMapName(currentMapInfo ? currentMapInfo.name : "");
         return info;
@@ -166,9 +187,42 @@
         return 0;
     };
 
+    const croppedFaceImage = function(faceName, faceIndex) {
+        const index = Math.max(0, Number(faceIndex || 0));
+        const cacheKey = faceName + ":" + index;
+        if (FACE_IMAGE_CACHE[cacheKey]) return FACE_IMAGE_CACHE[cacheKey];
+
+        const source = ImageManager.loadFace(faceName);
+        if (!source.isReady()) {
+            if (!FACE_IMAGE_LOADING[cacheKey]) {
+                FACE_IMAGE_LOADING[cacheKey] = true;
+                source.addLoadListener(() => {
+                    delete FACE_IMAGE_LOADING[cacheKey];
+                    croppedFaceImage(faceName, index);
+                    requestSaveLoadHudRefresh();
+                });
+            }
+            return EMPTY_IMAGE;
+        }
+
+        const faceWidth = ImageManager.faceWidth;
+        const faceHeight = ImageManager.faceHeight;
+        const columns = Math.max(1, Math.floor(source.width / faceWidth));
+        const sx = (index % columns) * faceWidth;
+        const sy = Math.floor(index / columns) * faceHeight;
+        const target = new Bitmap(faceWidth, faceHeight);
+        target.blt(source, sx, sy, faceWidth, faceHeight, 0, 0, faceWidth, faceHeight);
+        try {
+            FACE_IMAGE_CACHE[cacheKey] = target.canvas.toDataURL("image/png");
+        } catch (e) {
+            FACE_IMAGE_CACHE[cacheKey] = EMPTY_IMAGE;
+        }
+        return FACE_IMAGE_CACHE[cacheKey];
+    };
+
     const savefileFaceImage = function(info) {
         const faceName = savefileFaceName(info);
-        return faceName ? "img/faces/" + faceName + ".png" : EMPTY_IMAGE;
+        return faceName ? croppedFaceImage(faceName, savefileFaceIndex(info)) : EMPTY_IMAGE;
     };
 
     const setBaseVisibility = function(window) {
@@ -183,27 +237,74 @@
         }
     };
 
+    const hideWindowScrollIndicators = function(window) {
+        window.upArrowVisible = false;
+        window.downArrowVisible = false;
+
+        const spriteNames = [
+            "_upArrowSprite",
+            "_downArrowSprite",
+            "_leftArrowSprite",
+            "_rightArrowSprite",
+            "_scrollBaseSprite",
+            "_scrollBarSprite",
+            "_scrollThumbSprite",
+            "_scrollCursorSprite",
+            "_scrollFrameSprite",
+            "_scrollTrackSprite"
+        ];
+
+        for (const name of spriteNames) {
+            if (window[name]) window[name].visible = false;
+        }
+
+        for (const key of Object.keys(window)) {
+            if (/scroll/i.test(key) && /sprite/i.test(key)) {
+                const sprite = window[key];
+                if (sprite && typeof sprite === "object" && "visible" in sprite) {
+                    sprite.visible = false;
+                }
+            }
+        }
+
+        if (window.contentsBack) {
+            window.contentsBack.clear();
+        }
+    };
+
     const applySkeletonStyle = function(windowClass) {
         const _initialize = windowClass.prototype.initialize;
         windowClass.prototype.initialize = function(rect) {
             _initialize.call(this, rect);
             setBaseVisibility(this);
+            hideWindowScrollIndicators(this);
         };
 
         windowClass.prototype.drawItemBackground = function() {};
         windowClass.prototype._refreshCursor = function() {
             if (this._cursorSprite) this._cursorSprite.visible = false;
         };
+        windowClass.prototype.updateArrows = function() {
+            this.upArrowVisible = false;
+            this.downArrowVisible = false;
+        };
+        windowClass.prototype.drawScrollBar = function() {};
+        windowClass.prototype.refreshScrollBar = function() {};
+        windowClass.prototype.updateScrollBar = function() {};
+        windowClass.prototype.isScrollBarVisible = function() {
+            return false;
+        };
+        windowClass.prototype.isScrollBarEnabled = function() {
+            return false;
+        };
         windowClass.prototype.processTouch = function() {};
+        windowClass.prototype.processTouchScroll = function() {};
+        windowClass.prototype.processWheelScroll = function() {};
 
         const _update = windowClass.prototype.update;
         windowClass.prototype.update = function() {
             if (_update) _update.call(this);
-            if (this._upArrowSprite) this._upArrowSprite.visible = false;
-            if (this._downArrowSprite) this._downArrowSprite.visible = false;
-            if (this._leftArrowSprite) this._leftArrowSprite.visible = false;
-            if (this._rightArrowSprite) this._rightArrowSprite.visible = false;
-            if (this._scrollBaseSprite) this._scrollBaseSprite.visible = false;
+            hideWindowScrollIndicators(this);
         };
 
         const _activate = windowClass.prototype.activate;
@@ -219,10 +320,13 @@
         };
     };
 
-    const drawFingerCursor = function(window, x, y) {
+    const drawFingerCursor = function(window, x, y, enabled = true) {
         const bitmap = ImageManager.loadSystem(CURSOR_IMAGE_NAME);
         if (bitmap.isReady()) {
+            const lastOpacity = window.contents.paintOpacity;
+            window.changePaintOpacity(enabled);
             window.contents.blt(bitmap, 0, 0, CURSOR_NATIVE_SIZE, CURSOR_NATIVE_SIZE, x, y, CURSOR_DRAW_SIZE, CURSOR_DRAW_SIZE);
+            window.contents.paintOpacity = lastOpacity;
         } else {
             bitmap.addLoadListener(() => window.refresh());
         }
@@ -279,7 +383,7 @@
             this.changePaintOpacity(true);
         }
         if ((this.active || this._keepCursorVisible) && this.index() === index) {
-            drawFingerCursor(this, rect.x, rect.y + Math.floor((rect.height - CURSOR_DRAW_SIZE) / 2) + 4);
+            drawFingerCursor(this, rect.x, rect.y + Math.floor((rect.height - CURSOR_DRAW_SIZE) / 2) + 4, this.isCommandEnabled(index));
         }
     };
 
@@ -329,7 +433,11 @@
     };
 
     Window_ReverieSaveLoadList.prototype.itemHeight = function() {
-        return Math.floor(this.innerHeight / VISIBLE_FILE_ROWS);
+        return Math.floor(this.innerHeight / VISIBLE_FILE_ROWS) + SAVE_LOAD_FILE_ITEM_HEIGHT_BONUS;
+    };
+
+    Window_ReverieSaveLoadList.prototype.maxPageRows = function() {
+        return VISIBLE_FILE_ROWS;
     };
 
     Window_ReverieSaveLoadList.prototype.savefileId = function() {
@@ -348,23 +456,41 @@
         }
     };
 
-    Window_ReverieSaveLoadList.prototype.smoothSelect = function(index) {
-        this.select(index);
-        this.ensureCursorVisible(false);
+    Window_ReverieSaveLoadList.prototype.selectionTopRow = function(index) {
+        if (index < 0) return this.topRow();
+        return Math.max(0, index - VISIBLE_FILE_ROWS + 1).clamp(0, this.maxTopRow());
+    };
+
+    Window_ReverieSaveLoadList.prototype.snapScrollToSelection = function() {
+        if (this.index() < 0) return;
+        this.setTopRow(this.selectionTopRow(this.index()));
+        this._scrollDuration = 0;
+        this._scrollTargetY = this.scrollY();
+    };
+
+    Window_ReverieSaveLoadList.prototype.ensureCursorVisible = function() {
+        this.snapScrollToSelection();
+    };
+
+    Window_ReverieSaveLoadList.prototype.select = function(index) {
+        Window_Selectable.prototype.select.call(this, index);
+        this.snapScrollToSelection();
         this.refresh();
         requestSaveLoadHudRefresh();
     };
 
-    Window_ReverieSaveLoadList.prototype.select = function(index) {
-        selectWithCursorRedraw.call(this, index);
-        requestSaveLoadHudRefresh();
+    Window_ReverieSaveLoadList.prototype.smoothSelect = function(index) {
+        this.select(index);
     };
 
     Window_ReverieSaveLoadList.prototype.drawItem = function(index) {
         const savefileId = index;
         const info = DataManager.savefileInfo(savefileId);
         const rect = this.itemLineRect(index);
-        this.contents.clearRect(rect.x - 40, rect.y, rect.width + 80, rect.height);
+        const clearY = Math.min(rect.y, rect.y + SAVE_LOAD_FILE_ITEM_Y_OFFSET) - 8;
+        const clearH = rect.height + Math.abs(SAVE_LOAD_FILE_ITEM_Y_OFFSET) + 16;
+        this.contents.clearRect(rect.x - 40, clearY, rect.width + 80, clearH);
+        rect.y += SAVE_LOAD_FILE_ITEM_Y_OFFSET;
         if (DEBUG_MODE) {
             const title = info ? savefileName(savefileId) + ": " + savefileMainMapName(info) : savefileName(savefileId);
             this.changePaintOpacity(this.isEnabled(savefileId));
@@ -372,7 +498,7 @@
             this.changePaintOpacity(true);
         }
         if (this.active && this.index() === index) {
-            drawFingerCursor(this, rect.x, rect.y + 4);
+            drawFingerCursor(this, rect.x, rect.y + 4, this.isEnabled(savefileId));
         }
     };
 
@@ -389,6 +515,12 @@
 
     Window_ReverieSaveLoadConfirm.prototype.maxCols = function() {
         return 2;
+    };
+
+    Window_ReverieSaveLoadConfirm.prototype.itemRect = function(index) {
+        const rect = Window_Command.prototype.itemRect.call(this, index);
+        rect.y += CONFIRM_COMMAND_Y_OFFSET;
+        return rect;
     };
 
     Window_ReverieSaveLoadConfirm.prototype.makeCommandList = function() {
@@ -486,6 +618,11 @@
     Scene_ReverieSaveLoad.prototype.createCancelButton = function() {};
     Scene_ReverieSaveLoad.prototype.createPageButtons = function() {};
 
+    Scene_ReverieSaveLoad.prototype.createBackground = function() {
+        this._backgroundSprite = new Sprite(ImageManager.loadPicture(SAVE_LOAD_BACKGROUND_PICTURE));
+        this.addChild(this._backgroundSprite);
+    };
+
     Scene_ReverieSaveLoad.prototype.start = function() {
         Scene_MenuBase.prototype.start.call(this);
         if ($gameTemp) {
@@ -513,7 +650,7 @@
     };
 
     Scene_ReverieSaveLoad.prototype.createWindows = function() {
-        const modeRect = new Rectangle(48, 96, 220, this.calcWindowHeight(2, true));
+        const modeRect = new Rectangle(SAVE_LOAD_MODE_X, SAVE_LOAD_TOP_Y, SAVE_LOAD_MODE_WIDTH, this.calcWindowHeight(2, true));
         this._modeWindow = new Window_ReverieSaveLoadMode(modeRect);
         this._modeWindow.setCanSave(this._canSave);
         this._modeWindow.setHandler("save", this.onModeSave.bind(this));
@@ -522,7 +659,12 @@
         this._modeWindow._keepCursorVisible = true;
         this.addWindow(this._modeWindow);
 
-        const listRect = new Rectangle(280, 56, Graphics.boxWidth - 320, Graphics.boxHeight - 112);
+        const listRect = new Rectangle(
+            SAVE_LOAD_FILE_X,
+            SAVE_LOAD_TOP_Y,
+            Graphics.boxWidth - SAVE_LOAD_FILE_X - SAVE_LOAD_FILE_RIGHT_MARGIN + SAVE_LOAD_FILE_WIDTH_BONUS,
+            Graphics.boxHeight - SAVE_LOAD_TOP_Y - SAVE_LOAD_FILE_BOTTOM_MARGIN
+        );
         this._fileWindow = new Window_ReverieSaveLoadList(listRect);
         this._fileWindow.setMode(this._mode, this._canSave);
         this._fileWindow.setHandler("ok", this.onFileOk.bind(this));
@@ -531,11 +673,12 @@
         this._fileWindow.deactivate();
         this.addWindow(this._fileWindow);
 
+        const confirmHeight = this.calcWindowHeight(2, true) + CONFIRM_COMMAND_Y_OFFSET;
         const confirmRect = new Rectangle(
-            Math.floor((Graphics.boxWidth - 420) / 2),
-            Math.floor((Graphics.boxHeight - this.calcWindowHeight(2, true)) / 2),
-            420,
-            this.calcWindowHeight(2, true)
+            Math.floor((Graphics.boxWidth - CONFIRM_WINDOW_WIDTH) / 2),
+            Math.floor((Graphics.boxHeight - confirmHeight) / 2) + CONFIRM_WINDOW_Y_OFFSET,
+            CONFIRM_WINDOW_WIDTH,
+            confirmHeight
         );
         this._confirmWindow = new Window_ReverieSaveLoadConfirm(confirmRect);
         this._confirmWindow.setHandler("yes", this.onConfirmYes.bind(this));
@@ -727,6 +870,12 @@
         this._ultraHudContainer = new Stage_UltraHUDContainer(true);
         this._ultraHudContainer.createMapHUD();
         this.addChild(this._ultraHudContainer);
+        if (this._windowLayer) {
+            const windowLayerIndex = this.children.indexOf(this._windowLayer);
+            if (windowLayerIndex >= 0) {
+                this.setChildIndex(this._ultraHudContainer, windowLayerIndex);
+            }
+        }
         this.updateUltraHUDContainerVisibility();
     };
 
@@ -797,25 +946,27 @@
         for (let slot = 0; slot < VISIBLE_FILE_ROWS; slot++) {
             const savefileId = $gameTemp.saveLoadTopIndex + slot;
             const info = DataManager.savefileInfo(savefileId);
-            const exists = !!info;
-            const fileName = isManagedSavefileId(savefileId) ? savefileName(savefileId) : "";
+            const hasData = !!info;
+            const slotExists = isManagedSavefileId(savefileId);
+            const fileName = slotExists ? savefileName(savefileId) : "";
             const mainMapName = savefileMainMapName(info);
 
             $gameTemp["saveLoadSlotId" + slot] = savefileId;
             $gameTemp["saveLoadSlotFileName" + slot] = fileName;
-            $gameTemp["saveLoadSlotExists" + slot] = exists;
+            $gameTemp["saveLoadSlotExists" + slot] = slotExists;
+            $gameTemp["saveLoadSlotHasData" + slot] = hasData;
             $gameTemp["saveLoadSlotCurrent" + slot] = savefileId === $gameTemp.saveLoadFileId;
             $gameTemp["saveLoadSlotSelected" + slot] = fileCursorVisible && savefileId === $gameTemp.saveLoadFileId;
             $gameTemp["saveLoadSlotCursor" + slot] = fileCursorVisible && savefileId === $gameTemp.saveLoadFileId;
-            $gameTemp["saveLoadSlotEnabled" + slot] = isManagedSavefileId(savefileId) ? this._fileWindow.isEnabled(savefileId) : false;
-            $gameTemp["saveLoadSlotHeader" + slot] = exists && mainMapName ? fileName + ": " + mainMapName : fileName;
-            $gameTemp["saveLoadSlotMainMap" + slot] = exists ? mainMapName : "";
-            $gameTemp["saveLoadSlotActorName" + slot] = exists ? savefileActorName(info) : "";
-            $gameTemp["saveLoadSlotPlaytime" + slot] = exists ? savefilePlaytime(info) : "";
-            $gameTemp["saveLoadSlotLocation" + slot] = exists ? savefileLocation(info) : "";
-            $gameTemp["saveLoadSlotFaceName" + slot] = exists ? savefileFaceName(info) : "";
-            $gameTemp["saveLoadSlotFaceIndex" + slot] = exists ? savefileFaceIndex(info) : 0;
-            $gameTemp["saveLoadSlotFaceImage" + slot] = exists ? savefileFaceImage(info) : EMPTY_IMAGE;
+            $gameTemp["saveLoadSlotEnabled" + slot] = slotExists ? this._fileWindow.isEnabled(savefileId) : false;
+            $gameTemp["saveLoadSlotHeader" + slot] = hasData && mainMapName ? fileName + ": " + mainMapName : fileName;
+            $gameTemp["saveLoadSlotMainMap" + slot] = hasData ? mainMapName : "";
+            $gameTemp["saveLoadSlotActorName" + slot] = hasData ? savefileActorName(info) : "";
+            $gameTemp["saveLoadSlotPlaytime" + slot] = hasData ? savefilePlaytime(info) : "";
+            $gameTemp["saveLoadSlotLocation" + slot] = hasData ? savefileLocation(info) : "";
+            $gameTemp["saveLoadSlotFaceName" + slot] = hasData ? savefileFaceName(info) : "";
+            $gameTemp["saveLoadSlotFaceIndex" + slot] = hasData ? savefileFaceIndex(info) : 0;
+            $gameTemp["saveLoadSlotFaceImage" + slot] = hasData ? savefileFaceImage(info) : EMPTY_IMAGE;
         }
     };
 

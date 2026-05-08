@@ -22,7 +22,6 @@ var $plugins =
 {"name":"FrontAnimatedEnemy","status":true,"description":"Front Facing Animated Enemy Plugin","parameters":{}},
 {"name":"TotallyNotOmoriBattleUI","status":true,"description":"Reverie - Complete Battle UI Override (other override hud was made using HUD Maker Ultra, not in this plugin)","parameters":{}},
 {"name":"TotallyNotOmoriMainMenuUISkeleton","status":true,"description":"Reverie - Complete Main Menu UI Override (ONLY SKELETON HERE, THE ACTUAL UI WAS MADE VIA SRD HUD MAKER ULTRA)","parameters":{}},
-{"name":"CustomSaveLoadScreen","status":true,"description":"Reverie - custom save/load skeleton for HUD Maker Ultra.","parameters":{}},
 {"name":"NRP_EventCollisionEX","status":true,"description":"v1.04 Extends the collision detection for events.","parameters":{"ConsiderEventMove":"false","SettingList":"[]"}},
 {"name":"GabeMZ_FogEffects","status":true,"description":"[v2.1.0] Allows to create and display fog effects on maps and battles.","parameters":{"fogSettings":"[\"{\\\"fogFilename\\\":\\\"Fog\\\",\\\"fogOpacity\\\":\\\"225\\\",\\\"fogBlendMode\\\":\\\"0\\\",\\\"fogMoveX\\\":\\\"0.4\\\",\\\"fogMoveY\\\":\\\"0\\\"}\",\"{\\\"fogFilename\\\":\\\"FogGreen\\\",\\\"fogOpacity\\\":\\\"125.0\\\",\\\"fogBlendMode\\\":\\\"0\\\",\\\"fogMoveX\\\":\\\"0.7\\\",\\\"fogMoveY\\\":\\\"0\\\"}\"]","fogInMap":"true","fogInBattle":"true","fogOptionsMenuCommand":"===============================================","commandEnabled":"true","commandName":"Fog Effects"}},
 {"name":"CustomMessageBackground","status":true,"description":"Ganti background window tertentu dengan warna hitam solid dan border putih (style Undertale). Pilihan (choice) pakai ikon tangan di dalam box, teks rata kanan.","parameters":{}},
@@ -32,7 +31,7 @@ var $plugins =
 {"name":"SmoothEventMovement","status":true,"description":"Membuat pergerakan autonomous event menjadi lebih natural/smooth menggunakan pathfinding.","parameters":{}},
 {"name":"AnimatedTextEffects","status":true,"description":"Reverie - Custom Animated Message Text Effects","parameters":{}},
 {"name":"ObjectMovementAnimation","status":true,"description":"Event Object Movement Animation (12-Frames Loop)","parameters":{}},
-{"name":"ActorSprintSprites","status":true,"description":"Reverie - swap actor character sprites while sprinting.","parameters":{}},
 {"name":"DeveloperConsole","status":true,"description":"Developer Console untuk debugging dan testing.","parameters":{}},
-{"name":"FloatingText","status":true,"description":"[v1.0] Menampilkan teks custom di layar seperti gambar overlay.","parameters":{}}
+{"name":"FloatingText","status":true,"description":"[v1.0] Menampilkan teks custom di layar seperti gambar overlay.","parameters":{}},
+{"name":"CustomSaveLoadScreen","status":true,"description":"Reverie - custom save/load skeleton for HUD Maker Ultra.","parameters":{}}
 ];

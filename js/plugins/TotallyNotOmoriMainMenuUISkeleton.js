@@ -474,6 +474,89 @@
         else Graphics._cancelFullScreen();
     };
 
+    const clearOmoriMenuHudState = function(scene = null) {
+        if (!$gameTemp) return;
+
+        if (scene) {
+            const windows = [
+                scene._optionsCatWindow,
+                scene._optionsListWindow,
+                scene._optionsConfirmWindow
+            ];
+            for (const win of windows) {
+                if (!win) continue;
+                win._closingDelay = 0;
+                win.hide();
+                win.deactivate();
+                if (win.deselect) win.deselect();
+            }
+        }
+
+        $gameTemp._customMenuOpen = false;
+        $gameTemp._directPassMode = false;
+        $gameTemp._globalClosingDelay = 0;
+        $gameTemp._menuCursorDelay = 0;
+        $gameTemp.activeMenuSymbol = "";
+
+        $gameTemp.hudShowMainMenu = false;
+        $gameTemp.hudShowMementos = false;
+        $gameTemp.hudShowMementosList = false;
+        $gameTemp.hudShowMementosAction = false;
+        $gameTemp.hudShowMementosConfirm = false;
+        $gameTemp.hudShowAbilitiesCat = false;
+        $gameTemp.hudShowAbilitiesTabs = false;
+        $gameTemp.hudShowAbilitiesList = false;
+        $gameTemp.hudShowAbilitiesDesc = false;
+        $gameTemp.hudShowEquipTabs = false;
+        $gameTemp.hudShowEquipList = false;
+        $gameTemp.hudShowEquipDesc = false;
+        $gameTemp.hudShowEquipStat = false;
+        $gameTemp.hudShowOptionsCat = false;
+        $gameTemp.hudShowOptionsList = false;
+        $gameTemp.hudShowOptionsDesc = false;
+        $gameTemp.hudShowOptionsConfirm = false;
+        $gameTemp.hudShowOptionsBindPrompt = false;
+        $gameTemp.hudShowPass = false;
+
+        $gameTemp.optionsAnimActive = false;
+        $gameTemp.optionsRebindActive = false;
+        $gameTemp.optionsRebindDevice = "";
+        $gameTemp.optionsRebindSymbol = "";
+        $gameTemp.optionsRebindPrompt = "";
+        $gameTemp.optionsRebindTarget = "";
+        $gameTemp.optionsRebindCurrent = "";
+        $gameTemp.optionsConfirmType = "";
+
+        $gameTemp.optCatInTimer = 0;
+        $gameTemp.optListInTimer = 0;
+        $gameTemp.optDescInTimer = 0;
+        $gameTemp.optDescOutTimer = 0;
+        $gameTemp.optionsDescOutTimer = 0;
+        $gameTemp.optListOutTimer = 0;
+        $gameTemp.optCatOutTimer = 0;
+        $gameTemp.optCatIsAnimatingIn = false;
+        $gameTemp.optListIsAnimatingIn = false;
+        $gameTemp.optDescIsAnimatingIn = false;
+
+        $gameTemp.passAnimState = 0;
+        $gameTemp.passAnimTimer = 0;
+        $gameTemp.passPhotoVis = false;
+        $gameTemp.passMidCardVis = false;
+        $gameTemp.passLeaderTextVis = false;
+        $gameTemp.passBgOffsetTop = 0;
+        $gameTemp.passBgOffsetBottom = 0;
+        for (let i = 0; i < 4; i++) {
+            $gameTemp["passCardVis" + i] = false;
+            if ($gameTemp.passCardOpacity) $gameTemp.passCardOpacity[i] = 0;
+        }
+    };
+
+    const _Scene_Title_create_ReverieMenuClear = Scene_Title.prototype.create;
+    Scene_Title.prototype.create = function() {
+        clearOmoriMenuHudState();
+        _Scene_Title_create_ReverieMenuClear.call(this);
+    };
+
     // =======================================================
     // 1.1 COMBAT SKILL LOCK OVERRIDE (FORCE 4 SLOTS IN BATTLE)
     // =======================================================
@@ -2678,7 +2761,10 @@
     };
 
     Scene_Map.prototype.onOptConfirmYes = function() {
-        if ($gameTemp.optionsConfirmType === 'sys_title') SceneManager.goto(Scene_Title);
+        if ($gameTemp.optionsConfirmType === 'sys_title') {
+            clearOmoriMenuHudState(this);
+            SceneManager.goto(Scene_Title);
+        }
         else if ($gameTemp.optionsConfirmType === 'sys_exit') SceneManager.exit();
     };
 
