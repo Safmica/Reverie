@@ -375,6 +375,67 @@
         return bindings;
     };
 
+    const getNwWindow = function() {
+        if (!Utils.isNwjs()) return null;
+        if (typeof nw !== "undefined" && nw.Window && nw.Window.get) {
+            return nw.Window.get();
+        }
+        try {
+            return require("nw.gui").Window.get();
+        } catch (e) {
+            return null;
+        }
+    };
+    let reverieResolutionKioskActive = false;
+
+    const refreshGraphicsLayout = function() {
+        if (Graphics._updateAllElements) {
+            Graphics._updateAllElements();
+        }
+    };
+
+    const queueGraphicsLayoutRefresh = function() {
+        setTimeout(refreshGraphicsLayout, 0);
+        setTimeout(refreshGraphicsLayout, 60);
+        setTimeout(refreshGraphicsLayout, 240);
+    };
+
+    const applyResolution = function() {
+        const fullscreen = ConfigManager.customResIndex === 1;
+        const nwWindow = getNwWindow();
+
+        if (nwWindow) {
+            if (fullscreen) {
+                if (nwWindow.enterKioskMode && !reverieResolutionKioskActive && !nwWindow.isKioskMode) {
+                    nwWindow.enterKioskMode();
+                    reverieResolutionKioskActive = true;
+                } else if (!nwWindow.enterKioskMode && nwWindow.enterFullscreen && !nwWindow.isFullscreen) {
+                    nwWindow.enterFullscreen();
+                }
+            } else {
+                if (nwWindow.leaveKioskMode && (reverieResolutionKioskActive || nwWindow.isKioskMode)) {
+                    nwWindow.leaveKioskMode();
+                }
+                reverieResolutionKioskActive = false;
+                if (nwWindow.leaveFullscreen && (nwWindow.isFullscreen || nwWindow.isFullscreen === undefined)) {
+                    nwWindow.leaveFullscreen();
+                }
+            }
+        } else if (fullscreen) {
+            if (!Graphics._isFullScreen()) Graphics._requestFullScreen();
+        } else if (Graphics._isFullScreen()) {
+            Graphics._cancelFullScreen();
+        }
+
+        queueGraphicsLayoutRefresh();
+    };
+
+    const queueResolutionApply = function() {
+        setTimeout(applyResolution, 0);
+        setTimeout(applyResolution, 120);
+        setTimeout(applyResolution, 480);
+    };
+
     // =======================================================
     // 1.05. CONFIGURATION DEFAULTS & OVERRIDES
     // =======================================================
@@ -393,6 +454,7 @@
     const _ConfigManager_makeData = ConfigManager.makeData;
     ConfigManager.makeData = function() {
         const config = _ConfigManager_makeData.call(this);
+        config.customResIndex = this.customResIndex;
         config.battleTextSpeed = this.battleTextSpeed;
         config.reverieBindingVersion = 2;
         config.reverieKeyBindings = cloneControlBindings(this.reverieKeyBindings);
@@ -406,6 +468,7 @@
         if (config.alwaysDash !== true) {
             this.alwaysDash = false; 
         }
+        this.customResIndex = Number.isFinite(Number(config.customResIndex)) ? Number(config.customResIndex).clamp(0, 1) : 0;
         this.battleTextSpeed = Number.isFinite(Number(config.battleTextSpeed)) ? Number(config.battleTextSpeed).clamp(0, 2) : 1;
         this.reverieKeyBindings = normalizeControlBindings(config.reverieKeyBindings, CONTROL_KEY_DEFAULTS);
         if (config.reverieBindingVersion !== 2) {
@@ -413,7 +476,25 @@
         }
         this.reveriePadBindings = normalizeControlBindings(config.reveriePadBindings, CONTROL_PAD_DEFAULTS);
         applyReverieInputBindings();
+        queueResolutionApply();
     };
+
+    const _Scene_Boot_adjustWindow_ReverieResolution = Scene_Boot.prototype.adjustWindow;
+    Scene_Boot.prototype.adjustWindow = function() {
+        if (ConfigManager.customResIndex === 1 && Utils.isNwjs()) {
+            return;
+        }
+        _Scene_Boot_adjustWindow_ReverieResolution.call(this);
+    };
+
+    const _Scene_Boot_start_ReverieResolution = Scene_Boot.prototype.start;
+    Scene_Boot.prototype.start = function() {
+        _Scene_Boot_start_ReverieResolution.call(this);
+        queueResolutionApply();
+    };
+
+    document.addEventListener("fullscreenchange", queueGraphicsLayoutRefresh);
+    document.addEventListener("webkitfullscreenchange", queueGraphicsLayoutRefresh);
 
     const _Input_onKeyDown_ReverieMenu = Input._onKeyDown;
     Input._onKeyDown = function(event) {
@@ -467,11 +548,6 @@
         } else {
             this._showFast = false;
         }
-    };
-
-    const applyResolution = function() {
-        if (ConfigManager.customResIndex === 1) Graphics._requestFullScreen();
-        else Graphics._cancelFullScreen();
     };
 
     const clearOmoriMenuHudState = function(scene = null) {
@@ -1901,7 +1977,7 @@
         
         if (this._category === 'general') {
             if (!trigger) return; 
-            if (symbol === 'opt_res') { ConfigManager.customResIndex = Math.min(1, (ConfigManager.customResIndex !== undefined ? ConfigManager.customResIndex : 0) + 1); setTimeout(applyResolution, 500); }
+            if (symbol === 'opt_res') { ConfigManager.customResIndex = Math.min(1, (ConfigManager.customResIndex !== undefined ? ConfigManager.customResIndex : 0) + 1); queueResolutionApply(); }
             if (symbol === 'opt_skip') ConfigManager.commandRemember = true;
             if (symbol === 'opt_btl') ConfigManager.battleTextSpeed = Math.min(2, (ConfigManager.battleTextSpeed !== undefined ? ConfigManager.battleTextSpeed : 1) + 1);
             if (symbol === 'opt_move') ConfigManager.alwaysDash = true;
@@ -1931,7 +2007,7 @@
         
         if (this._category === 'general') {
             if (!trigger) return; 
-            if (symbol === 'opt_res') { ConfigManager.customResIndex = Math.max(0, (ConfigManager.customResIndex !== undefined ? ConfigManager.customResIndex : 0) - 1); setTimeout(applyResolution, 500); }
+            if (symbol === 'opt_res') { ConfigManager.customResIndex = Math.max(0, (ConfigManager.customResIndex !== undefined ? ConfigManager.customResIndex : 0) - 1); queueResolutionApply(); }
             if (symbol === 'opt_skip') ConfigManager.commandRemember = false;
             if (symbol === 'opt_btl') ConfigManager.battleTextSpeed = Math.max(0, (ConfigManager.battleTextSpeed !== undefined ? ConfigManager.battleTextSpeed : 1) - 1);
             if (symbol === 'opt_move') ConfigManager.alwaysDash = false;
