@@ -388,6 +388,11 @@
     };
     let reverieResolutionKioskActive = false;
 
+    const focusGameWindow = function(nwWindow) {
+        if (window.focus) window.focus();
+        if (nwWindow && nwWindow.focus) nwWindow.focus();
+    };
+
     const refreshGraphicsLayout = function() {
         if (Graphics._updateAllElements) {
             Graphics._updateAllElements();
@@ -406,12 +411,14 @@
 
         if (nwWindow) {
             if (fullscreen) {
-                if (nwWindow.enterKioskMode && !reverieResolutionKioskActive && !nwWindow.isKioskMode) {
+                focusGameWindow(nwWindow);
+                if (nwWindow.enterKioskMode) {
                     nwWindow.enterKioskMode();
                     reverieResolutionKioskActive = true;
                 } else if (!nwWindow.enterKioskMode && nwWindow.enterFullscreen && !nwWindow.isFullscreen) {
                     nwWindow.enterFullscreen();
                 }
+                focusGameWindow(nwWindow);
             } else {
                 if (nwWindow.leaveKioskMode && (reverieResolutionKioskActive || nwWindow.isKioskMode)) {
                     nwWindow.leaveKioskMode();
@@ -432,8 +439,11 @@
 
     const queueResolutionApply = function() {
         setTimeout(applyResolution, 0);
+        setTimeout(applyResolution, 16);
+        setTimeout(applyResolution, 60);
         setTimeout(applyResolution, 120);
         setTimeout(applyResolution, 480);
+        setTimeout(applyResolution, 1000);
     };
 
     // =======================================================
