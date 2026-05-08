@@ -31,6 +31,7 @@ var $plugins =
 {"name":"SmoothEventMovement","status":true,"description":"Membuat pergerakan autonomous event menjadi lebih natural/smooth menggunakan pathfinding.","parameters":{}},
 {"name":"AnimatedTextEffects","status":true,"description":"Reverie - Custom Animated Message Text Effects","parameters":{}},
 {"name":"ObjectMovementAnimation","status":true,"description":"Event Object Movement Animation (12-Frames Loop)","parameters":{}},
+{"name":"ActorSprintSprites","status":true,"description":"Reverie - swap actor character sprites while sprinting.","parameters":{}},
 {"name":"DeveloperConsole","status":true,"description":"Developer Console untuk debugging dan testing.","parameters":{}},
 {"name":"FloatingText","status":true,"description":"[v1.0] Menampilkan teks custom di layar seperti gambar overlay.","parameters":{}}
 ];
