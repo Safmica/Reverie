@@ -387,10 +387,182 @@
         }
     };
     let reverieResolutionKioskActive = false;
+    let reverieResolutionFullscreenPending = false;
+    let reverieResolutionNwFullscreenRequested = false;
+    let reverieResolutionApplyTimer = 0;
+    let reverieResolutionFullscreenAttempts = 0;
+    let reverieResolutionFullscreenRetryTimer = 0;
+    let reverieResolutionNwFullscreenActive = false;
+    let reverieResolutionBootReady = false;
+    let reverieResolutionDeferredUntilBoot = false;
+    let reverieResolutionTransitionTimer = 0;
+    let reverieResolutionWindowShown = false;
+    const REVERIE_FULLSCREEN_MAX_ATTEMPTS = 3;
+    const REVERIE_FULLSCREEN_RETRY_DELAY = 700;
+    const REVERIE_FULLSCREEN_TRANSITION_MS = 1200;
 
     const focusGameWindow = function(nwWindow) {
         if (window.focus) window.focus();
         if (nwWindow && nwWindow.focus) nwWindow.focus();
+    };
+
+    const showGameWindow = function(nwWindow, shouldFocus = true) {
+        if (!nwWindow) return;
+        if (nwWindow.show) {
+            nwWindow.show();
+        }
+        reverieResolutionWindowShown = true;
+        if (shouldFocus) {
+            focusGameWindow(nwWindow);
+        }
+    };
+
+    const isNwFullscreenLike = function(nwWindow) {
+        if (reverieResolutionNwFullscreenActive) return true;
+        if (nwWindow && nwWindow.isFullscreen) return true;
+        if (Graphics && Graphics._isFullScreen && Graphics._isFullScreen()) return true;
+        if (!window.screen) return false;
+
+        const screenWidth = Number(window.screen.width || 0);
+        const screenHeight = Number(window.screen.height || 0);
+        if (screenWidth <= 0 || screenHeight <= 0) return false;
+
+        const currentWidth = Math.max(Number(window.outerWidth || 0), Number(window.innerWidth || 0), Number(nwWindow && nwWindow.width || 0));
+        const currentHeight = Math.max(Number(window.outerHeight || 0), Number(window.innerHeight || 0), Number(nwWindow && nwWindow.height || 0));
+        return currentWidth >= screenWidth - 8 && currentHeight >= screenHeight - 8;
+    };
+
+    const clearNwFullscreenRetry = function() {
+        if (reverieResolutionFullscreenRetryTimer) {
+            clearTimeout(reverieResolutionFullscreenRetryTimer);
+            reverieResolutionFullscreenRetryTimer = 0;
+        }
+    };
+
+    const finishFullscreenTransition = function(delay = 0) {
+        if (reverieResolutionTransitionTimer) {
+            clearTimeout(reverieResolutionTransitionTimer);
+            reverieResolutionTransitionTimer = 0;
+        }
+        reverieResolutionTransitionTimer = setTimeout(() => {
+            reverieResolutionTransitionTimer = 0;
+            if (document && document.body) {
+                document.body.classList.remove("reverie-fullscreen-transition");
+            }
+        }, delay);
+    };
+
+    const prepareFullscreenTransition = function(duration = REVERIE_FULLSCREEN_TRANSITION_MS) {
+        if (!document || !document.body) return;
+
+        if (document.documentElement) {
+            document.documentElement.style.backgroundColor = "#000";
+        }
+        document.body.style.backgroundColor = "#000";
+        document.body.classList.add("reverie-fullscreen-transition");
+
+        const canvas = document.getElementById("gameCanvas");
+        if (canvas) {
+            canvas.style.backgroundColor = "#000";
+        }
+
+        finishFullscreenTransition(duration);
+    };
+
+    const scheduleNwFullscreenRetry = function(delay = 120) {
+        if (ConfigManager.customResIndex !== 1) return;
+        if (reverieResolutionFullscreenAttempts >= REVERIE_FULLSCREEN_MAX_ATTEMPTS) return;
+        clearNwFullscreenRetry();
+        reverieResolutionFullscreenRetryTimer = setTimeout(() => {
+            reverieResolutionFullscreenRetryTimer = 0;
+            applyResolution();
+        }, delay);
+    };
+
+    const hookNwFullscreenEvents = function(nwWindow) {
+        if (!nwWindow || !nwWindow.on || nwWindow._reverieResolutionEventsHooked) return;
+        nwWindow._reverieResolutionEventsHooked = true;
+
+        nwWindow.on("enter-fullscreen", () => {
+            reverieResolutionNwFullscreenActive = true;
+            reverieResolutionFullscreenPending = false;
+            reverieResolutionNwFullscreenRequested = true;
+            showGameWindow(nwWindow);
+            queueGraphicsLayoutRefresh();
+            finishFullscreenTransition(500);
+        });
+
+        const onNativeFullscreenExit = () => {
+            reverieResolutionNwFullscreenActive = false;
+            reverieResolutionFullscreenPending = false;
+            reverieResolutionNwFullscreenRequested = false;
+            if (ConfigManager.customResIndex === 1) {
+                scheduleNwFullscreenRetry(250);
+            }
+            queueGraphicsLayoutRefresh();
+        };
+
+        nwWindow.on("leave-fullscreen", onNativeFullscreenExit);
+        nwWindow.on("restore", onNativeFullscreenExit);
+    };
+
+    const verifyNwFullscreen = function() {
+        reverieResolutionFullscreenRetryTimer = 0;
+        reverieResolutionFullscreenPending = false;
+        const nwWindow = getNwWindow();
+        hookNwFullscreenEvents(nwWindow);
+
+        if (ConfigManager.customResIndex !== 1 || !nwWindow) {
+            reverieResolutionNwFullscreenRequested = false;
+            reverieResolutionFullscreenAttempts = 0;
+            queueGraphicsLayoutRefresh();
+            finishFullscreenTransition();
+            showGameWindow(nwWindow);
+            return;
+        }
+
+        if (isNwFullscreenLike(nwWindow)) {
+            reverieResolutionNwFullscreenRequested = true;
+            reverieResolutionFullscreenAttempts = 0;
+            showGameWindow(nwWindow);
+            queueGraphicsLayoutRefresh();
+            finishFullscreenTransition(500);
+            return;
+        }
+
+        reverieResolutionNwFullscreenRequested = false;
+        if (!reverieResolutionWindowShown) {
+            showGameWindow(nwWindow);
+            scheduleNwFullscreenRetry(120);
+            queueGraphicsLayoutRefresh();
+            return;
+        }
+        if (reverieResolutionFullscreenAttempts >= REVERIE_FULLSCREEN_MAX_ATTEMPTS) {
+            showGameWindow(nwWindow);
+            finishFullscreenTransition();
+            return;
+        }
+        scheduleNwFullscreenRetry(120);
+        queueGraphicsLayoutRefresh();
+    };
+
+    const requestNwFullscreen = function(nwWindow) {
+        if (!nwWindow || !nwWindow.enterFullscreen || isNwFullscreenLike(nwWindow) || reverieResolutionFullscreenPending) return;
+        if (reverieResolutionFullscreenAttempts >= REVERIE_FULLSCREEN_MAX_ATTEMPTS) {
+            showGameWindow(nwWindow);
+            return;
+        }
+
+        clearNwFullscreenRetry();
+        reverieResolutionFullscreenPending = true;
+        reverieResolutionNwFullscreenRequested = true;
+        reverieResolutionFullscreenAttempts++;
+        prepareFullscreenTransition();
+        if (reverieResolutionWindowShown) {
+            focusGameWindow(nwWindow);
+        }
+        nwWindow.enterFullscreen();
+        reverieResolutionFullscreenRetryTimer = setTimeout(verifyNwFullscreen, REVERIE_FULLSCREEN_RETRY_DELAY);
     };
 
     const refreshGraphicsLayout = function() {
@@ -410,23 +582,33 @@
         const nwWindow = getNwWindow();
 
         if (nwWindow) {
+            hookNwFullscreenEvents(nwWindow);
+            if (nwWindow.leaveKioskMode && (reverieResolutionKioskActive || nwWindow.isKioskMode)) {
+                nwWindow.leaveKioskMode();
+            }
+            reverieResolutionKioskActive = false;
+            if (nwWindow.setAlwaysOnTop) {
+                nwWindow.setAlwaysOnTop(false);
+            }
             if (fullscreen) {
-                focusGameWindow(nwWindow);
-                if (nwWindow.enterKioskMode) {
-                    nwWindow.enterKioskMode();
-                    reverieResolutionKioskActive = true;
-                } else if (!nwWindow.enterKioskMode && nwWindow.enterFullscreen && !nwWindow.isFullscreen) {
-                    nwWindow.enterFullscreen();
+                if (isNwFullscreenLike(nwWindow)) {
+                    clearNwFullscreenRetry();
+                    reverieResolutionFullscreenPending = false;
+                    reverieResolutionNwFullscreenRequested = true;
+                    reverieResolutionFullscreenAttempts = 0;
+                } else {
+                    requestNwFullscreen(nwWindow);
                 }
-                focusGameWindow(nwWindow);
             } else {
-                if (nwWindow.leaveKioskMode && (reverieResolutionKioskActive || nwWindow.isKioskMode)) {
-                    nwWindow.leaveKioskMode();
-                }
-                reverieResolutionKioskActive = false;
+                clearNwFullscreenRetry();
+                reverieResolutionNwFullscreenActive = false;
+                reverieResolutionFullscreenPending = false;
+                reverieResolutionNwFullscreenRequested = false;
+                reverieResolutionFullscreenAttempts = 0;
                 if (nwWindow.leaveFullscreen && (nwWindow.isFullscreen || nwWindow.isFullscreen === undefined)) {
                     nwWindow.leaveFullscreen();
                 }
+                showGameWindow(nwWindow);
             }
         } else if (fullscreen) {
             if (!Graphics._isFullScreen()) Graphics._requestFullScreen();
@@ -438,12 +620,16 @@
     };
 
     const queueResolutionApply = function() {
-        setTimeout(applyResolution, 0);
-        setTimeout(applyResolution, 16);
-        setTimeout(applyResolution, 60);
-        setTimeout(applyResolution, 120);
-        setTimeout(applyResolution, 480);
-        setTimeout(applyResolution, 1000);
+        if (!reverieResolutionBootReady) {
+            reverieResolutionDeferredUntilBoot = true;
+            return;
+        }
+
+        if (reverieResolutionApplyTimer) clearTimeout(reverieResolutionApplyTimer);
+        reverieResolutionApplyTimer = setTimeout(() => {
+            reverieResolutionApplyTimer = 0;
+            applyResolution();
+        }, 80);
     };
 
     // =======================================================
@@ -500,11 +686,34 @@
     const _Scene_Boot_start_ReverieResolution = Scene_Boot.prototype.start;
     Scene_Boot.prototype.start = function() {
         _Scene_Boot_start_ReverieResolution.call(this);
-        queueResolutionApply();
+        reverieResolutionBootReady = true;
+        if (reverieResolutionDeferredUntilBoot || ConfigManager.customResIndex === 1) {
+            reverieResolutionDeferredUntilBoot = false;
+            queueResolutionApply();
+        } else {
+            showGameWindow(getNwWindow());
+        }
     };
 
-    document.addEventListener("fullscreenchange", queueGraphicsLayoutRefresh);
-    document.addEventListener("webkitfullscreenchange", queueGraphicsLayoutRefresh);
+    const onFullscreenChange = function() {
+        reverieResolutionFullscreenPending = false;
+        const nwWindow = getNwWindow();
+        hookNwFullscreenEvents(nwWindow);
+        if (ConfigManager.customResIndex === 1 && isNwFullscreenLike(nwWindow)) {
+            reverieResolutionNwFullscreenRequested = true;
+        } else {
+            reverieResolutionNwFullscreenRequested = false;
+            if (ConfigManager.customResIndex !== 1) {
+                reverieResolutionFullscreenAttempts = 0;
+            } else {
+                scheduleNwFullscreenRetry(250);
+            }
+        }
+        queueGraphicsLayoutRefresh();
+    };
+
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChange);
 
     const _Input_onKeyDown_ReverieMenu = Input._onKeyDown;
     Input._onKeyDown = function(event) {
