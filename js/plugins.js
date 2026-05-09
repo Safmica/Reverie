@@ -33,5 +33,6 @@ var $plugins =
 {"name":"ObjectMovementAnimation","status":true,"description":"Event Object Movement Animation (12-Frames Loop)","parameters":{}},
 {"name":"DeveloperConsole","status":true,"description":"Developer Console untuk debugging dan testing.","parameters":{}},
 {"name":"FloatingText","status":true,"description":"[v1.0] Menampilkan teks custom di layar seperti gambar overlay.","parameters":{}},
-{"name":"CustomSaveLoadScreen","status":true,"description":"Reverie - custom save/load skeleton for HUD Maker Ultra.","parameters":{}}
+{"name":"CustomSaveLoadScreen","status":true,"description":"Reverie - custom save/load skeleton for HUD Maker Ultra.","parameters":{}},
+{"name":"RollingRockTrap","status":true,"description":"Fixed-path rolling rock traps with variable-based state and adjustable hitboxes.","parameters":{}}
 ];
