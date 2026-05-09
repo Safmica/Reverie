@@ -35,5 +35,6 @@ var $plugins =
 {"name":"FloatingText","status":true,"description":"[v1.0] Menampilkan teks custom di layar seperti gambar overlay.","parameters":{}},
 {"name":"CustomSaveLoadScreen","status":true,"description":"Reverie - custom save/load skeleton for HUD Maker Ultra.","parameters":{}},
 {"name":"GinSkill","status":true,"description":"Reverie - Gin-only swimming interaction for regions 247/248/249.","parameters":{"ginActorId":"6","swimRegionId":"247","shoreRegionId":"248","deepRegionId":"249","swimCharacterName":"$Gin_Skill","swimCharacterIndex":"0","normalCharacterName":"ActorReverie","normalCharacterIndex":"3","fadeFrames":"24","notGinMessage":"It seems like only Gin can do this","deepWaterMessage":"The water is too deep and the flow is too strong for swimming"}},
-{"name":"RollingRockTrap","status":true,"description":"Fixed-path rolling rock traps with variable-based state and adjustable hitboxes.","parameters":{}}
+{"name":"RollingRockTrap","status":true,"description":"Fixed-path rolling rock traps with variable-based state and adjustable hitboxes.","parameters":{}},
+{"name":"RegionToEvent","status":true,"description":"Trigger named map events from player region action/touch comments.","parameters":{}}
 ];
