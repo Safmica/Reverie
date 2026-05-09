@@ -387,10 +387,25 @@
         }
     };
     let reverieResolutionKioskActive = false;
+    let reverieResolutionFullscreenPending = false;
+    let reverieResolutionNwFullscreenRequested = false;
+    let reverieResolutionApplyTimer = 0;
 
     const focusGameWindow = function(nwWindow) {
         if (window.focus) window.focus();
         if (nwWindow && nwWindow.focus) nwWindow.focus();
+    };
+
+    const requestNwFullscreen = function(nwWindow) {
+        if (!nwWindow || !nwWindow.enterFullscreen || nwWindow.isFullscreen || reverieResolutionFullscreenPending || reverieResolutionNwFullscreenRequested) return;
+        reverieResolutionFullscreenPending = true;
+        reverieResolutionNwFullscreenRequested = true;
+        focusGameWindow(nwWindow);
+        nwWindow.enterFullscreen();
+        setTimeout(() => {
+            reverieResolutionFullscreenPending = false;
+            queueGraphicsLayoutRefresh();
+        }, 500);
     };
 
     const refreshGraphicsLayout = function() {
@@ -410,20 +425,18 @@
         const nwWindow = getNwWindow();
 
         if (nwWindow) {
+            if (nwWindow.leaveKioskMode && (reverieResolutionKioskActive || nwWindow.isKioskMode)) {
+                nwWindow.leaveKioskMode();
+            }
+            reverieResolutionKioskActive = false;
+            if (nwWindow.setAlwaysOnTop) {
+                nwWindow.setAlwaysOnTop(false);
+            }
             if (fullscreen) {
-                focusGameWindow(nwWindow);
-                if (nwWindow.enterKioskMode) {
-                    nwWindow.enterKioskMode();
-                    reverieResolutionKioskActive = true;
-                } else if (!nwWindow.enterKioskMode && nwWindow.enterFullscreen && !nwWindow.isFullscreen) {
-                    nwWindow.enterFullscreen();
-                }
-                focusGameWindow(nwWindow);
+                requestNwFullscreen(nwWindow);
             } else {
-                if (nwWindow.leaveKioskMode && (reverieResolutionKioskActive || nwWindow.isKioskMode)) {
-                    nwWindow.leaveKioskMode();
-                }
-                reverieResolutionKioskActive = false;
+                reverieResolutionFullscreenPending = false;
+                reverieResolutionNwFullscreenRequested = false;
                 if (nwWindow.leaveFullscreen && (nwWindow.isFullscreen || nwWindow.isFullscreen === undefined)) {
                     nwWindow.leaveFullscreen();
                 }
@@ -438,12 +451,11 @@
     };
 
     const queueResolutionApply = function() {
-        setTimeout(applyResolution, 0);
-        setTimeout(applyResolution, 16);
-        setTimeout(applyResolution, 60);
-        setTimeout(applyResolution, 120);
-        setTimeout(applyResolution, 480);
-        setTimeout(applyResolution, 1000);
+        if (reverieResolutionApplyTimer) clearTimeout(reverieResolutionApplyTimer);
+        reverieResolutionApplyTimer = setTimeout(() => {
+            reverieResolutionApplyTimer = 0;
+            applyResolution();
+        }, 80);
     };
 
     // =======================================================
@@ -503,8 +515,16 @@
         queueResolutionApply();
     };
 
-    document.addEventListener("fullscreenchange", queueGraphicsLayoutRefresh);
-    document.addEventListener("webkitfullscreenchange", queueGraphicsLayoutRefresh);
+    const onFullscreenChange = function() {
+        reverieResolutionFullscreenPending = false;
+        if (ConfigManager.customResIndex !== 1) {
+            reverieResolutionNwFullscreenRequested = false;
+        }
+        queueGraphicsLayoutRefresh();
+    };
+
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", onFullscreenChange);
 
     const _Input_onKeyDown_ReverieMenu = Input._onKeyDown;
     Input._onKeyDown = function(event) {
