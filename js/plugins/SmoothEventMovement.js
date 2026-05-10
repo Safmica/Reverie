@@ -77,6 +77,9 @@
     const CUTSCENE_WAIT_FRAMES = 30;
     const CUTSCENE_MAX_WAIT_CYCLES = 3;
     const CUTSCENE_MAX_BLOCKED_FRAMES = 60;
+    const POST_BATTLE_ENCOUNTER_GRACE_FRAMES = 75;
+    const MONSTER_CHASE_SPEED_BONUS = 0.5;
+    const MONSTER_CHASE_LOSE_DISTANCE_BONUS = 2;
 
     const normalizeCutsceneParam = (value) => {
         if (value === undefined || value === null) return "";
@@ -317,6 +320,37 @@
         this._cutsceneGathering = false;
         this._cutsceneEnding = false;
         this._cutsceneAllowedRegions = [];
+        this._postBattleEncounterGraceFrames = 0;
+        this._pendingBattleTouchEventMapId = 0;
+        this._pendingBattleTouchEventId = 0;
+    };
+
+    Game_Temp.prototype.setPendingBattleTouchEvent = function (mapId, eventId) {
+        this._pendingBattleTouchEventMapId = mapId || 0;
+        this._pendingBattleTouchEventId = eventId || 0;
+    };
+
+    Game_Temp.prototype.hasPendingBattleTouchEvent = function () {
+        return this._pendingBattleTouchEventMapId > 0 && this._pendingBattleTouchEventId > 0;
+    };
+
+    Game_Temp.prototype.clearPendingBattleTouchEvent = function () {
+        this._pendingBattleTouchEventMapId = 0;
+        this._pendingBattleTouchEventId = 0;
+    };
+
+    Game_Temp.prototype.startPostBattleEncounterGrace = function () {
+        this._postBattleEncounterGraceFrames = Math.max(this._postBattleEncounterGraceFrames || 0, POST_BATTLE_ENCOUNTER_GRACE_FRAMES);
+    };
+
+    Game_Temp.prototype.isPostBattleEncounterGraceActive = function () {
+        return (this._postBattleEncounterGraceFrames || 0) > 0;
+    };
+
+    Game_Temp.prototype.updatePostBattleEncounterGrace = function () {
+        if (!this.isPostBattleEncounterGraceActive()) return;
+        if ($gameMap && ($gameMap.isEventRunning() || $gameMessage.isBusy())) return;
+        this._postBattleEncounterGraceFrames--;
     };
 
     Game_Temp.prototype.isCutsceneGathering = function () {
@@ -683,13 +717,26 @@
         if (this._cutsceneControlled) {
             return;
         }
+        if ($gameTemp && $gameTemp.isPostBattleEncounterGraceActive() && this.isBattleTouchEvent()) {
+            this.clearSmartDestination();
+            return;
+        }
         _Game_Event_updateSelfMovement.call(this);
     };
 
     const _Game_Event_start = Game_Event.prototype.start;
     Game_Event.prototype.start = function () {
+        if ($gameTemp && $gameTemp.isPostBattleEncounterGraceActive() && this.isBattleTouchEvent()) {
+            return;
+        }
         _Game_Event_start.call(this);
         // tryStartCutscene dipindahkan ke Game_Interpreter.prototype.setup agar tidak tertimpa
+    };
+
+    Game_Event.prototype.isBattleTouchEvent = function () {
+        if (this._trigger !== 2) return false;
+        const list = this.list();
+        return !!(list && list.some(command => command && command.code === 301));
     };
 
     Game_Event.prototype.tryStartCutscene = function (interpreter) {
@@ -715,11 +762,34 @@
         }
     };
 
+    const _Game_Interpreter_command301 = Game_Interpreter.prototype.command301;
+    Game_Interpreter.prototype.command301 = function (params) {
+        const event = this._eventId > 0 ? $gameMap.event(this._eventId) : null;
+        const result = _Game_Interpreter_command301.call(this, params);
+        if ($gameTemp && event && event.isBattleTouchEvent && event.isBattleTouchEvent() && SceneManager.isNextScene(Scene_Battle)) {
+            $gameTemp.setPendingBattleTouchEvent($gameMap.mapId(), this._eventId);
+        }
+        return result;
+    };
+
+    const _BattleManager_endBattle = BattleManager.endBattle;
+    BattleManager.endBattle = function (result) {
+        const shouldStartGrace = $gameTemp && $gameTemp.hasPendingBattleTouchEvent() && (result === 0 || result === 1);
+        _BattleManager_endBattle.call(this, result);
+        if ($gameTemp && $gameTemp.hasPendingBattleTouchEvent()) {
+            if (shouldStartGrace) {
+                $gameTemp.startPostBattleEncounterGrace();
+            }
+            $gameTemp.clearPendingBattleTouchEvent();
+        }
+    };
+
     const _Game_Map_update = Game_Map.prototype.update;
     Game_Map.prototype.update = function (sceneActive) {
         _Game_Map_update.call(this, sceneActive);
         if ($gameTemp) {
             $gameTemp.updateCutscene();
+            $gameTemp.updatePostBattleEncounterGrace();
         }
     };
 
@@ -837,19 +907,24 @@
             }
         }
         else if (this._monsterMode === 'DIST') {
+            const allowedRegs = this.getAllowedRegions();
+            const playerRegion = $gameMap.regionId($gamePlayer.x, $gamePlayer.y);
+            const playerInAllowedRegion = allowedRegs.length === 0 || allowedRegs.includes(playerRegion);
             const sx = Math.abs(this.deltaXFrom($gamePlayer.x));
             const sy = Math.abs(this.deltaYFrom($gamePlayer.y));
             // Hitung jarak (distance manhattan / taksi)
             const distance = sx + sy; // Total blok
 
-            if (!wasChasing) {
+            if (!playerInAllowedRegion) {
+                isNowChasing = false;
+            } else if (!wasChasing) {
                 // Jika sedang tidak agresif, cek apakah player masuk ke radius Deteksi
                 if (distance <= this._monsterDist) {
                     isNowChasing = true;
                 }
             } else {
-                // Jika sedang agresif, cek apakah player sudah menjauh (Distance + 2 jarak kabur)
-                if (distance > this._monsterDist + 2) {
+                // Jika sedang agresif, cek apakah player sudah menjauh (Distance + bonus jarak kabur)
+                if (distance > this._monsterDist + MONSTER_CHASE_LOSE_DISTANCE_BONUS) {
                     isNowChasing = false;
                 } else {
                     isNowChasing = true;
@@ -869,7 +944,7 @@
             if (this._originalMoveSpeed === undefined) {
                 this._originalMoveSpeed = this.moveSpeed();
             }
-            this.setMoveSpeed(this._originalMoveSpeed + 1); // Tambah ngebut! (Bisa disesuaikan misal jd 4)
+            this.setMoveSpeed(this._originalMoveSpeed + MONSTER_CHASE_SPEED_BONUS); // Tambah ngebut! (Bisa disesuaikan misal jd 4)
 
             // Supaya gak langsung glith ngebut pas kaget, force tunggu balon bentar 
             this._waitCount = 30; // Stun kaget bentar
