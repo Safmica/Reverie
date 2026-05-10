@@ -23,6 +23,24 @@ function cleanText(text) {
                .trim();
 }
 
+function actorCommandEscapeChanceText() {
+    let percent = 0;
+    const canEscape = BattleManager.reverieCanEscape ? BattleManager.reverieCanEscape() : (!BattleManager.canEscape || BattleManager.canEscape());
+    const actor = BattleManager.actor ? BattleManager.actor() : null;
+
+    if (canEscape) {
+        if (BattleManager.reverieEscapePercent) {
+            percent = BattleManager.reverieEscapePercent(actor);
+        } else {
+            const rate = Number(BattleManager._escapeRatio || 0);
+            percent = Math.round(Math.max(0, Math.min(1, rate)) * 100);
+        }
+    }
+
+    percent = Math.max(0, Math.min(100, Number(percent) || 0));
+    return percent + "%";
+}
+
 Window_Base.prototype.autoWrapText = function(text, maxWidth) {
     if (!text) return "";
     text = text.replace(/[\r\n]+/g, ' '); 
@@ -167,7 +185,7 @@ Window_ActorCommand.prototype.select = function(index) {
             else if (commandName.includes("Bond")) desc = "Use a cooperative bond ability to assist an ally.";
             else if (commandName.includes("Guard")) desc = "Defend to reduce incoming damage this turn.";
             else if (commandName.includes("Mementos")) desc = "Use a consumable mementos from the party's shared inventory.";
-            else if (commandName.includes("Escape")) desc = "Attempt to flee from battle and return to safety.";
+            else if (commandName.includes("Escape")) desc = "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
             
             helpWin.resetFontSettings();
             let wrappedDesc = helpWin.autoWrapText(desc, helpWin.contentsWidth() - 20);
