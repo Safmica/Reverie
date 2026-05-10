@@ -39,5 +39,6 @@ var $plugins =
 {"name":"RegionToEvent","status":true,"description":"Trigger named map events from player region action/touch comments.","parameters":{}},
 {"name":"DynamicLightShadow","status":true,"description":"Region-comment based dynamic light and shadow overlay.","parameters":{"Default Shadow Opacity":"160","Default Light Opacity":"180","Ground Scan Radius":"8","Ground Fade Tiles":"3.00","Natural Fade Radius":"1.15","Natural Core Radius":"0.35"}},
 {"name":"EscapeBehaviour","status":true,"description":"actor-based escape chance with failed escape turn cancellation.","parameters":{}},
-{"name":"SoraDeathGameOver","status":true,"description":"Ends the game when Sora dies, even if other party members are alive.","parameters":{}}
+{"name":"SoraDeathGameOver","status":true,"description":"Ends the game when Sora dies, even if other party members are alive.","parameters":{}},
+{"name":"BattleEnd1HPRevive","status":true,"description":"Revives defeated non-Sora party members at 1 HP after battle ends.","parameters":{}}
 ];
