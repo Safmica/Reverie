@@ -43,5 +43,6 @@ var $plugins =
 {"name":"BattleEnd1HPRevive","status":true,"description":"Revives defeated non-Sora party members at 1 HP after battle ends.","parameters":{}},
 {"name":"PackageShowFalseKeeper","status":true,"description":"Keeps package.json window.show set to false after RPG Maker rewrites it.","parameters":{}},
 {"name":"ActorSprintSprites","status":true,"description":"Reverie - swap actor character sprites while sprinting.","parameters":{}},
-{"name":"DisableAutosave","status":true,"description":"Reverie - disables autosave triggers and autosave slot access.","parameters":{}}
+{"name":"DisableAutosave","status":true,"description":"Reverie - disables autosave triggers and autosave slot access.","parameters":{}},
+{"name":"BattleConclusionLog","status":true,"description":"Reverie - routes battle conclusion messages through the battle log.","parameters":{}}
 ];
