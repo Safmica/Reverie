@@ -701,8 +701,55 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
 };
 
 // OVERRIDE DAMAGE & RECOVERY FORMATTING
+Window_BattleLog.prototype.takePendingDespairReflectMethods = function() {
+    const pending = [];
+
+    for (;;) {
+        const lashIndex = this._methods.findIndex(method => {
+            return method.name === 'addText' &&
+                typeof method.params[0] === 'string' &&
+                method.params[0].includes("'s despair lashes out at ");
+        });
+
+        if (lashIndex < 0) break;
+
+        let startIndex = lashIndex;
+        while (startIndex > 0 && this._methods[startIndex - 1].name === 'wait' && lashIndex - startIndex < 2) {
+            startIndex--;
+        }
+
+        let reflectEndIndex = lashIndex + 1;
+        let endIndex = lashIndex + 1;
+        while (endIndex < this._methods.length) {
+            const methodName = this._methods[endIndex].name;
+            endIndex++;
+            if (methodName === 'performDespairReflect') {
+                reflectEndIndex = endIndex;
+                while (endIndex < this._methods.length && this._methods[endIndex].name === 'wait') {
+                    endIndex++;
+                }
+                break;
+            }
+        }
+
+        const removed = this._methods.splice(startIndex, endIndex - startIndex);
+        const pendingStart = lashIndex - startIndex;
+        const pendingEnd = pendingStart + (reflectEndIndex - lashIndex);
+        const reflectMethods = removed.slice(pendingStart, pendingEnd);
+        pending.push(...reflectMethods);
+        pending.push({ name: 'wait', params: [] });
+        pending.push({ name: 'wait', params: [] });
+        pending.push({ name: 'wait', params: [] });
+        pending.push({ name: 'wait', params: [] });
+    }
+
+    return pending;
+};
+
 Window_BattleLog.prototype.displayHpDamage = function(target) {
     if (target.result().hpAffected) {
+        const despairReflectMethods = this.takePendingDespairReflectMethods();
+
         if (target.result().hpDamage > 0 && !target.result().drain) {
             this.push('addText', cleanText(target.name()) + " takes " + target.result().hpDamage + " damage!");
         } else if (target.result().hpDamage < 0) {
@@ -712,6 +759,10 @@ Window_BattleLog.prototype.displayHpDamage = function(target) {
         }
         this.push('wait');
         this.push('wait');
+
+        if (despairReflectMethods.length > 0) {
+            this._methods.push(...despairReflectMethods);
+        }
     }
 };
 
@@ -775,8 +826,7 @@ Window_BattleLog.prototype.performDespairReflect = function(target, damage) {
             target.performCollapse();
         }
         
-        // Use our own native UI damage display!
-        this.displayHpDamage(target);
+        this.addText(cleanText(target.name()) + " takes " + damage + " backlash damage!");
     }
 }
 

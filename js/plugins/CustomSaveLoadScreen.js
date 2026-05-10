@@ -17,7 +17,6 @@
  * Built the visible UI in SRD HUD Maker Ultra with Map HUD components.
  *
  * Save file IDs:
- *   0 = Autosave
  *   1-8 = Manual save files
  */
 
@@ -27,7 +26,8 @@
     const DEBUG_MODE = false;
     
     const SAVE_FILE_COUNT = 8;
-    const MAX_SAVEFILES_WITH_AUTOSAVE = SAVE_FILE_COUNT + 1;
+    const FIRST_SAVEFILE_ID = 1;
+    const MAX_SAVEFILE_ID_EXCLUSIVE = SAVE_FILE_COUNT + 1;
     const VISIBLE_FILE_ROWS = 3;
     const CURSOR_IMAGE_NAME = "FingerCursor";
     const CURSOR_NATIVE_SIZE = 14;
@@ -58,19 +58,19 @@
     const originalMakeSavefileInfo = DataManager.makeSavefileInfo;
 
     const isManagedSavefileId = function(savefileId) {
-        return savefileId >= 0 && savefileId < MAX_SAVEFILES_WITH_AUTOSAVE;
+        return savefileId >= FIRST_SAVEFILE_ID && savefileId < MAX_SAVEFILE_ID_EXCLUSIVE;
     };
 
-    const managedSavefileIds = function(includeAutosave = true) {
+    const managedSavefileIds = function() {
         const ids = [];
-        for (let i = includeAutosave ? 0 : 1; i < MAX_SAVEFILES_WITH_AUTOSAVE; i++) {
+        for (let i = FIRST_SAVEFILE_ID; i < MAX_SAVEFILE_ID_EXCLUSIVE; i++) {
             ids.push(i);
         }
         return ids;
     };
 
     DataManager.maxSavefiles = function() {
-        return MAX_SAVEFILES_WITH_AUTOSAVE;
+        return MAX_SAVEFILE_ID_EXCLUSIVE;
     };
 
     DataManager.savefileInfo = function(savefileId) {
@@ -79,11 +79,11 @@
     };
 
     DataManager.isAnySavefileExists = function() {
-        return managedSavefileIds(true).some(id => !!this.savefileInfo(id));
+        return managedSavefileIds().some(id => !!this.savefileInfo(id));
     };
 
     DataManager.latestSavefileId = function() {
-        const ids = managedSavefileIds(false);
+        const ids = managedSavefileIds();
         let latestId = 0;
         let latestTimestamp = -Infinity;
         for (const id of ids) {
@@ -97,8 +97,8 @@
     };
 
     DataManager.earliestSavefileId = function() {
-        const ids = managedSavefileIds(false);
-        let earliestId = 1;
+        const ids = managedSavefileIds();
+        let earliestId = FIRST_SAVEFILE_ID;
         let earliestTimestamp = Infinity;
         for (const id of ids) {
             const info = this.savefileInfo(id);
@@ -111,7 +111,7 @@
     };
 
     DataManager.emptySavefileId = function() {
-        for (let i = 1; i < MAX_SAVEFILES_WITH_AUTOSAVE; i++) {
+        for (let i = FIRST_SAVEFILE_ID; i < MAX_SAVEFILE_ID_EXCLUSIVE; i++) {
             if (!this.savefileInfo(i)) return i;
         }
         return -1;
@@ -154,7 +154,7 @@
     };
 
     const savefileName = function(savefileId) {
-        return savefileId === 0 ? "AUTOSAVE" : "FILE " + savefileId;
+        return "FILE " + savefileId;
     };
 
     const savefileMainMapName = function(info) {
@@ -421,7 +421,7 @@
     };
 
     Window_ReverieSaveLoadList.prototype.maxItems = function() {
-        return MAX_SAVEFILES_WITH_AUTOSAVE;
+        return SAVE_FILE_COUNT;
     };
 
     Window_ReverieSaveLoadList.prototype.maxCols = function() {
@@ -441,7 +441,7 @@
     };
 
     Window_ReverieSaveLoadList.prototype.savefileId = function() {
-        return this.index();
+        return this.index() + FIRST_SAVEFILE_ID;
     };
 
     Window_ReverieSaveLoadList.prototype.isCurrentItemEnabled = function() {
@@ -450,7 +450,7 @@
 
     Window_ReverieSaveLoadList.prototype.isEnabled = function(savefileId) {
         if (this._mode === "save") {
-            return this._canSave && savefileId > 0;
+            return this._canSave && isManagedSavefileId(savefileId);
         } else {
             return !!DataManager.savefileInfo(savefileId);
         }
@@ -484,7 +484,7 @@
     };
 
     Window_ReverieSaveLoadList.prototype.drawItem = function(index) {
-        const savefileId = index;
+        const savefileId = index + FIRST_SAVEFILE_ID;
         const info = DataManager.savefileInfo(savefileId);
         const rect = this.itemLineRect(index);
         const clearY = Math.min(rect.y, rect.y + SAVE_LOAD_FILE_ITEM_Y_OFFSET) - 8;
@@ -736,7 +736,7 @@
         const info = DataManager.savefileInfo(savefileId);
 
         if (this._mode === "save") {
-            if (!this._canSave || savefileId === 0) {
+            if (!this._canSave || !isManagedSavefileId(savefileId)) {
                 SoundManager.playBuzzer();
                 this._fileWindow.activate();
                 return;
@@ -944,7 +944,7 @@
         $gameTemp.hudShowSaveLoadConfirm = confirmOpen;
 
         for (let slot = 0; slot < VISIBLE_FILE_ROWS; slot++) {
-            const savefileId = $gameTemp.saveLoadTopIndex + slot;
+            const savefileId = $gameTemp.saveLoadTopIndex + slot + FIRST_SAVEFILE_ID;
             const info = DataManager.savefileInfo(savefileId);
             const hasData = !!info;
             const slotExists = isManagedSavefileId(savefileId);
