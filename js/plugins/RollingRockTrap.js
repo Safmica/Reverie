@@ -245,6 +245,24 @@
         return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
     };
 
+    const partyCharacters = () => {
+        const characters = [];
+        if ($gamePlayer) {
+            characters.push($gamePlayer);
+            const followers = $gamePlayer.followers && $gamePlayer.followers();
+            if (followers && followers.visibleFollowers) {
+                characters.push(...followers.visibleFollowers());
+            }
+        }
+        return characters;
+    };
+
+    const partyTouchesRect = (rect) => {
+        return partyCharacters().some(character => {
+            return character && rectContains(rect, character.x, character.y);
+        });
+    };
+
     const setupCommand = (name, value) => {
         PluginManager.registerCommand(PLUGIN_NAME, name, args => {
             const variableId = toInteger(args.variableId, 0, 0);
@@ -395,6 +413,15 @@
         return rectContains(this.rollingRockRect(this.x, this.y), x, y);
     };
 
+    Game_Event.prototype.rollingRockHitsPartyAt = function (x, y) {
+        if (!this.isRollingRockDangerous()) return false;
+        return partyTouchesRect(this.rollingRockRect(x, y));
+    };
+
+    Game_Event.prototype.rollingRockPartyBlocksPosition = function (x, y) {
+        return $gamePlayer && $gamePlayer.isCollided(x, y);
+    };
+
     Game_Event.prototype.triggerRollingRockGameOver = function () {
         if ($gameTemp) {
             $gameTemp.startRollingRockTrapGameOver();
@@ -427,7 +454,7 @@
             return;
         }
 
-        if (this.rollingRockHitsPosition($gamePlayer.x, $gamePlayer.y)) {
+        if (this.rollingRockHitsPartyAt(this.x, this.y)) {
             this.triggerRollingRockGameOver();
             return;
         }
@@ -449,7 +476,7 @@
         const nextX = $gameMap.roundXWithDirection(this.x, direction);
         const nextY = $gameMap.roundYWithDirection(this.y, direction);
 
-        if (rectContains(this.rollingRockRect(nextX, nextY), $gamePlayer.x, $gamePlayer.y)) {
+        if (this.rollingRockHitsPartyAt(nextX, nextY) || this.rollingRockPartyBlocksPosition(nextX, nextY)) {
             this.triggerRollingRockGameOver();
             return;
         }
