@@ -63,6 +63,12 @@
         logWindow.push("wait");
     };
 
+    const clearEscapeLog = () => {
+        const logWindow = BattleManager._logWindow;
+        if (!logWindow) return;
+        logWindow.push("clear");
+    };
+
     const escapeAgi = (battler) => {
         if (!battler) return 1;
         const base = battler.paramBase ? battler.paramBase(AGI_PARAM_ID) : battler.agi;
@@ -168,6 +174,7 @@
 
         $gameParty.performEscape();
         SoundManager.playEscape();
+        clearEscapeLog();
         addEscapeLog(userName + " initiated an escape...");
 
         if (success) {
