@@ -21,7 +21,6 @@ var $plugins =
 {"name":"EnemyStateOutline","status":true,"description":"Shows a colored outline on enemies based on their current state.","parameters":{"FranticStateId":"4","HeroicStateId":"3","HopelessStateId":"5","OutlineThickness":"2"}},
 {"name":"FrontAnimatedEnemy","status":true,"description":"Front Facing Animated Enemy Plugin","parameters":{}},
 {"name":"TotallyNotOmoriBattleUI","status":true,"description":"Reverie - Complete Battle UI Override (other override hud was made using HUD Maker Ultra, not in this plugin)","parameters":{}},
-{"name":"EscapeBehaviour","status":true,"description":"Reverie - actor-based escape chance with failed escape turn cancellation.","parameters":{}},
 {"name":"TotallyNotOmoriMainMenuUISkeleton","status":true,"description":"Reverie - Complete Main Menu UI Override (ONLY SKELETON HERE, THE ACTUAL UI WAS MADE VIA SRD HUD MAKER ULTRA)","parameters":{}},
 {"name":"NRP_EventCollisionEX","status":true,"description":"v1.04 Extends the collision detection for events.","parameters":{"ConsiderEventMove":"false","SettingList":"[]"}},
 {"name":"GabeMZ_FogEffects","status":true,"description":"[v2.1.0] Allows to create and display fog effects on maps and battles.","parameters":{"fogSettings":"[\"{\\\"fogFilename\\\":\\\"Fog\\\",\\\"fogOpacity\\\":\\\"225\\\",\\\"fogBlendMode\\\":\\\"0\\\",\\\"fogMoveX\\\":\\\"0.4\\\",\\\"fogMoveY\\\":\\\"0\\\"}\",\"{\\\"fogFilename\\\":\\\"FogGreen\\\",\\\"fogOpacity\\\":\\\"125.0\\\",\\\"fogBlendMode\\\":\\\"0\\\",\\\"fogMoveX\\\":\\\"0.7\\\",\\\"fogMoveY\\\":\\\"0\\\"}\"]","fogInMap":"true","fogInBattle":"true","fogOptionsMenuCommand":"===============================================","commandEnabled":"true","commandName":"Fog Effects"}},
@@ -37,5 +36,6 @@ var $plugins =
 {"name":"CustomSaveLoadScreen","status":true,"description":"Reverie - custom save/load skeleton for HUD Maker Ultra.","parameters":{}},
 {"name":"GinSkill","status":true,"description":"Reverie - Gin-only swimming interaction for regions 247/248/249.","parameters":{"ginActorId":"6","swimRegionId":"247","shoreRegionId":"248","deepRegionId":"249","swimCharacterName":"$Gin_Skill","swimCharacterIndex":"0","normalCharacterName":"ActorReverie","normalCharacterIndex":"3","fadeFrames":"24","notGinMessage":"It seems like only Gin can do this","deepWaterMessage":"The water is too deep and the flow is too strong for swimming"}},
 {"name":"RollingRockTrap","status":true,"description":"Fixed-path rolling rock traps with variable-based state and adjustable hitboxes.","parameters":{}},
-{"name":"RegionToEvent","status":true,"description":"Trigger named map events from player region action/touch comments.","parameters":{}}
+{"name":"RegionToEvent","status":true,"description":"Trigger named map events from player region action/touch comments.","parameters":{}},
+{"name":"DynamicLightShadow","status":true,"description":"Region-comment based dynamic light and shadow overlay.","parameters":{"Default Shadow Opacity":"160","Default Light Opacity":"180","Ground Scan Radius":"8","Ground Fade Tiles":"3.00","Natural Fade Radius":"1.15","Natural Core Radius":"0.35"}}
 ];
