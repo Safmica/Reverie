@@ -739,6 +739,8 @@ Window_BattleLog.prototype.takePendingDespairReflectMethods = function() {
         pending.push(...reflectMethods);
         pending.push({ name: 'wait', params: [] });
         pending.push({ name: 'wait', params: [] });
+        pending.push({ name: 'wait', params: [] });
+        pending.push({ name: 'wait', params: [] });
     }
 
     return pending;
