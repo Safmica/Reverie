@@ -41,5 +41,6 @@ var $plugins =
 {"name":"EscapeBehaviour","status":true,"description":"actor-based escape chance with failed escape turn cancellation.","parameters":{}},
 {"name":"SoraDeathGameOver","status":true,"description":"Ends the game when Sora dies, even if other party members are alive.","parameters":{}},
 {"name":"BattleEnd1HPRevive","status":true,"description":"Revives defeated non-Sora party members at 1 HP after battle ends.","parameters":{}},
-{"name":"PackageShowFalseKeeper","status":true,"description":"Keeps package.json window.show set to false after RPG Maker rewrites it.","parameters":{}}
+{"name":"PackageShowFalseKeeper","status":true,"description":"Keeps package.json window.show set to false after RPG Maker rewrites it.","parameters":{}},
+{"name":"ActorSprintSprites","status":true,"description":"Reverie - swap actor character sprites while sprinting.","parameters":{}}
 ];
