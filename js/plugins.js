@@ -43,5 +43,6 @@ var $plugins =
 {"name":"BattleEnd1HPRevive","status":true,"description":"Revives defeated non-Sora party members at 1 HP after battle ends.","parameters":{}},
 {"name":"PackageShowFalseKeeper","status":true,"description":"Keeps package.json window.show set to false after RPG Maker rewrites it.","parameters":{}},
 {"name":"ActorSprintSprites","status":true,"description":"Reverie - swap actor character sprites while sprinting.","parameters":{}},
-{"name":"DisableAutosave","status":true,"description":"Reverie - disables autosave triggers and autosave slot access.","parameters":{}}
+{"name":"DisableAutosave","status":true,"description":"Reverie - disables autosave triggers and autosave slot access.","parameters":{}},
+{"name":"PartyLeaderCondition","status":true,"description":"Reverie - check party leader by character name for event conditions.","parameters":{"Leader Switches":"[\"{\\\"actorName\\\":\\\"SORA\\\",\\\"switchId\\\":\\\"6\\\"}\",\"{\\\"actorName\\\":\\\"GIN\\\",\\\"switchId\\\":\\\"7\\\"}\",\"{\\\"actorName\\\":\\\"ANN\\\",\\\"switchId\\\":\\\"8\\\"}\",\"{\\\"actorName\\\":\\\"ZUKO\\\",\\\"switchId\\\":\\\"9\\\"}\"]","Auto Refresh Switches":"true"}}
 ];
