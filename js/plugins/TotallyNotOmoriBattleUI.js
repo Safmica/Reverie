@@ -12,6 +12,8 @@ const SMALL_FONT_SIZE = 20;
 const CURSOR_IMAGE_NAME = "FingerCursor";
 const CURSOR_NATIVE_SIZE = 14; 
 const CURSOR_DRAW_SIZE = 28;
+const AFRAID_STATE_ID = 9;
+const EMOTION_STATE_IDS = [3, 4, 5, 6, 7, 8];
 
 FontManager.load("BattleUIFont", "KleeOne-SemiBold.ttf");
 
@@ -22,6 +24,91 @@ function cleanText(text) {
                .replace(/I\[\d+\]/g, '') 
                .trim();
 }
+
+function isEmotionStateId(stateId) {
+    return EMOTION_STATE_IDS.includes(Number(stateId));
+}
+
+function isAfraidAttackAction(action) {
+    const subject = action && action.subject ? action.subject() : null;
+    return !!(action && action.isAttack && action.isAttack() && subject && subject.isStateAffected(AFRAID_STATE_ID));
+}
+
+const _Game_Battler_addState = Game_Battler.prototype.addState;
+Game_Battler.prototype.addState = function(stateId) {
+    stateId = Number(stateId);
+
+    if (isEmotionStateId(stateId) && this.isStateAffected(AFRAID_STATE_ID)) {
+        return;
+    }
+
+    if (stateId === AFRAID_STATE_ID && this.isStateAddable(stateId)) {
+        for (const emotionStateId of EMOTION_STATE_IDS) {
+            this.removeState(emotionStateId);
+        }
+    }
+
+    _Game_Battler_addState.call(this, stateId);
+};
+
+const _Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
+Game_Action.prototype.makeDamageValue = function(target, critical) {
+    if (isAfraidAttackAction(this)) {
+        this._reverieAfraidAttack = true;
+        return 0;
+    }
+    return _Game_Action_makeDamageValue.call(this, target, critical);
+};
+
+const _Game_Action_itemHit = Game_Action.prototype.itemHit;
+Game_Action.prototype.itemHit = function(target) {
+    if (isAfraidAttackAction(this)) return 1;
+    return _Game_Action_itemHit.call(this, target);
+};
+
+const _Game_Action_itemEva = Game_Action.prototype.itemEva;
+Game_Action.prototype.itemEva = function(target) {
+    if (isAfraidAttackAction(this)) return 0;
+    return _Game_Action_itemEva.call(this, target);
+};
+
+const _BattleManager_invokeAction = BattleManager.invokeAction;
+BattleManager.invokeAction = function(subject, target) {
+    if (subject && subject.isStateAffected(AFRAID_STATE_ID) && this._action && this._action.isAttack()) {
+        this._logWindow.push("pushBaseLine");
+        this.invokeNormalAction(subject, target);
+        subject.setLastTarget(target);
+        return;
+    }
+    _BattleManager_invokeAction.call(this, subject, target);
+};
+
+function currentTroopAddsAfraidToWholeParty() {
+    const troop = $gameTroop && $gameTroop.troop ? $gameTroop.troop() : null;
+    if (!troop || !Array.isArray(troop.pages)) return false;
+
+    return troop.pages.some(page => {
+        if ($gameTroop.meetsConditions && !$gameTroop.meetsConditions(page)) return false;
+        return page.list && page.list.some(command => {
+            const params = command.parameters || [];
+            return command.code === 313 &&
+                params[0] === 0 &&
+                params[1] === 0 &&
+                params[2] === 0 &&
+                params[3] === AFRAID_STATE_ID;
+        });
+    });
+}
+
+const _BattleManager_startBattle = BattleManager.startBattle;
+BattleManager.startBattle = function() {
+    if (currentTroopAddsAfraidToWholeParty()) {
+        for (const actor of $gameParty.battleMembers()) {
+            actor.addState(AFRAID_STATE_ID);
+        }
+    }
+    _BattleManager_startBattle.call(this);
+};
 
 function actorCommandEscapeChanceText() {
     let percent = 0;
@@ -163,6 +250,40 @@ Window_ActorCommand.prototype.lineHeight = function() { return 36; };
 Window_ActorCommand.prototype.drawItemBackground = function(index) {}; 
 Window_ActorCommand.prototype.refreshCursor = function() { this.setCursorRect(0, 0, 0, 0); }; 
 
+function isAfraidCommandAllowed(commandWindow, index) {
+    const actor = commandWindow.actor ? commandWindow.actor() : commandWindow._actor;
+    if (!actor || !actor.isStateAffected(AFRAID_STATE_ID)) return true;
+
+    const symbol = commandWindow.commandSymbol(index);
+    const name = cleanText(commandWindow.commandName(index)).toLowerCase();
+    return symbol === "attack" || symbol === "escape" || name.includes("attack") || name.includes("escape");
+}
+
+function afraidLockedCommandDescription(commandName) {
+    const name = cleanText(commandName).toLowerCase();
+    if (name.includes("skill")) return "You are too scared to use skills.";
+    if (name.includes("bond")) return "You are too scared to use bonds.";
+    if (name.includes("mementos")) return "You are too scared to use mementos.";
+    if (name.includes("guard")) return "You are too scared to guard.";
+    return "You are too scared to do that.";
+}
+
+const _Window_ActorCommand_isCommandEnabled = Window_ActorCommand.prototype.isCommandEnabled;
+Window_ActorCommand.prototype.isCommandEnabled = function(index) {
+    if (!isAfraidCommandAllowed(this, index)) {
+        return false;
+    }
+    return _Window_ActorCommand_isCommandEnabled.call(this, index);
+};
+
+const _Window_ActorCommand_isCurrentItemEnabled = Window_ActorCommand.prototype.isCurrentItemEnabled;
+Window_ActorCommand.prototype.isCurrentItemEnabled = function() {
+    if (!isAfraidCommandAllowed(this, this.index())) {
+        return false;
+    }
+    return _Window_ActorCommand_isCurrentItemEnabled.call(this);
+};
+
 const _Window_ActorCommand_select = Window_ActorCommand.prototype.select;
 Window_ActorCommand.prototype.select = function(index) {
     const lastIndex = this.index();
@@ -180,12 +301,21 @@ Window_ActorCommand.prototype.select = function(index) {
         if (commandName) {
             commandName = cleanText(commandName);
             let desc = "Select an action.";
-            if (commandName.includes("Attack")) desc = "Perform a standard state-based element attack against a targeted enemy.";
-            else if (commandName.includes("Skill")) desc = "Use a character-specific skill.";
-            else if (commandName.includes("Bond")) desc = "Use a cooperative bond ability to assist an ally.";
-            else if (commandName.includes("Guard")) desc = "Defend to reduce incoming damage this turn.";
-            else if (commandName.includes("Mementos")) desc = "Use a consumable mementos from the party's shared inventory.";
-            else if (commandName.includes("Escape")) desc = "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
+            if (!isAfraidCommandAllowed(this, this.index())) {
+                desc = afraidLockedCommandDescription(commandName);
+            } else if (commandName.includes("Attack")) {
+                desc = "Perform a standard state-based element attack against a targeted enemy.";
+            } else if (commandName.includes("Skill")) {
+                desc = "Use a character-specific skill.";
+            } else if (commandName.includes("Bond")) {
+                desc = "Use a cooperative bond ability to assist an ally.";
+            } else if (commandName.includes("Guard")) {
+                desc = "Defend to reduce incoming damage this turn.";
+            } else if (commandName.includes("Mementos")) {
+                desc = "Use a consumable mementos from the party's shared inventory.";
+            } else if (commandName.includes("Escape")) {
+                desc = "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
+            }
             
             helpWin.resetFontSettings();
             let wrappedDesc = helpWin.autoWrapText(desc, helpWin.contentsWidth() - 20);
@@ -749,8 +879,13 @@ Window_BattleLog.prototype.takePendingDespairReflectMethods = function() {
 Window_BattleLog.prototype.displayHpDamage = function(target) {
     if (target.result().hpAffected) {
         const despairReflectMethods = this.takePendingDespairReflectMethods();
+        const afraidAction = BattleManager._action && BattleManager._action._reverieAfraidAttack;
+        const afraidSubject = BattleManager._action && BattleManager._action.subject ? BattleManager._action.subject() : null;
 
-        if (target.result().hpDamage > 0 && !target.result().drain) {
+        if (afraidAction && target.result().hpDamage === 0) {
+            const name = afraidSubject ? cleanText(afraidSubject.name()) : "Someone";
+            this.push('addText', name + "'s attack did nothing!");
+        } else if (target.result().hpDamage > 0 && !target.result().drain) {
             this.push('addText', cleanText(target.name()) + " takes " + target.result().hpDamage + " damage!");
         } else if (target.result().hpDamage < 0) {
             this.push('addText', cleanText(target.name()) + " recovered " + Math.abs(target.result().hpDamage) + " HP!");
