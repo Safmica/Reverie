@@ -117,6 +117,7 @@
     const PASS_BG_ANIM_MAX = 30;
     const PASS_SLOT_DIST_X = 220; 
     const PASS_SLOT_DIST_Y = 220;
+    const PASS_UNLOCK_SWITCH_ID = 121;
 
     // =======================================================
     // 1.01. PASS CARD POSITIONING & ULTRA HUD FORCING
@@ -166,6 +167,10 @@
             $gameTemp.passCardY[i] = passOriginY(currentSlot);
             $gameTemp.passCardOpacity[i] = 0;
         }
+    };
+
+    const isPassUnlocked = () => {
+        return !!($gameSwitches && $gameSwitches.value(PASS_UNLOCK_SWITCH_ID));
     };
 
     // =======================================================
@@ -1739,7 +1744,7 @@
         if (this.isMenuEnabled() && (this.isMenuCalled() || Input.isTriggered('cancel') || Input.isTriggered('menu'))) {
             this.menuCalling = false;
             this.openCustomOmoriMenu();
-        } else if (this.isMenuEnabled() && Input.isTriggered('pageup') && (!$gameTemp || !$gameTemp._customMenuOpen)) {
+        } else if (this.isMenuEnabled() && Input.isTriggered('pageup') && isPassUnlocked() && (!$gameTemp || !$gameTemp._customMenuOpen)) {
             this.openCustomOmoriMenu(true);
             this._commandWindow.select(0);
             this.commandPass();
@@ -1935,7 +1940,7 @@
     Window_MenuCommand.prototype.maxCols = function() { return 5; };
     Window_MenuCommand.prototype.numVisibleRows = function() { return 1; }; 
     Window_MenuCommand.prototype.makeCommandList = function() {
-        this.addCommand("Pass", 'pass', true);
+        this.addCommand("Pass", 'pass', isPassUnlocked());
         this.addCommand("Equip", 'equip');
         this.addCommand("Mementos", 'mementos');
         this.addCommand("Abilities", 'abilities'); 
@@ -3643,6 +3648,16 @@
     };
 
     Scene_Map.prototype.commandPass = function() {
+        if (!isPassUnlocked()) {
+            SoundManager.playBuzzer();
+            if ($gameTemp && $gameTemp._directPassMode && this.closeCustomOmoriMenu) {
+                this.closeCustomOmoriMenu();
+            } else if (this._commandWindow) {
+                this._commandWindow.activate();
+            }
+            return;
+        }
+
         this._commandWindow.deactivate();
         hijackPassNode(this);
         hijackActorCardNode(this);
@@ -4114,6 +4129,8 @@
 
         $gameTemp.isTopMenuActive = this._commandWindow ? this._commandWindow.active : false;
         $gameTemp.menuTopIndex = this._commandWindow ? this._commandWindow.index() : -1;
+        $gameTemp.passUnlocked = isPassUnlocked();
+        $gameTemp.passMainOptionText = isPassUnlocked() ? "PASS" : "???";
         
         $gameTemp.isSelectingActor = this._statusWindow ? this._statusWindow.active : false;
         $gameTemp.menuActorIndex = this._statusWindow ? this._statusWindow.index() : -1;

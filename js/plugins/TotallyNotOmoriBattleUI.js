@@ -202,6 +202,17 @@ function actorCommandEscapeChanceText() {
     return percent + "%";
 }
 
+function actorCommandEscapeDescription() {
+    if (BattleManager.reverieIsElementorBattle && BattleManager.reverieIsElementorBattle()) {
+        const unlocked = BattleManager.reverieElementorEscapeUnlocked && BattleManager.reverieElementorEscapeUnlocked();
+        return unlocked
+            ? "The Elementor's form is broken. Escape is guaranteed."
+            : "The Elementor blocks the escape route. Break its form to escape.";
+    }
+
+    return "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
+}
+
 Window_Base.prototype.autoWrapText = function(text, maxWidth) {
     if (!text) return "";
     text = text.replace(/[\r\n]+/g, ' '); 
@@ -389,7 +400,7 @@ Window_ActorCommand.prototype.select = function(index) {
             } else if (commandName.includes("Mementos")) {
                 desc = "Use a consumable mementos from the party's shared inventory.";
             } else if (commandName.includes("Escape")) {
-                desc = "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
+                desc = actorCommandEscapeDescription();
             }
             
             helpWin.resetFontSettings();

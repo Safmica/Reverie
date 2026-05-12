@@ -22,6 +22,7 @@
     const ESCAPE_FAILURE_BONUS_RATE = 0.1;
     const ESCAPE_FAILURE_MIN_BONUS = 0.03;
     const ESCAPE_FAILURE_MAX_BONUS = 0.08;
+    const ELEMENTOR_SWITCH_ID = 102;
     const ACTOR_STATE_ESCAPE_MODIFIERS = {
         3: 1.1,  // Heroic
         5: 0.9,  // Hopeless
@@ -103,13 +104,43 @@
         return sum / members.length;
     };
 
+    const isElementorBattle = () => {
+        return !!($gameSwitches && $gameSwitches.value(ELEMENTOR_SWITCH_ID));
+    };
+
+    const isElementorUnlockPage = (page) => {
+        const list = page && Array.isArray(page.list) ? page.list : [];
+        const conditions = page && page.conditions ? page.conditions : {};
+        const waitsForEnemyDepleted = !!conditions.enemyValid && Number(conditions.enemyHp) <= 0;
+        const hasUnlockScript = list.some(command => {
+            const text = command && command.parameters ? String(command.parameters[0] || "") : "";
+            return command.code === 355 && text.includes("BattleManager._canEscape = true");
+        });
+        return waitsForEnemyDepleted && hasUnlockScript;
+    };
+
     const _BattleManager_setup = BattleManager.setup;
     BattleManager.setup = function(troopId, canEscape, canLose) {
         _BattleManager_setup.call(this, troopId, canEscape, canLose);
         this._reverieEscapeFailureBonus = 0;
+        if ($gameTroop) {
+            $gameTroop._reverieElementorUnlockTurnKey = "";
+        }
+    };
+
+    BattleManager.reverieIsElementorBattle = function() {
+        return isElementorBattle();
+    };
+
+    BattleManager.reverieElementorEscapeUnlocked = function() {
+        return isElementorBattle() && !!this._canEscape;
     };
 
     BattleManager.reverieEscapeRate = function(actor) {
+        if (isElementorBattle()) {
+            return this.reverieElementorEscapeUnlocked() ? 1 : 0;
+        }
+
         const actorAgi = actor ? escapeAgi(actor) : Math.max(1, $gameParty.agility());
         const enemyAgi = troopEscapeAgi();
         const stateModifier = escapeStateModifier(actor, ACTOR_STATE_ESCAPE_MODIFIERS) * troopEscapeStateModifier();
@@ -127,8 +158,58 @@
     };
 
     BattleManager.reverieCanEscape = function() {
+        if (isElementorBattle()) return this.reverieElementorEscapeUnlocked();
         if (this._canEscape !== undefined) return !!this._canEscape;
         return !this.canEscape || this.canEscape();
+    };
+
+    const _Game_Troop_meetsConditions = Game_Troop.prototype.meetsConditions;
+    Game_Troop.prototype.meetsConditions = function(page) {
+        const result = _Game_Troop_meetsConditions.call(this, page);
+        if (!result) return false;
+
+        if (isElementorBattle() && isElementorUnlockPage(page)) {
+            if (!BattleManager.isTurnEnd()) return false;
+        }
+
+        return true;
+    };
+
+    const elementorUnlockPageIndexReadyForTurnEnd = (troop) => {
+        if (!troop || !isElementorBattle() || !BattleManager.isTurnEnd()) return -1;
+
+        const data = troop.troop && troop.troop();
+        const pages = data && Array.isArray(data.pages) ? data.pages : [];
+        for (let i = 0; i < pages.length; i++) {
+            const page = pages[i];
+            if (!troop.meetsConditions(page)) continue;
+            if (isElementorUnlockPage(page)) return i;
+            if (!troop._eventFlags[i]) return -1;
+        }
+
+        return -1;
+    };
+
+    const _Game_Troop_setupBattleEvent = Game_Troop.prototype.setupBattleEvent;
+    Game_Troop.prototype.setupBattleEvent = function() {
+        let elementorUnlockIndex = -1;
+        if (!this._interpreter.isRunning()) {
+            const index = elementorUnlockPageIndexReadyForTurnEnd(this);
+            if (index >= 0) {
+                const turnKey = this._turnCount + ":" + index;
+                if (this._reverieElementorUnlockTurnKey !== turnKey) {
+                    this._reverieElementorUnlockTurnKey = turnKey;
+                    elementorUnlockIndex = index;
+                    this._eventFlags[index] = false;
+                }
+            }
+        }
+
+        _Game_Troop_setupBattleEvent.call(this);
+
+        if (elementorUnlockIndex >= 0) {
+            this._eventFlags[elementorUnlockIndex] = true;
+        }
     };
 
     BattleManager.cancelRemainingPartyEscapeActions = function() {
