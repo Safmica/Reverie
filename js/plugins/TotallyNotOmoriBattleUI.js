@@ -14,6 +14,12 @@ const CURSOR_NATIVE_SIZE = 14;
 const CURSOR_DRAW_SIZE = 28;
 const AFRAID_STATE_ID = 9;
 const EMOTION_STATE_IDS = [3, 4, 5, 6, 7, 8];
+const FIXED_BATTLE_ACTOR_LAYOUT = [
+    { actorId: 6, x: 0, y: 0 }, // Gin
+    { actorId: 4, x: 1, y: 0 }, // Ann
+    { actorId: 1, x: 0, y: 1 }, // Sora
+    { actorId: 7, x: 1, y: 1 }  // Zuko
+];
 
 FontManager.load("BattleUIFont", "KleeOne-SemiBold.ttf");
 
@@ -32,6 +38,74 @@ function isEmotionStateId(stateId) {
 function isAfraidAttackAction(action) {
     const subject = action && action.subject ? action.subject() : null;
     return !!(action && action.isAttack && action.isAttack() && subject && subject.isStateAffected(AFRAID_STATE_ID));
+}
+
+function fixedBattleActorTargetEntries() {
+    const members = $gameParty && $gameParty.battleMembers ? $gameParty.battleMembers() : [];
+    return FIXED_BATTLE_ACTOR_LAYOUT.map(slot => {
+        const actor = $gameActors.actor(slot.actorId);
+        const index = members.indexOf(actor);
+        if (index < 0) return null;
+        return { actor, index, x: slot.x, y: slot.y };
+    }).filter(Boolean);
+}
+
+function selectedBattleActor(window) {
+    if (!window || window.index() < 0) return null;
+    return window.actor(window.index());
+}
+
+function nearestFixedBattleActorTarget(current, entries, direction, wrap) {
+    const others = entries.filter(entry => entry.actor !== current.actor);
+    if (others.length <= 0) return null;
+
+    const axisDistance = entry => {
+        if (direction === "right") return entry.x - current.x;
+        if (direction === "left") return current.x - entry.x;
+        if (direction === "down") return entry.y - current.y;
+        return current.y - entry.y;
+    };
+    const crossDistance = entry => {
+        if (direction === "right" || direction === "left") return Math.abs(entry.y - current.y);
+        return Math.abs(entry.x - current.x);
+    };
+    const sameLine = entry => {
+        if (direction === "right" || direction === "left") return entry.y === current.y;
+        return entry.x === current.x;
+    };
+    const inDirection = entry => axisDistance(entry) > 0;
+    const sortNearest = (a, b) => {
+        const axis = axisDistance(a) - axisDistance(b);
+        if (axis !== 0) return axis;
+        return crossDistance(a) - crossDistance(b);
+    };
+
+    const direct = others.filter(entry => sameLine(entry) && inDirection(entry)).sort(sortNearest)[0];
+    if (direct) return direct;
+
+    const diagonal = others.filter(inDirection).sort(sortNearest)[0];
+    if (diagonal) return diagonal;
+
+    if (!wrap) return null;
+
+    return others
+        .filter(sameLine)
+        .sort((a, b) => crossDistance(a) - crossDistance(b))[0] || null;
+}
+
+function moveFixedBattleActorTarget(window, direction, wrap) {
+    const actor = selectedBattleActor(window);
+    if (!actor) return false;
+
+    const entries = fixedBattleActorTargetEntries();
+    const current = entries.find(entry => entry.actor === actor);
+    if (!current) return false;
+
+    const target = nearestFixedBattleActorTarget(current, entries, direction, wrap);
+    if (!target) return true;
+
+    window.smoothSelect(target.index);
+    return true;
 }
 
 const _Game_Battler_addState = Game_Battler.prototype.addState;
@@ -165,9 +239,10 @@ Scene_Battle.prototype.update = function() {
     if ($gameParty && $gameVariables) {
         const activeActor = BattleManager.actor();
         $gameVariables.setValue(101, activeActor ? activeActor.actorId() : 0);
-        
-        if (this._actorWindow && this._actorWindow.active && this._actorWindow.actor()) {
-            $gameVariables.setValue(102, this._actorWindow.actor().actorId());
+
+        const targetActor = this._actorWindow && this._actorWindow.active ? selectedBattleActor(this._actorWindow) : null;
+        if (targetActor) {
+            $gameVariables.setValue(102, targetActor.actorId());
         } else {
             $gameVariables.setValue(102, 0);
         }
@@ -605,9 +680,34 @@ Window_BattleEnemy.prototype.updateHelp = function() {
     }
 };
 
+Window_BattleActor.prototype.cursorRight = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "right", wrap)) {
+        Window_BattleStatus.prototype.cursorRight.call(this, wrap);
+    }
+};
+
+Window_BattleActor.prototype.cursorLeft = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "left", wrap)) {
+        Window_BattleStatus.prototype.cursorLeft.call(this, wrap);
+    }
+};
+
+Window_BattleActor.prototype.cursorDown = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "down", wrap)) {
+        Window_BattleStatus.prototype.cursorDown.call(this, wrap);
+    }
+};
+
+Window_BattleActor.prototype.cursorUp = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "up", wrap)) {
+        Window_BattleStatus.prototype.cursorUp.call(this, wrap);
+    }
+};
+
 Window_BattleActor.prototype.updateHelp = function() {
-    if (this._helpWindow && this.actor()) {
-        this._helpWindow.setText("💚 Target: " + cleanText(this.actor().name()));
+    const actor = selectedBattleActor(this);
+    if (this._helpWindow && actor) {
+        this._helpWindow.setText("💚 Target: " + cleanText(actor.name()));
     }
 };
 
