@@ -15,6 +15,7 @@
 
     const WALK_CHARACTER_NAME = "ActorReverie";
     const SPRINT_CHARACTER_NAME = "Sprint_Actor";
+    let keepSprintVisualDuringEvent = false;
 
     const sprintCharacterNameFor = function(actor, sprinting) {
         if (!actor) return "";
@@ -22,8 +23,38 @@
         return sprinting && name === WALK_CHARACTER_NAME ? SPRINT_CHARACTER_NAME : name;
     };
 
-    const shouldUseSprintSprites = function() {
+    const isEventRunning = function() {
+        return !!($gameMap && $gameMap.isEventRunning && $gameMap.isEventRunning());
+    };
+
+    const isActivelySprinting = function() {
         return $gamePlayer && $gamePlayer.isDashing() && !$gamePlayer.isInVehicle();
+    };
+
+    const isUsingSprintVisual = function() {
+        return (
+            $gamePlayer &&
+            !$gamePlayer.isInVehicle() &&
+            $gamePlayer.characterName() === SPRINT_CHARACTER_NAME
+        );
+    };
+
+    const updateSprintVisualHold = function() {
+        if (!isEventRunning()) {
+            keepSprintVisualDuringEvent = false;
+            return;
+        }
+        if (isActivelySprinting() || isUsingSprintVisual()) {
+            keepSprintVisualDuringEvent = true;
+        }
+    };
+
+    const shouldUseSprintSprites = function() {
+        updateSprintVisualHold();
+        return (
+            isActivelySprinting() ||
+            (keepSprintVisualDuringEvent && isEventRunning() && !$gamePlayer.isInVehicle())
+        );
     };
 
     const setCharacterImageIfNeeded = function(character, characterName, characterIndex) {
@@ -44,6 +75,25 @@
     Game_Player.prototype.update = function(sceneActive) {
         _Game_Player_update.call(this, sceneActive);
         this.refreshSprintActorSprite();
+    };
+
+    const _Game_Player_triggerButtonAction = Game_Player.prototype.triggerButtonAction;
+    Game_Player.prototype.triggerButtonAction = function() {
+        const keepSprint = isActivelySprinting() || isUsingSprintVisual();
+        const result = _Game_Player_triggerButtonAction.call(this);
+        if (result && keepSprint && isEventRunning()) {
+            keepSprintVisualDuringEvent = true;
+        }
+        return result;
+    };
+
+    const _Game_Player_updateNonmoving = Game_Player.prototype.updateNonmoving;
+    Game_Player.prototype.updateNonmoving = function(wasMoving, sceneActive) {
+        const keepSprint = wasMoving && (isActivelySprinting() || isUsingSprintVisual());
+        _Game_Player_updateNonmoving.call(this, wasMoving, sceneActive);
+        if (keepSprint && isEventRunning()) {
+            keepSprintVisualDuringEvent = true;
+        }
     };
 
     Game_Player.prototype.refreshSprintActorSprite = function() {

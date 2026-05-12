@@ -12,6 +12,14 @@ const SMALL_FONT_SIZE = 20;
 const CURSOR_IMAGE_NAME = "FingerCursor";
 const CURSOR_NATIVE_SIZE = 14; 
 const CURSOR_DRAW_SIZE = 28;
+const AFRAID_STATE_ID = 9;
+const EMOTION_STATE_IDS = [3, 4, 5, 6, 7, 8];
+const FIXED_BATTLE_ACTOR_LAYOUT = [
+    { actorId: 6, x: 0, y: 0 }, // Gin
+    { actorId: 4, x: 1, y: 0 }, // Ann
+    { actorId: 1, x: 0, y: 1 }, // Sora
+    { actorId: 7, x: 1, y: 1 }  // Zuko
+];
 
 FontManager.load("BattleUIFont", "KleeOne-SemiBold.ttf");
 
@@ -22,6 +30,159 @@ function cleanText(text) {
                .replace(/I\[\d+\]/g, '') 
                .trim();
 }
+
+function isEmotionStateId(stateId) {
+    return EMOTION_STATE_IDS.includes(Number(stateId));
+}
+
+function isAfraidAttackAction(action) {
+    const subject = action && action.subject ? action.subject() : null;
+    return !!(action && action.isAttack && action.isAttack() && subject && subject.isStateAffected(AFRAID_STATE_ID));
+}
+
+function fixedBattleActorTargetEntries() {
+    const members = $gameParty && $gameParty.battleMembers ? $gameParty.battleMembers() : [];
+    return FIXED_BATTLE_ACTOR_LAYOUT.map(slot => {
+        const actor = $gameActors.actor(slot.actorId);
+        const index = members.indexOf(actor);
+        if (index < 0) return null;
+        return { actor, index, x: slot.x, y: slot.y };
+    }).filter(Boolean);
+}
+
+function selectedBattleActor(window) {
+    if (!window || window.index() < 0) return null;
+    return window.actor(window.index());
+}
+
+function nearestFixedBattleActorTarget(current, entries, direction, wrap) {
+    const others = entries.filter(entry => entry.actor !== current.actor);
+    if (others.length <= 0) return null;
+
+    const axisDistance = entry => {
+        if (direction === "right") return entry.x - current.x;
+        if (direction === "left") return current.x - entry.x;
+        if (direction === "down") return entry.y - current.y;
+        return current.y - entry.y;
+    };
+    const crossDistance = entry => {
+        if (direction === "right" || direction === "left") return Math.abs(entry.y - current.y);
+        return Math.abs(entry.x - current.x);
+    };
+    const sameLine = entry => {
+        if (direction === "right" || direction === "left") return entry.y === current.y;
+        return entry.x === current.x;
+    };
+    const inDirection = entry => axisDistance(entry) > 0;
+    const sortNearest = (a, b) => {
+        const axis = axisDistance(a) - axisDistance(b);
+        if (axis !== 0) return axis;
+        return crossDistance(a) - crossDistance(b);
+    };
+
+    const direct = others.filter(entry => sameLine(entry) && inDirection(entry)).sort(sortNearest)[0];
+    if (direct) return direct;
+
+    const diagonal = others.filter(inDirection).sort(sortNearest)[0];
+    if (diagonal) return diagonal;
+
+    if (!wrap) return null;
+
+    return others
+        .filter(sameLine)
+        .sort((a, b) => crossDistance(a) - crossDistance(b))[0] || null;
+}
+
+function moveFixedBattleActorTarget(window, direction, wrap) {
+    const actor = selectedBattleActor(window);
+    if (!actor) return false;
+
+    const entries = fixedBattleActorTargetEntries();
+    const current = entries.find(entry => entry.actor === actor);
+    if (!current) return false;
+
+    const target = nearestFixedBattleActorTarget(current, entries, direction, wrap);
+    if (!target) return true;
+
+    window.smoothSelect(target.index);
+    return true;
+}
+
+const _Game_Battler_addState = Game_Battler.prototype.addState;
+Game_Battler.prototype.addState = function(stateId) {
+    stateId = Number(stateId);
+
+    if (isEmotionStateId(stateId) && this.isStateAffected(AFRAID_STATE_ID)) {
+        return;
+    }
+
+    if (stateId === AFRAID_STATE_ID && this.isStateAddable(stateId)) {
+        for (const emotionStateId of EMOTION_STATE_IDS) {
+            this.removeState(emotionStateId);
+        }
+    }
+
+    _Game_Battler_addState.call(this, stateId);
+};
+
+const _Game_Action_makeDamageValue = Game_Action.prototype.makeDamageValue;
+Game_Action.prototype.makeDamageValue = function(target, critical) {
+    if (isAfraidAttackAction(this)) {
+        this._reverieAfraidAttack = true;
+        return 0;
+    }
+    return _Game_Action_makeDamageValue.call(this, target, critical);
+};
+
+const _Game_Action_itemHit = Game_Action.prototype.itemHit;
+Game_Action.prototype.itemHit = function(target) {
+    if (isAfraidAttackAction(this)) return 1;
+    return _Game_Action_itemHit.call(this, target);
+};
+
+const _Game_Action_itemEva = Game_Action.prototype.itemEva;
+Game_Action.prototype.itemEva = function(target) {
+    if (isAfraidAttackAction(this)) return 0;
+    return _Game_Action_itemEva.call(this, target);
+};
+
+const _BattleManager_invokeAction = BattleManager.invokeAction;
+BattleManager.invokeAction = function(subject, target) {
+    if (subject && subject.isStateAffected(AFRAID_STATE_ID) && this._action && this._action.isAttack()) {
+        this._logWindow.push("pushBaseLine");
+        this.invokeNormalAction(subject, target);
+        subject.setLastTarget(target);
+        return;
+    }
+    _BattleManager_invokeAction.call(this, subject, target);
+};
+
+function currentTroopAddsAfraidToWholeParty() {
+    const troop = $gameTroop && $gameTroop.troop ? $gameTroop.troop() : null;
+    if (!troop || !Array.isArray(troop.pages)) return false;
+
+    return troop.pages.some(page => {
+        if ($gameTroop.meetsConditions && !$gameTroop.meetsConditions(page)) return false;
+        return page.list && page.list.some(command => {
+            const params = command.parameters || [];
+            return command.code === 313 &&
+                params[0] === 0 &&
+                params[1] === 0 &&
+                params[2] === 0 &&
+                params[3] === AFRAID_STATE_ID;
+        });
+    });
+}
+
+const _BattleManager_startBattle = BattleManager.startBattle;
+BattleManager.startBattle = function() {
+    if (currentTroopAddsAfraidToWholeParty()) {
+        for (const actor of $gameParty.battleMembers()) {
+            actor.addState(AFRAID_STATE_ID);
+        }
+    }
+    _BattleManager_startBattle.call(this);
+};
 
 function actorCommandEscapeChanceText() {
     let percent = 0;
@@ -78,9 +239,10 @@ Scene_Battle.prototype.update = function() {
     if ($gameParty && $gameVariables) {
         const activeActor = BattleManager.actor();
         $gameVariables.setValue(101, activeActor ? activeActor.actorId() : 0);
-        
-        if (this._actorWindow && this._actorWindow.active && this._actorWindow.actor()) {
-            $gameVariables.setValue(102, this._actorWindow.actor().actorId());
+
+        const targetActor = this._actorWindow && this._actorWindow.active ? selectedBattleActor(this._actorWindow) : null;
+        if (targetActor) {
+            $gameVariables.setValue(102, targetActor.actorId());
         } else {
             $gameVariables.setValue(102, 0);
         }
@@ -163,6 +325,40 @@ Window_ActorCommand.prototype.lineHeight = function() { return 36; };
 Window_ActorCommand.prototype.drawItemBackground = function(index) {}; 
 Window_ActorCommand.prototype.refreshCursor = function() { this.setCursorRect(0, 0, 0, 0); }; 
 
+function isAfraidCommandAllowed(commandWindow, index) {
+    const actor = commandWindow.actor ? commandWindow.actor() : commandWindow._actor;
+    if (!actor || !actor.isStateAffected(AFRAID_STATE_ID)) return true;
+
+    const symbol = commandWindow.commandSymbol(index);
+    const name = cleanText(commandWindow.commandName(index)).toLowerCase();
+    return symbol === "attack" || symbol === "escape" || name.includes("attack") || name.includes("escape");
+}
+
+function afraidLockedCommandDescription(commandName) {
+    const name = cleanText(commandName).toLowerCase();
+    if (name.includes("skill")) return "You are too scared to use skills.";
+    if (name.includes("bond")) return "You are too scared to use bonds.";
+    if (name.includes("mementos")) return "You are too scared to use mementos.";
+    if (name.includes("guard")) return "You are too scared to guard.";
+    return "You are too scared to do that.";
+}
+
+const _Window_ActorCommand_isCommandEnabled = Window_ActorCommand.prototype.isCommandEnabled;
+Window_ActorCommand.prototype.isCommandEnabled = function(index) {
+    if (!isAfraidCommandAllowed(this, index)) {
+        return false;
+    }
+    return _Window_ActorCommand_isCommandEnabled.call(this, index);
+};
+
+const _Window_ActorCommand_isCurrentItemEnabled = Window_ActorCommand.prototype.isCurrentItemEnabled;
+Window_ActorCommand.prototype.isCurrentItemEnabled = function() {
+    if (!isAfraidCommandAllowed(this, this.index())) {
+        return false;
+    }
+    return _Window_ActorCommand_isCurrentItemEnabled.call(this);
+};
+
 const _Window_ActorCommand_select = Window_ActorCommand.prototype.select;
 Window_ActorCommand.prototype.select = function(index) {
     const lastIndex = this.index();
@@ -180,12 +376,21 @@ Window_ActorCommand.prototype.select = function(index) {
         if (commandName) {
             commandName = cleanText(commandName);
             let desc = "Select an action.";
-            if (commandName.includes("Attack")) desc = "Perform a standard state-based element attack against a targeted enemy.";
-            else if (commandName.includes("Skill")) desc = "Use a character-specific skill.";
-            else if (commandName.includes("Bond")) desc = "Use a cooperative bond ability to assist an ally.";
-            else if (commandName.includes("Guard")) desc = "Defend to reduce incoming damage this turn.";
-            else if (commandName.includes("Mementos")) desc = "Use a consumable mementos from the party's shared inventory.";
-            else if (commandName.includes("Escape")) desc = "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
+            if (!isAfraidCommandAllowed(this, this.index())) {
+                desc = afraidLockedCommandDescription(commandName);
+            } else if (commandName.includes("Attack")) {
+                desc = "Perform a standard state-based element attack against a targeted enemy.";
+            } else if (commandName.includes("Skill")) {
+                desc = "Use a character-specific skill.";
+            } else if (commandName.includes("Bond")) {
+                desc = "Use a cooperative bond ability to assist an ally.";
+            } else if (commandName.includes("Guard")) {
+                desc = "Defend to reduce incoming damage this turn.";
+            } else if (commandName.includes("Mementos")) {
+                desc = "Use a consumable mementos from the party's shared inventory.";
+            } else if (commandName.includes("Escape")) {
+                desc = "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
+            }
             
             helpWin.resetFontSettings();
             let wrappedDesc = helpWin.autoWrapText(desc, helpWin.contentsWidth() - 20);
@@ -475,9 +680,34 @@ Window_BattleEnemy.prototype.updateHelp = function() {
     }
 };
 
+Window_BattleActor.prototype.cursorRight = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "right", wrap)) {
+        Window_BattleStatus.prototype.cursorRight.call(this, wrap);
+    }
+};
+
+Window_BattleActor.prototype.cursorLeft = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "left", wrap)) {
+        Window_BattleStatus.prototype.cursorLeft.call(this, wrap);
+    }
+};
+
+Window_BattleActor.prototype.cursorDown = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "down", wrap)) {
+        Window_BattleStatus.prototype.cursorDown.call(this, wrap);
+    }
+};
+
+Window_BattleActor.prototype.cursorUp = function(wrap) {
+    if (!moveFixedBattleActorTarget(this, "up", wrap)) {
+        Window_BattleStatus.prototype.cursorUp.call(this, wrap);
+    }
+};
+
 Window_BattleActor.prototype.updateHelp = function() {
-    if (this._helpWindow && this.actor()) {
-        this._helpWindow.setText("💚 Target: " + cleanText(this.actor().name()));
+    const actor = selectedBattleActor(this);
+    if (this._helpWindow && actor) {
+        this._helpWindow.setText("💚 Target: " + cleanText(actor.name()));
     }
 };
 
@@ -749,8 +979,13 @@ Window_BattleLog.prototype.takePendingDespairReflectMethods = function() {
 Window_BattleLog.prototype.displayHpDamage = function(target) {
     if (target.result().hpAffected) {
         const despairReflectMethods = this.takePendingDespairReflectMethods();
+        const afraidAction = BattleManager._action && BattleManager._action._reverieAfraidAttack;
+        const afraidSubject = BattleManager._action && BattleManager._action.subject ? BattleManager._action.subject() : null;
 
-        if (target.result().hpDamage > 0 && !target.result().drain) {
+        if (afraidAction && target.result().hpDamage === 0) {
+            const name = afraidSubject ? cleanText(afraidSubject.name()) : "Someone";
+            this.push('addText', name + "'s attack did nothing!");
+        } else if (target.result().hpDamage > 0 && !target.result().drain) {
             this.push('addText', cleanText(target.name()) + " takes " + target.result().hpDamage + " damage!");
         } else if (target.result().hpDamage < 0) {
             this.push('addText', cleanText(target.name()) + " recovered " + Math.abs(target.result().hpDamage) + " HP!");
