@@ -17,6 +17,9 @@ const EMOTION_STATE_IDS = [3, 4, 5, 6, 7, 8];
 const ENEMY_HUD_MAX_SLOTS = 9;
 const ENEMY_HUD_GROUP_X_OFFSET = 0;
 const ENEMY_HUD_GROUP_Y_OFFSET = -20;
+const BATTLE_SUBMENU_HEADER_HEIGHT = 34;
+const BATTLE_SUBMENU_HEIGHT_REDUCTION = 22;
+const BATTLE_SUBMENU_BOTTOM_OFFSET = 10;
 const FIXED_BATTLE_ACTOR_LAYOUT = [
     { actorId: 6, x: 0, y: 0 }, // Gin
     { actorId: 4, x: 1, y: 0 }, // Ann
@@ -498,6 +501,32 @@ function actorCommandEscapeDescription() {
     return "Attempt to flee from battle. Chance: " + actorCommandEscapeChanceText() + ".";
 }
 
+function battleSubMenuItemCostText(window, item) {
+    if (!item) return "";
+
+    if (DataManager.isItem(item)) {
+        return "Hold: " + $gameParty.numItems(item) + " x";
+    }
+
+    if (DataManager.isSkill(item)) {
+        const actor = window && window._actor ? window._actor : null;
+        const mpCost = actor && actor.skillMpCost ? actor.skillMpCost(item) : Number(item.mpCost || 0);
+        const tpCost = actor && actor.skillTpCost ? actor.skillTpCost(item) : Number(item.tpCost || 0);
+
+        if (mpCost > 0) return "Cost: " + mpCost + " MP";
+        if (tpCost > 0) return "Cost: " + tpCost + " TP";
+        return "Cost: 0 MP";
+    }
+
+    return "";
+}
+
+function battleSubMenuHelpText(window, item) {
+    if (!item) return "";
+
+    return cleanText(item.description || "");
+}
+
 Window_Base.prototype.autoWrapText = function(text, maxWidth) {
     if (!text) return "";
     text = text.replace(/[\r\n]+/g, ' '); 
@@ -792,9 +821,10 @@ const setupSubMenu = function(windowClass) {
     const _initialize = windowClass.prototype.initialize;
     windowClass.prototype.initialize = function(rect) {
         _initialize.call(this, rect);
-        this._headerSprite = new Sprite(new Bitmap(rect.width, 70));
+        this._headerSprite = new Sprite(new Bitmap(rect.width, BATTLE_SUBMENU_HEADER_HEIGHT));
         this.addChild(this._headerSprite);
-        this._headerSprite.bitmap.fillRect(0, 58, rect.width, 4, '#ffffff');
+        forceHideTarget(this._upArrowSprite);
+        forceHideTarget(this._downArrowSprite);
     };
 
     windowClass.prototype.maxCols = function() { return 2; };
@@ -805,17 +835,14 @@ const setupSubMenu = function(windowClass) {
     windowClass.prototype._updateArrows = function() {
         this.downArrowVisible = false;
         this.upArrowVisible = false;
+        forceHideTarget(this._upArrowSprite);
+        forceHideTarget(this._downArrowSprite);
     };
 
     windowClass.prototype.cursorDown = function(wrap) { Window_Selectable.prototype.cursorDown.call(this, true); };
     windowClass.prototype.cursorUp = function(wrap) { Window_Selectable.prototype.cursorUp.call(this, true); };
     windowClass.prototype.cursorRight = function(wrap) { Window_Selectable.prototype.cursorRight.call(this, true); };
     windowClass.prototype.cursorLeft = function(wrap) { Window_Selectable.prototype.cursorLeft.call(this, true); };
-
-    const _calcWindowHeight = windowClass.prototype.calcWindowHeight;
-    windowClass.prototype.calcWindowHeight = function(numLines, selectable) {
-        return _calcWindowHeight.call(this, numLines, selectable) + 70; 
-    };
 
     windowClass.prototype.currentTopRow = function() {
         if (this._customTopRow === undefined) this._customTopRow = 0;
@@ -836,7 +863,7 @@ const setupSubMenu = function(windowClass) {
         const row = Math.floor(index / maxCols);
         const displayRow = row - this.currentTopRow();
         const x = col * itemWidth + colSpacing / 2;
-        const y = displayRow * itemHeight + rowSpacing / 2 + 70;
+        const y = displayRow * itemHeight + rowSpacing / 2 + BATTLE_SUBMENU_HEADER_HEIGHT;
         const width = itemWidth - colSpacing;
         const height = itemHeight - rowSpacing;
         return new Rectangle(x, y, width, height);
@@ -858,25 +885,29 @@ const setupSubMenu = function(windowClass) {
     };
 
     windowClass.prototype.drawHeader = function() {
-        this.contents.clearRect(0, 0, this.contentsWidth(), 56);
+        this.contents.clearRect(0, 0, this.contentsWidth(), BATTLE_SUBMENU_HEADER_HEIGHT);
         
         const item = this.item();
         if (!item) return;
-        
+
         this.contents.fontFace = CUSTOM_FONT;
         this.contents.fontSize = 18;
         this.contents.textColor = '#ffffff';
         this.contents.outlineColor = 'rgba(0,0,0,1)';
         this.contents.outlineWidth = 4;
-        
-        let text = "";
-        if (DataManager.isItem(item)) {
-            text = "Hold: " + $gameParty.numItems(item) + " x";
-        } else if (DataManager.isSkill(item)) {
-            let cost = item.mpCost > 0 ? item.mpCost + " MP" : (item.tpCost > 0 ? item.tpCost + " TP" : "0 MP");
-            text = "Cost: " + cost;
-        }
-        this.drawText(text, 0, 10, this.contentsWidth(), 'center');
+
+        this.drawText(
+            battleSubMenuItemCostText(this, item),
+            0,
+            2,
+            this.contentsWidth(),
+            'center'
+        );
+    };
+
+    windowClass.prototype.updateHelp = function() {
+        if (!this._helpWindow) return;
+        this._helpWindow.setText(battleSubMenuHelpText(this, this.item()));
     };
 
     windowClass.prototype.drawItem = function(index) {
@@ -885,7 +916,7 @@ const setupSubMenu = function(windowClass) {
 
         const rect = this.itemLineRect(index);
         
-        if (rect.y < 60 || rect.y > this.contentsHeight()) return;
+        if (rect.y < BATTLE_SUBMENU_HEADER_HEIGHT || rect.y > this.contentsHeight()) return;
         
         this.contents.clearRect(rect.x - 25, rect.y - 4, rect.width + 50, rect.height + 8);
 
@@ -960,6 +991,7 @@ const setupSubMenu = function(windowClass) {
                 if (this.index() >= 0) this.redrawItem(this.index()); 
             }
         }
+        this.updateHelp();
     };
 
     const _refresh = windowClass.prototype.refresh;
@@ -988,9 +1020,12 @@ setupSubMenu(Window_BattleItem);
 
 const gridRectSub = function() {
     const w = Graphics.boxWidth * 0.6; 
-    const h = this.calcWindowHeight(2, true) + 70; 
+    const actorCommandHeight = this.actorCommandWindowRect
+        ? this.actorCommandWindowRect().height
+        : this.calcWindowHeight(3, true);
+    const h = Math.max(this.calcWindowHeight(2, true), actorCommandHeight - BATTLE_SUBMENU_HEIGHT_REDUCTION);
     const x = (Graphics.boxWidth - w) / 2;
-    const y = Graphics.boxHeight - h - 10;
+    const y = Graphics.boxHeight - h - BATTLE_SUBMENU_BOTTOM_OFFSET;
     return new Rectangle(x, y, w, h);
 };
 Scene_Battle.prototype.skillWindowRect = gridRectSub;
