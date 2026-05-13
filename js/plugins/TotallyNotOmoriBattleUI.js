@@ -37,6 +37,61 @@ function cleanText(text) {
                .trim();
 }
 
+function enemyOriginalDisplayName(enemy) {
+    if (!enemy) return "";
+    return enemy.originalName ? cleanText(enemy.originalName()) : cleanText(enemy.name());
+}
+
+function enemyHasDuplicateOriginalName(enemy, members) {
+    const originalName = enemyOriginalDisplayName(enemy);
+    if (!originalName) return false;
+
+    return members.filter(other => enemyOriginalDisplayName(other) === originalName).length > 1;
+}
+
+function uncachedEnemyBattleDisplayName(enemy, members) {
+    const name = cleanText(enemy.name());
+    const originalName = enemyOriginalDisplayName(enemy);
+    const letter = cleanText(enemy._letter || "");
+
+    if (!enemyHasDuplicateOriginalName(enemy, members)) {
+        return originalName || name;
+    }
+
+    if (letter && originalName && name === originalName) {
+        return originalName + " " + letter;
+    }
+
+    return name;
+}
+
+function battleLogName(battler) {
+    if (!battler || !battler.name) return "";
+
+    if (battler.isEnemy && battler.isEnemy()) {
+        if (battler._reverieBattleDisplayName) {
+            return battler._reverieBattleDisplayName;
+        }
+
+        const members = $gameTroop && $gameTroop.members ? $gameTroop.members() : [battler];
+        return uncachedEnemyBattleDisplayName(battler, members);
+    }
+
+    return cleanText(battler.name());
+}
+
+function cacheEnemyBattleDisplayName(enemy, members) {
+    if (!enemy || !enemy.isEnemy || !enemy.isEnemy() || enemy._reverieBattleDisplayName) return;
+    enemy._reverieBattleDisplayName = uncachedEnemyBattleDisplayName(enemy, members);
+}
+
+const _Game_Troop_setup_ReverieEnemyDisplayNames = Game_Troop.prototype.setup;
+Game_Troop.prototype.setup = function(troopId) {
+    _Game_Troop_setup_ReverieEnemyDisplayNames.call(this, troopId);
+    const members = this.members();
+    members.forEach(enemy => cacheEnemyBattleDisplayName(enemy, members));
+};
+
 function isEmotionStateId(stateId) {
     return EMOTION_STATE_IDS.includes(Number(stateId));
 }
@@ -334,23 +389,29 @@ function forceHideTarget(target) {
     target.visible = false;
     target.alpha = 0;
     target.opacity = 0;
+    target.contentsOpacity = 0;
     if (target.hide) target.hide();
+}
+
+function applyEnemyNameHiddenSettings(settings) {
+    if (!settings) return;
+    settings.NameAlwaysHidden = true;
+    settings.NameAlwaysVisible = false;
+    settings.NameAsTarget = false;
+    settings.NameAlwaysSelectOnly = false;
+    settings.NameDamageVisibility = 0;
 }
 
 function disableBattleCoreEnemyNameSettings() {
     if (typeof VisuMZ === "undefined" || !VisuMZ.BattleCore || !VisuMZ.BattleCore.Settings) return;
 
     const settings = VisuMZ.BattleCore.Settings;
-    settings.NameAlwaysHidden = true;
-    settings.NameAlwaysVisible = false;
-    settings.NameAsTarget = false;
-    settings.NameDamageVisibility = 0;
+    applyEnemyNameHiddenSettings(settings);
+    applyEnemyNameHiddenSettings(settings.Enemy);
 
     if (typeof Sprite_EnemyName !== "undefined" && Sprite_EnemyName.SETTINGS) {
-        Sprite_EnemyName.SETTINGS.NameAlwaysHidden = true;
-        Sprite_EnemyName.SETTINGS.NameAlwaysVisible = false;
-        Sprite_EnemyName.SETTINGS.NameAsTarget = false;
-        Sprite_EnemyName.SETTINGS.NameDamageVisibility = 0;
+        applyEnemyNameHiddenSettings(Sprite_EnemyName.SETTINGS);
+        applyEnemyNameHiddenSettings(Sprite_EnemyName.SETTINGS.Enemy);
     }
 }
 
@@ -600,13 +661,16 @@ Scene_Battle.prototype.updateReverieEnemyHudBridge = function() {
         const enemy = enemies[i];
         const sprite = enemySpriteForBattler(enemy);
         const pos = enemy ? enemySpriteScreenPosition(enemy) : { x: 0, y: 0 };
+        if (enemy) {
+            cacheEnemyBattleDisplayName(enemy, enemies);
+        }
         const visible = !!(enemy &&
             (!enemy.isHidden || !enemy.isHidden()) &&
             (!sprite || (sprite.visible && sprite.opacity > 0)));
 
         $gameTemp["enemyHudExists" + i] = visible;
         $gameTemp["enemyHudSelected" + i] = !!(enemy && enemy === selectedEnemy);
-        $gameTemp["enemyHudName" + i] = enemy ? cleanText(enemy.name()) : "";
+        $gameTemp["enemyHudName" + i] = enemy ? battleLogName(enemy) : "";
         $gameTemp["enemyHudHp" + i] = enemy ? enemy.hp : 0;
         $gameTemp["enemyHudMhp" + i] = enemy ? Math.max(1, enemy.mhp) : 1;
         $gameTemp["enemyHudEscapeValue" + i] = enemy ? Math.max(0, enemy.mhp - enemy.hp) : 0;
@@ -1036,11 +1100,33 @@ const setupInvisibleTarget = function(windowClass) {
     windowClass.prototype.initialize = function(rect) {
         _initialize.call(this, rect);
         this.opacity = 0;
+        this.backOpacity = 0;
+        this.contentsOpacity = 0;
         this.frameVisible = false;
+        if (this.contents) this.contents.clear();
+    };
+    const _update = windowClass.prototype.update;
+    windowClass.prototype.update = function() {
+        _update.call(this);
+        this.opacity = 0;
+        this.backOpacity = 0;
+        this.contentsOpacity = 0;
+        this.frameVisible = false;
+        if (this.contents) this.contents.clear();
+        forceHideTarget(this._upArrowSprite);
+        forceHideTarget(this._downArrowSprite);
+    };
+    const _refresh = windowClass.prototype.refresh;
+    windowClass.prototype.refresh = function() {
+        _refresh.call(this);
+        if (this.contents) this.contents.clear();
     };
     windowClass.prototype.drawItemBackground = function(index) {};
     windowClass.prototype.refreshCursor = function() { this.setCursorRect(0, 0, 0, 0); };
+    windowClass.prototype.drawAllItems = function() {};
     windowClass.prototype.drawItem = function(index) {}; 
+    windowClass.prototype.drawText = function() {};
+    windowClass.prototype.drawTextEx = function() { return 0; };
 };
 
 setupInvisibleTarget(Window_BattleEnemy);
@@ -1468,8 +1554,8 @@ Game_Battler.prototype.performCollapse = function() {
     // 2. Guarantee we are in combat and the custom Log Window is ready
     if ($gameParty.inBattle() && BattleManager._logWindow) {
         
-        // 3. Clean the name of any hidden VisuStella icon codes
-        let cName = this.name().replace(/\\I\[\d+\]/g, '').replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
+        // 3. Clean the name and preserve enemy letter suffixes for duplicate troops.
+        let cName = battleLogName(this);
         
         // 4. Print the correct narrative text directly to the log queue!
         if (this.isActor()) {

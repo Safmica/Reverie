@@ -45,5 +45,6 @@ var $plugins =
 {"name":"ActorSprintSprites","status":true,"description":"Reverie - swap actor character sprites while sprinting.","parameters":{}},
 {"name":"DisableAutosave","status":true,"description":"Reverie - disables autosave triggers and autosave slot access.","parameters":{}},
 {"name":"PartyLeaderCondition","status":true,"description":"Reverie - check party leader by character name for event conditions.","parameters":{"Leader Switches":"[\"{\\\"actorName\\\":\\\"SORA\\\",\\\"switchId\\\":\\\"6\\\"}\",\"{\\\"actorName\\\":\\\"GIN\\\",\\\"switchId\\\":\\\"7\\\"}\",\"{\\\"actorName\\\":\\\"ANN\\\",\\\"switchId\\\":\\\"8\\\"}\",\"{\\\"actorName\\\":\\\"ZUKO\\\",\\\"switchId\\\":\\\"9\\\"}\"]","Auto Refresh Switches":"true"}},
-{"name":"PictureFade","status":true,"description":"Reverie - show a picture with automatic fade in, stay, and fade out.","parameters":{}}
+{"name":"PictureFade","status":true,"description":"Reverie - show a picture with automatic fade in, stay, and fade out.","parameters":{}},
+{"name":"BattleConclusionLog","status":true,"description":"Reverie - routes battle conclusion messages through the battle log.","parameters":{}}
 ];
