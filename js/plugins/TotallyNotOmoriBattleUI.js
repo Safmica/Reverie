@@ -14,6 +14,9 @@ const CURSOR_NATIVE_SIZE = 14;
 const CURSOR_DRAW_SIZE = 28;
 const AFRAID_STATE_ID = 9;
 const EMOTION_STATE_IDS = [3, 4, 5, 6, 7, 8];
+const ENEMY_HUD_MAX_SLOTS = 9;
+const ENEMY_HUD_GROUP_X_OFFSET = 0;
+const ENEMY_HUD_GROUP_Y_OFFSET = -20;
 const FIXED_BATTLE_ACTOR_LAYOUT = [
     { actorId: 6, x: 0, y: 0 }, // Gin
     { actorId: 4, x: 1, y: 0 }, // Ann
@@ -107,6 +110,288 @@ function moveFixedBattleActorTarget(window, direction, wrap) {
     window.smoothSelect(target.index);
     return true;
 }
+
+function enemySpriteForBattler(enemy) {
+    const scene = SceneManager._scene;
+    const sprites = scene && scene._spriteset && scene._spriteset._enemySprites;
+    if (!enemy || !Array.isArray(sprites)) return null;
+    return sprites.find(sprite => sprite && sprite._enemy === enemy) || null;
+}
+
+function enemySpriteScreenPosition(enemy) {
+    const sprite = enemySpriteForBattler(enemy);
+    if (!sprite) {
+        return enemy ? { x: enemy.screenX(), y: enemy.screenY() } : { x: 0, y: 0 };
+    }
+
+    if (sprite.getGlobalPosition && typeof PIXI !== "undefined" && PIXI.Point) {
+        const point = sprite.getGlobalPosition(new PIXI.Point());
+        return { x: point.x, y: point.y };
+    }
+
+    return { x: sprite.x, y: sprite.y };
+}
+
+function selectedBattleEnemy(window) {
+    if (!window || window.index() < 0 || !window.enemy) return null;
+    return window.enemy();
+}
+
+function battleEnemyTargetEntries(window) {
+    const enemies = window && Array.isArray(window._enemies)
+        ? window._enemies
+        : ($gameTroop && $gameTroop.aliveMembers ? $gameTroop.aliveMembers() : []);
+
+    return enemies.map((enemy, index) => {
+        const pos = enemySpriteScreenPosition(enemy);
+        return { enemy, index, x: pos.x, y: pos.y };
+    }).filter(entry => !!entry.enemy);
+}
+
+function nearestBattleEnemyTarget(current, entries, direction, wrap) {
+    const others = entries.filter(entry => entry.enemy !== current.enemy);
+    if (others.length <= 0) return null;
+
+    const axisDistance = entry => {
+        if (direction === "right") return entry.x - current.x;
+        if (direction === "left") return current.x - entry.x;
+        if (direction === "down") return entry.y - current.y;
+        return current.y - entry.y;
+    };
+    const crossDistance = entry => {
+        if (direction === "right" || direction === "left") return Math.abs(entry.y - current.y);
+        return Math.abs(entry.x - current.x);
+    };
+    const inDirection = entry => axisDistance(entry) > 0;
+    const sortNearest = (a, b) => {
+        const axis = axisDistance(a) - axisDistance(b);
+        if (axis !== 0) return axis;
+        return crossDistance(a) - crossDistance(b);
+    };
+
+    const direct = others.filter(inDirection).sort(sortNearest)[0];
+    if (direct) return direct;
+
+    if (!wrap) return null;
+
+    if (direction === "right") return others.sort((a, b) => a.x - b.x || crossDistance(a) - crossDistance(b))[0] || null;
+    if (direction === "left") return others.sort((a, b) => b.x - a.x || crossDistance(a) - crossDistance(b))[0] || null;
+    if (direction === "down") return others.sort((a, b) => a.y - b.y || crossDistance(a) - crossDistance(b))[0] || null;
+    return others.sort((a, b) => b.y - a.y || crossDistance(a) - crossDistance(b))[0] || null;
+}
+
+function moveBattleEnemyTarget(window, direction, wrap) {
+    const enemy = selectedBattleEnemy(window);
+    if (!enemy) return false;
+
+    const entries = battleEnemyTargetEntries(window);
+    const current = entries.find(entry => entry.enemy === enemy);
+    if (!current) return false;
+
+    const target = nearestBattleEnemyTarget(current, entries, direction, wrap);
+    if (!target) return true;
+
+    window.smoothSelect(target.index);
+    return true;
+}
+
+function hmuNodeNameParts(node) {
+    const parts = [];
+    const add = value => {
+        if (typeof value === "string") parts.push(value.toLowerCase());
+    };
+
+    add(node && node.name);
+    if (node && node._component) add(node._component.name);
+    if (node && node.component) add(node.component.name);
+    if (node && node._data) {
+        add(node._data.name);
+        add(node._data.Name);
+        add(node._data.id);
+    }
+    if (node && node.data) {
+        add(node.data.name);
+        add(node.data.Name);
+        add(node.data.id);
+    }
+
+    return parts;
+}
+
+function hmuEnemyHudIndex(node) {
+    const parts = hmuNodeNameParts(node);
+    for (const part of parts) {
+        const exactSingleEnemy = part.trim() === "enemy";
+        const match = part.match(/(?:^|[^a-z0-9])(enemy|enemyhud|enemy_hud)[ _-]?(\d+)(?:[^a-z0-9]|$)/i) ||
+            part.match(/^(enemy|enemyhud|enemy_hud)[ _-]?(\d+)/i);
+        if (!match) {
+            if (exactSingleEnemy) return 0;
+            continue;
+        }
+        const index = Number(match[2]);
+        if (Number.isInteger(index) && index >= 0 && index < ENEMY_HUD_MAX_SLOTS) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+function hmuLocalPoint(parent, x, y) {
+    if (parent && parent.toLocal && typeof PIXI !== "undefined" && PIXI.Point) {
+        return parent.toLocal(new PIXI.Point(x, y));
+    }
+    return { x, y };
+}
+
+function hijackEnemyHudNode(parent) {
+    if (!parent || !parent.children) return;
+
+    for (let i = 0; i < parent.children.length; i++) {
+        const child = parent.children[i];
+        const enemyHudIndex = hmuEnemyHudIndex(child);
+
+        if (enemyHudIndex >= 0 && !child._reverieEnemyHudHijacked) {
+            child._reverieEnemyHudHijacked = true;
+            child._reverieEnemyHudIndex = enemyHudIndex;
+
+            const originalRender = child.render;
+            const originalRenderCanvas = child.renderCanvas;
+
+            const renderAtEnemyHudPosition = function(target, renderer, originalMethod) {
+                const originalX = target.x;
+                const originalY = target.y;
+
+                const index = target._reverieEnemyHudIndex;
+                const exists = !!($gameTemp && $gameTemp["enemyHudExists" + index]);
+                const selected = !!($gameTemp && $gameTemp["enemyHudSelected" + index]);
+
+                if (exists && selected) {
+                    const x = Number($gameTemp["enemyHudX" + index] || 0);
+                    const y = Number($gameTemp["enemyHudY" + index] || 0);
+                    const local = hmuLocalPoint(target.parent, x, y);
+
+                    target.x = local.x;
+                    target.y = local.y;
+                    target.updateTransform();
+                    if (originalMethod) originalMethod.call(target, renderer);
+                }
+
+                target.x = originalX;
+                target.y = originalY;
+                target.updateTransform();
+            };
+
+            if (originalRender) {
+                child.render = function(renderer) {
+                    renderAtEnemyHudPosition(this, renderer, originalRender);
+                };
+            }
+
+            if (originalRenderCanvas) {
+                child.renderCanvas = function(renderer) {
+                    renderAtEnemyHudPosition(this, renderer, originalRenderCanvas);
+                };
+            }
+        }
+
+        hijackEnemyHudNode(child);
+    }
+}
+
+function syncEnemyHudNodePositions(parent) {
+    if (!parent || !parent.children || !$gameTemp) return;
+
+    for (let i = 0; i < parent.children.length; i++) {
+        const child = parent.children[i];
+        const enemyHudIndex = hmuEnemyHudIndex(child);
+
+        if (enemyHudIndex >= 0) {
+            const exists = !!$gameTemp["enemyHudExists" + enemyHudIndex];
+            const selected = !!$gameTemp["enemyHudSelected" + enemyHudIndex];
+            const shouldShow = exists && selected;
+
+            if (shouldShow) {
+                const x = Number($gameTemp["enemyHudX" + enemyHudIndex] || 0);
+                const y = Number($gameTemp["enemyHudY" + enemyHudIndex] || 0);
+                const local = hmuLocalPoint(child.parent, x, y);
+
+                child.x = local.x;
+                child.y = local.y;
+            }
+
+            child.visible = shouldShow;
+        }
+
+        syncEnemyHudNodePositions(child);
+    }
+}
+
+function forceHideTarget(target) {
+    if (!target) return;
+    target.visible = false;
+    target.alpha = 0;
+    target.opacity = 0;
+    if (target.hide) target.hide();
+}
+
+function disableBattleCoreEnemyNameSettings() {
+    if (typeof VisuMZ === "undefined" || !VisuMZ.BattleCore || !VisuMZ.BattleCore.Settings) return;
+
+    const settings = VisuMZ.BattleCore.Settings;
+    settings.NameAlwaysHidden = true;
+    settings.NameAlwaysVisible = false;
+    settings.NameAsTarget = false;
+    settings.NameDamageVisibility = 0;
+
+    if (typeof Sprite_EnemyName !== "undefined" && Sprite_EnemyName.SETTINGS) {
+        Sprite_EnemyName.SETTINGS.NameAlwaysHidden = true;
+        Sprite_EnemyName.SETTINGS.NameAlwaysVisible = false;
+        Sprite_EnemyName.SETTINGS.NameAsTarget = false;
+        Sprite_EnemyName.SETTINGS.NameDamageVisibility = 0;
+    }
+}
+
+function isEnemyNameOverlaySprite(sprite) {
+    if (!sprite) return false;
+
+    const constructorName = sprite.constructor && sprite.constructor.name
+        ? sprite.constructor.name.toLowerCase()
+        : "";
+    const nameParts = hmuNodeNameParts(sprite).join("|");
+
+    return /enemy.*name|name.*enemy/.test(constructorName) ||
+        /enemy.*name|name.*enemy/.test(nameParts);
+}
+
+function hideEnemyNameOverlaySprites(parent) {
+    if (!parent || !parent.children) return;
+
+    for (const child of parent.children) {
+        if (isEnemyNameOverlaySprite(child)) {
+            forceHideTarget(child);
+        }
+        hideEnemyNameOverlaySprites(child);
+    }
+}
+
+disableBattleCoreEnemyNameSettings();
+
+const _Sprite_Enemy_update_ReverieEnemyNames = Sprite_Enemy.prototype.update;
+Sprite_Enemy.prototype.update = function() {
+    _Sprite_Enemy_update_ReverieEnemyNames.call(this);
+    disableBattleCoreEnemyNameSettings();
+
+    for (const key of ["_nameSprite", "_enemyNameSprite", "_enemyName", "_nameWindow", "_enemyNameWindow"]) {
+        forceHideTarget(this[key]);
+    }
+    hideEnemyNameOverlaySprites(this);
+};
+
+const _Spriteset_Battle_update_ReverieEnemyNames = Spriteset_Battle.prototype.update;
+Spriteset_Battle.prototype.update = function() {
+    _Spriteset_Battle_update_ReverieEnemyNames.call(this);
+    hideEnemyNameOverlaySprites(this._battleField);
+};
 
 const _Game_Battler_addState = Game_Battler.prototype.addState;
 Game_Battler.prototype.addState = function(stateId) {
@@ -257,6 +542,47 @@ Scene_Battle.prototype.update = function() {
         } else {
             $gameVariables.setValue(102, 0);
         }
+    }
+
+    this.updateReverieEnemyHudBridge();
+    syncEnemyHudNodePositions(this);
+    if (this._ultraHudContainer) {
+        syncEnemyHudNodePositions(this._ultraHudContainer);
+    }
+    hijackEnemyHudNode(this);
+    if (this._ultraHudContainer) {
+        hijackEnemyHudNode(this._ultraHudContainer);
+    }
+};
+
+Scene_Battle.prototype.updateReverieEnemyHudBridge = function() {
+    if (!$gameTemp || !$gameTroop) return;
+
+    const enemies = $gameTroop.members ? $gameTroop.members() : [];
+    const selectedEnemy = this._enemyWindow && this._enemyWindow.active ? selectedBattleEnemy(this._enemyWindow) : null;
+    const aliveEnemies = $gameTroop.aliveMembers ? $gameTroop.aliveMembers() : enemies.filter(enemy => enemy && enemy.isAlive && enemy.isAlive());
+
+    $gameTemp.enemyHudCount = enemies.length;
+    $gameTemp.enemyHudAliveCount = aliveEnemies.length;
+    $gameTemp.enemyHudSelectedIndex = selectedEnemy ? enemies.indexOf(selectedEnemy) : -1;
+    $gameTemp.enemyHudAnySelected = !!selectedEnemy;
+
+    for (let i = 0; i < ENEMY_HUD_MAX_SLOTS; i++) {
+        const enemy = enemies[i];
+        const sprite = enemySpriteForBattler(enemy);
+        const pos = enemy ? enemySpriteScreenPosition(enemy) : { x: 0, y: 0 };
+        const visible = !!(enemy &&
+            (!enemy.isHidden || !enemy.isHidden()) &&
+            (!sprite || (sprite.visible && sprite.opacity > 0)));
+
+        $gameTemp["enemyHudExists" + i] = visible;
+        $gameTemp["enemyHudSelected" + i] = !!(enemy && enemy === selectedEnemy);
+        $gameTemp["enemyHudName" + i] = enemy ? cleanText(enemy.name()) : "";
+        $gameTemp["enemyHudHp" + i] = enemy ? enemy.hp : 0;
+        $gameTemp["enemyHudMhp" + i] = enemy ? Math.max(1, enemy.mhp) : 1;
+        $gameTemp["enemyHudEscapeValue" + i] = enemy ? Math.max(0, enemy.mhp - enemy.hp) : 0;
+        $gameTemp["enemyHudX" + i] = Math.round(pos.x + ENEMY_HUD_GROUP_X_OFFSET);
+        $gameTemp["enemyHudY" + i] = Math.round(pos.y + ENEMY_HUD_GROUP_Y_OFFSET);
     }
 };
 
@@ -685,10 +1011,32 @@ const setupInvisibleTarget = function(windowClass) {
 setupInvisibleTarget(Window_BattleEnemy);
 setupInvisibleTarget(Window_BattleActor);
 
-Window_BattleEnemy.prototype.updateHelp = function() {
-    if (this._helpWindow && this.enemy()) {
-        this._helpWindow.setText("⚔️ Target: " + cleanText(this.enemy().name()));
+Window_BattleEnemy.prototype.cursorRight = function(wrap) {
+    if (!moveBattleEnemyTarget(this, "right", wrap)) {
+        Window_Selectable.prototype.cursorRight.call(this, wrap);
     }
+};
+
+Window_BattleEnemy.prototype.cursorLeft = function(wrap) {
+    if (!moveBattleEnemyTarget(this, "left", wrap)) {
+        Window_Selectable.prototype.cursorLeft.call(this, wrap);
+    }
+};
+
+Window_BattleEnemy.prototype.cursorDown = function(wrap) {
+    if (!moveBattleEnemyTarget(this, "down", wrap)) {
+        Window_Selectable.prototype.cursorDown.call(this, wrap);
+    }
+};
+
+Window_BattleEnemy.prototype.cursorUp = function(wrap) {
+    if (!moveBattleEnemyTarget(this, "up", wrap)) {
+        Window_Selectable.prototype.cursorUp.call(this, wrap);
+    }
+};
+
+Window_BattleEnemy.prototype.updateHelp = function() {
+    if (this._helpWindow) this._helpWindow.clear();
 };
 
 Window_BattleActor.prototype.cursorRight = function(wrap) {
