@@ -805,20 +805,22 @@ Window_ActorCommand.prototype.select = function(index) {
         let commandName = this.commandName(this.index());
         if (commandName) {
             commandName = cleanText(commandName);
+            const commandText = commandName.toLowerCase();
+            const commandSymbol = this.commandSymbol(this.index());
             let desc = "Select an action.";
             if (!isAfraidCommandAllowed(this, this.index())) {
                 desc = afraidLockedCommandDescription(commandName);
-            } else if (commandName.includes("Attack")) {
-                desc = "Perform a standard state-based element attack against a targeted enemy.";
-            } else if (commandName.includes("Skill")) {
+            } else if (commandSymbol === "attack" || commandText.includes("attack") || commandText.includes("fight")) {
+                desc = "Perform a standard attack on an enemy.";
+            } else if (commandSymbol === "skill" || commandText.includes("skill")) {
                 desc = "Use a character-specific skill.";
-            } else if (commandName.includes("Bond")) {
+            } else if (commandText.includes("bond")) {
                 desc = "Use a cooperative bond ability to assist an ally.";
-            } else if (commandName.includes("Guard")) {
+            } else if (commandSymbol === "guard" || commandText.includes("guard")) {
                 desc = "Defend to reduce incoming damage this turn.";
-            } else if (commandName.includes("Mementos")) {
+            } else if (commandSymbol === "item" || commandText.includes("mementos")) {
                 desc = "Use a consumable mementos from the party's shared inventory.";
-            } else if (commandName.includes("Escape")) {
+            } else if (commandSymbol === "escape" || commandText.includes("escape")) {
                 desc = actorCommandEscapeDescription();
             }
             
