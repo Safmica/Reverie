@@ -800,10 +800,7 @@
                 const target = precedingMap[index];
 
                 if (follower && target) {
-                    const allowedRegions = $gameTemp.isCutsceneActive()
-                        ? ($gameTemp._cutsceneAllowedRegions || [])
-                        : [];
-                    $gameTemp.tryStepToward(follower, target.x, target.y, allowedRegions);
+                    follower.chaseCharacter(target);
                 }
             }
             return;
