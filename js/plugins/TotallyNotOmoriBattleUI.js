@@ -121,6 +121,7 @@ function rememberBuffHudChange(battler, paramId) {
 
 const BuffHud = {
     _iconCache: {},
+    _allowTurnDecay: false,
 
     battlerActor(actorId) {
         const actor = $gameActors && $gameActors.actor ? $gameActors.actor(Number(actorId)) : null;
@@ -318,6 +319,24 @@ const _Game_Battler_removeBuff_ReverieBuffHud = Game_Battler.prototype.removeBuf
 Game_Battler.prototype.removeBuff = function(paramId) {
     _Game_Battler_removeBuff_ReverieBuffHud.call(this, paramId);
     rememberBuffHudChange(this, paramId);
+};
+
+const _Game_BattlerBase_updateBuffTurns_ReverieBuffHud = Game_BattlerBase.prototype.updateBuffTurns;
+Game_BattlerBase.prototype.updateBuffTurns = function() {
+    if ($gameParty && $gameParty.inBattle && $gameParty.inBattle() && !BuffHud._allowTurnDecay) {
+        return;
+    }
+    _Game_BattlerBase_updateBuffTurns_ReverieBuffHud.call(this);
+};
+
+const _BattleManager_endAllBattlersTurn_ReverieBuffHud = BattleManager.endAllBattlersTurn;
+BattleManager.endAllBattlersTurn = function() {
+    BuffHud._allowTurnDecay = true;
+    try {
+        _BattleManager_endAllBattlersTurn_ReverieBuffHud.call(this);
+    } finally {
+        BuffHud._allowTurnDecay = false;
+    }
 };
 
 const _Game_Troop_setup_ReverieEnemyDisplayNames = Game_Troop.prototype.setup;
