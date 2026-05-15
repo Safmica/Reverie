@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 15,
+  "editMapId": 16,
   "elements": [
     "",
     "Heroic Element",
@@ -344,12 +344,12 @@
     "PICKUP_TRASH",
     "TRASH_DONE",
     "SAVE_TUTOR",
-    "",
+    "OPENING",
     "SORA_LEADER",
     "GIN_LEADER",
     "ANN_LEADER",
     "ZUKO_LEADER",
-    "",
+    "FIRST_OPENING",
     "",
     "",
     "",
@@ -1713,7 +1713,7 @@
     "",
     ""
   ],
-  "versionId": 55251349,
+  "versionId": 79006135,
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,
