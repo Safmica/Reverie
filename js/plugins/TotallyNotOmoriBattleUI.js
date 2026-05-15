@@ -14,12 +14,21 @@ const CURSOR_NATIVE_SIZE = 14;
 const CURSOR_DRAW_SIZE = 28;
 const AFRAID_STATE_ID = 9;
 const EMOTION_STATE_IDS = [3, 4, 5, 6, 7, 8];
+const BOND_SKILL_TYPE_ID = 3;
 const ENEMY_HUD_MAX_SLOTS = 9;
 const ENEMY_HUD_GROUP_X_OFFSET = 0;
 const ENEMY_HUD_GROUP_Y_OFFSET = -20;
 const BATTLE_SUBMENU_HEADER_HEIGHT = 34;
 const BATTLE_SUBMENU_HEIGHT_REDUCTION = 22;
 const BATTLE_SUBMENU_BOTTOM_OFFSET = 10;
+const ACTOR_COMMAND_REST_Y_OFFSET = 24;
+const ACTOR_COMMAND_SLIDE_EASE = 0.2;
+const ACTOR_COMMAND_SLIDE_MIN_STEP = 5;
+const ACTOR_COMMAND_SLIDE_SNAP = 1;
+const BATTLE_CHOICE_WINDOW_REST_Y_OFFSET = 0;
+const BATTLE_CHOICE_WINDOW_SLIDE_EASE = 0.2;
+const BATTLE_CHOICE_WINDOW_SLIDE_MIN_STEP = 5;
+const BATTLE_CHOICE_WINDOW_SLIDE_SNAP = 1;
 const FIXED_BATTLE_ACTOR_LAYOUT = [
     { actorId: 6, x: 0, y: 0 }, // Gin
     { actorId: 4, x: 1, y: 0 }, // Ann
@@ -696,6 +705,36 @@ Scene_Battle.prototype.startPartyCommandSelection = function() {
     this.selectNextCommand(); 
 };
 
+Scene_Battle.prototype.closeCommandWindows = function() {
+    if (this._partyCommandWindow) {
+        this._partyCommandWindow.deactivate();
+        this._partyCommandWindow.close();
+    }
+    if (this._actorCommandWindow) {
+        this._actorCommandWindow.deactivate();
+        if (this._actorCommandWindow.reverieSlideOut) {
+            this._actorCommandWindow.reverieSlideOut();
+        } else {
+            this._actorCommandWindow.close();
+        }
+    }
+};
+
+const _Scene_Battle_startActorCommandSelection_ReverieSlide = Scene_Battle.prototype.startActorCommandSelection;
+Scene_Battle.prototype.startActorCommandSelection = function() {
+    if (!BattleManager.isInputting() || !BattleManager.actor()) {
+        if (this._actorCommandWindow && this._actorCommandWindow.reverieSlideOut) {
+            this._actorCommandWindow.reverieSlideOut();
+        }
+        return;
+    }
+
+    _Scene_Battle_startActorCommandSelection_ReverieSlide.call(this);
+    if (this._actorCommandWindow && this._actorCommandWindow.reverieSlideIn) {
+        this._actorCommandWindow.reverieSlideIn();
+    }
+};
+
 const _Scene_Battle_createActorCommandWindow = Scene_Battle.prototype.createActorCommandWindow;
 Scene_Battle.prototype.createActorCommandWindow = function() {
     _Scene_Battle_createActorCommandWindow.call(this);
@@ -747,6 +786,79 @@ const _Window_ActorCommand_initialize = Window_ActorCommand.prototype.initialize
 Window_ActorCommand.prototype.initialize = function(rect) {
     _Window_ActorCommand_initialize.call(this, rect); 
     this.opacity = 0; 
+    this._reverieCommandHomeY = rect.y;
+    this._reverieCommandTargetY = rect.y;
+    this._reverieCommandSlideHiding = false;
+};
+
+Window_ActorCommand.prototype.reverieCommandHiddenY = function() {
+    return Graphics.boxHeight + 12;
+};
+
+Window_ActorCommand.prototype.reverieCommandRestY = function() {
+    const scene = SceneManager._scene;
+    const baseY = scene && scene.actorCommandWindowRect
+        ? scene.actorCommandWindowRect().y
+        : this._reverieCommandHomeY;
+    return baseY + ACTOR_COMMAND_REST_Y_OFFSET;
+};
+
+Window_ActorCommand.prototype.reverieSlideIn = function() {
+    if (this._reverieCommandHomeY === undefined) {
+        this._reverieCommandHomeY = this.y;
+    }
+    if (!this.visible || this.openness <= 0 || this.y >= this.reverieCommandHiddenY() - ACTOR_COMMAND_SLIDE_SNAP) {
+        this.y = this.reverieCommandHiddenY();
+    }
+    this._reverieCommandTargetY = this.reverieCommandRestY();
+    this._reverieCommandSlideHiding = false;
+    this.show();
+    this.open();
+    this.openness = 255;
+    this._opening = false;
+    this._closing = false;
+};
+
+Window_ActorCommand.prototype.reverieSlideOut = function() {
+    if (this._reverieCommandHomeY === undefined) {
+        this._reverieCommandHomeY = this.y;
+    }
+    this._reverieCommandTargetY = this.reverieCommandHiddenY();
+    this._reverieCommandSlideHiding = true;
+    this.show();
+    this.open();
+    this.openness = 255;
+    this._opening = false;
+    this._closing = false;
+};
+
+Window_ActorCommand.prototype.updateReverieSlide = function() {
+    if (this._reverieCommandTargetY === undefined) return;
+    if (!BattleManager.isInputting() && !this.active && this.visible && !this._reverieCommandSlideHiding) {
+        this.reverieSlideOut();
+    }
+    if (!this._reverieCommandSlideHiding && this.visible) {
+        this._reverieCommandTargetY = this.reverieCommandRestY();
+    }
+
+    const delta = this._reverieCommandTargetY - this.y;
+    if (Math.abs(delta) <= ACTOR_COMMAND_SLIDE_SNAP) {
+        this.y = this._reverieCommandTargetY;
+        if (this._reverieCommandSlideHiding) {
+            this.hide();
+            this._reverieCommandSlideHiding = false;
+        }
+        return;
+    }
+
+    const step = Math.max(ACTOR_COMMAND_SLIDE_MIN_STEP, Math.ceil(Math.abs(delta) * ACTOR_COMMAND_SLIDE_EASE));
+    this.y += Math.sign(delta) * Math.min(Math.abs(delta), step);
+};
+
+const _Window_ActorCommand_update_ReverieSlide = Window_ActorCommand.prototype.update;
+Window_ActorCommand.prototype.update = function() {
+    _Window_ActorCommand_update_ReverieSlide.call(this);
+    this.updateReverieSlide();
 };
 
 Window_ActorCommand.prototype.maxCols = function() { return 2; };
@@ -764,10 +876,21 @@ function isAfraidCommandAllowed(commandWindow, index) {
     return symbol === "attack" || symbol === "escape" || name.includes("attack") || name.includes("escape");
 }
 
-function afraidLockedCommandDescription(commandName) {
+function actorCommandExt(commandWindow, index) {
+    if (!commandWindow || !commandWindow._list || !commandWindow._list[index]) return null;
+    return commandWindow._list[index].ext;
+}
+
+function isBondActorCommand(commandWindow, index, commandText) {
+    return commandText.includes("bond") ||
+        (commandWindow.commandSymbol(index) === "skill" &&
+        Number(actorCommandExt(commandWindow, index)) === BOND_SKILL_TYPE_ID);
+}
+
+function afraidLockedCommandDescription(commandName, commandWindow, index) {
     const name = cleanText(commandName).toLowerCase();
+    if (commandWindow && isBondActorCommand(commandWindow, index, name)) return "You are too scared to use bonds.";
     if (name.includes("skill")) return "You are too scared to use skills.";
-    if (name.includes("bond")) return "You are too scared to use bonds.";
     if (name.includes("mementos")) return "You are too scared to use mementos.";
     if (name.includes("guard")) return "You are too scared to guard.";
     return "You are too scared to do that.";
@@ -805,20 +928,22 @@ Window_ActorCommand.prototype.select = function(index) {
         let commandName = this.commandName(this.index());
         if (commandName) {
             commandName = cleanText(commandName);
+            const commandText = commandName.toLowerCase();
+            const commandSymbol = this.commandSymbol(this.index());
             let desc = "Select an action.";
             if (!isAfraidCommandAllowed(this, this.index())) {
-                desc = afraidLockedCommandDescription(commandName);
-            } else if (commandName.includes("Attack")) {
-                desc = "Perform a standard state-based element attack against a targeted enemy.";
-            } else if (commandName.includes("Skill")) {
-                desc = "Use a character-specific skill.";
-            } else if (commandName.includes("Bond")) {
+                desc = afraidLockedCommandDescription(commandName, this, this.index());
+            } else if (commandSymbol === "attack" || commandText.includes("attack") || commandText.includes("fight")) {
+                desc = "Perform a standard attack on an enemy.";
+            } else if (isBondActorCommand(this, this.index(), commandText)) {
                 desc = "Use a cooperative bond ability to assist an ally.";
-            } else if (commandName.includes("Guard")) {
+            } else if (commandSymbol === "skill" || commandText.includes("skill")) {
+                desc = "Use a character-specific skill.";
+            } else if (commandSymbol === "guard" || commandText.includes("guard")) {
                 desc = "Defend to reduce incoming damage this turn.";
-            } else if (commandName.includes("Mementos")) {
+            } else if (commandSymbol === "item" || commandText.includes("mementos")) {
                 desc = "Use a consumable mementos from the party's shared inventory.";
-            } else if (commandName.includes("Escape")) {
+            } else if (commandSymbol === "escape" || commandText.includes("escape")) {
                 desc = actorCommandEscapeDescription();
             }
             
@@ -1081,6 +1206,102 @@ const setupSubMenu = function(windowClass) {
 
 setupSubMenu(Window_BattleSkill);
 setupSubMenu(Window_BattleItem);
+
+const setupSlidingBattleChoiceWindow = function(windowClass) {
+    const _initialize = windowClass.prototype.initialize;
+    windowClass.prototype.initialize = function(rect) {
+        this._reverieChoiceInitializing = true;
+        _initialize.call(this, rect);
+        this._reverieChoiceHomeY = rect.y;
+        this._reverieChoiceTargetY = rect.y;
+        this._reverieChoiceSlideHiding = false;
+        this._reverieChoiceInitializing = false;
+        this.hide();
+    };
+
+    windowClass.prototype.reverieChoiceHiddenY = function() {
+        return Graphics.boxHeight + 12;
+    };
+
+    windowClass.prototype.reverieChoiceRestY = function() {
+        return this._reverieChoiceHomeY + BATTLE_CHOICE_WINDOW_REST_Y_OFFSET;
+    };
+
+    const _show = windowClass.prototype.show;
+    windowClass.prototype.show = function() {
+        const hiddenY = this.reverieChoiceHiddenY();
+        const shouldSlideIn = !this.visible ||
+            this._reverieChoiceSlideHiding ||
+            this.y >= hiddenY - BATTLE_CHOICE_WINDOW_SLIDE_SNAP;
+
+        _show.call(this);
+        if (shouldSlideIn) {
+            this.y = hiddenY;
+        }
+        this._reverieChoiceTargetY = this.reverieChoiceRestY();
+        this._reverieChoiceSlideHiding = false;
+        this.openness = 255;
+        this._opening = false;
+        this._closing = false;
+    };
+
+    const _hide = windowClass.prototype.hide;
+    windowClass.prototype.hide = function() {
+        if (this._reverieChoiceInitializing || !SceneManager._scene || !SceneManager._scene._actorCommandWindow) {
+            this._reverieChoiceSlideHiding = false;
+            _hide.call(this);
+            return;
+        }
+
+        if (!this.visible && !this._reverieChoiceSlideHiding) {
+            _hide.call(this);
+            return;
+        }
+
+        if (this.hideHelpWindow) {
+            this.hideHelpWindow();
+        }
+        this.deactivate();
+        this.visible = true;
+        this.openness = 255;
+        this._opening = false;
+        this._closing = false;
+        this._reverieChoiceTargetY = this.reverieChoiceHiddenY();
+        this._reverieChoiceSlideHiding = true;
+    };
+
+    const _update = windowClass.prototype.update;
+    windowClass.prototype.update = function() {
+        _update.call(this);
+        this.updateReverieChoiceSlide();
+    };
+
+    windowClass.prototype.updateReverieChoiceSlide = function() {
+        if (this._reverieChoiceTargetY === undefined) return;
+        if (!this._reverieChoiceSlideHiding && this.visible) {
+            this._reverieChoiceTargetY = this.reverieChoiceRestY();
+        }
+
+        const delta = this._reverieChoiceTargetY - this.y;
+        if (Math.abs(delta) <= BATTLE_CHOICE_WINDOW_SLIDE_SNAP) {
+            this.y = this._reverieChoiceTargetY;
+            if (this._reverieChoiceSlideHiding) {
+                this._reverieChoiceSlideHiding = false;
+                _hide.call(this);
+            }
+            return;
+        }
+
+        const step = Math.max(
+            BATTLE_CHOICE_WINDOW_SLIDE_MIN_STEP,
+            Math.ceil(Math.abs(delta) * BATTLE_CHOICE_WINDOW_SLIDE_EASE)
+        );
+        this.y += Math.sign(delta) * Math.min(Math.abs(delta), step);
+    };
+};
+
+setupSlidingBattleChoiceWindow(Window_BattleSkill);
+setupSlidingBattleChoiceWindow(Window_BattleItem);
 
 const gridRectSub = function() {
     const w = Graphics.boxWidth * 0.6; 
