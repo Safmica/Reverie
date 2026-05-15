@@ -29,6 +29,20 @@ const BATTLE_CHOICE_WINDOW_REST_Y_OFFSET = 0;
 const BATTLE_CHOICE_WINDOW_SLIDE_EASE = 0.2;
 const BATTLE_CHOICE_WINDOW_SLIDE_MIN_STEP = 5;
 const BATTLE_CHOICE_WINDOW_SLIDE_SNAP = 1;
+const BUFF_HUD_PARAM_IDS = {
+    atk: 2,
+    attack: 2,
+    def: 3,
+    defense: 3,
+    agi: 6,
+    agility: 6
+};
+const BUFF_HUD_PARAMS = [
+    { key: "atk", paramId: 2 },
+    { key: "def", paramId: 3 },
+    { key: "agi", paramId: 6 }
+];
+const BUFF_HUD_EMPTY_IMAGE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 const FIXED_BATTLE_ACTOR_LAYOUT = [
     { actorId: 6, x: 0, y: 0 }, // Gin
     { actorId: 4, x: 1, y: 0 }, // Ann
@@ -93,6 +107,218 @@ function cacheEnemyBattleDisplayName(enemy, members) {
     if (!enemy || !enemy.isEnemy || !enemy.isEnemy() || enemy._reverieBattleDisplayName) return;
     enemy._reverieBattleDisplayName = uncachedEnemyBattleDisplayName(enemy, members);
 }
+
+function rememberBuffHudChange(battler, paramId) {
+    if (!battler) return;
+    battler._reverieBuffHudOrder = battler._reverieBuffHudOrder || {};
+
+    if (battler.buff && battler.buff(paramId) !== 0) {
+        battler._reverieBuffHudOrder[paramId] = Graphics.frameCount || Date.now();
+    } else {
+        delete battler._reverieBuffHudOrder[paramId];
+    }
+}
+
+const BuffHud = {
+    _iconCache: {},
+
+    battlerActor(actorId) {
+        const actor = $gameActors && $gameActors.actor ? $gameActors.actor(Number(actorId)) : null;
+        if (!actor || !$gameParty || !$gameParty.inBattle || !$gameParty.inBattle()) return null;
+        return $gameParty.battleMembers().includes(actor) ? actor : null;
+    },
+
+    battlerEnemy(index) {
+        if (!$gameTroop || !$gameTroop.members) return null;
+        const enemy = $gameTroop.members()[Number(index)];
+        if (!enemy || (enemy.isHidden && enemy.isHidden())) return null;
+        return enemy;
+    },
+
+    paramId(param) {
+        if (typeof param === "number") return param;
+        return BUFF_HUD_PARAM_IDS[String(param || "").toLowerCase()] ?? -1;
+    },
+
+    kindSign(kind) {
+        return String(kind || "").toLowerCase() === "down" ? -1 : 1;
+    },
+
+    level(battler, param, kind) {
+        const paramId = this.paramId(param);
+        if (!battler || paramId < 0 || !battler.buff) return 0;
+        if (this.rawTurns(battler, paramId) <= 0) return 0;
+
+        const level = Number(battler.buff(paramId) || 0);
+        const sign = this.kindSign(kind);
+        return level * sign > 0 ? Math.abs(level) : 0;
+    },
+
+    has(battler, param, kind) {
+        return this.level(battler, param, kind) > 0;
+    },
+
+    turns(battler, param, kind) {
+        if (!this.has(battler, param, kind)) return "";
+        const paramId = this.paramId(param);
+        const turns = this.rawTurns(battler, paramId);
+        return turns > 0 ? turns : "";
+    },
+
+    rawTurns(battler, paramId) {
+        return battler && battler._buffTurns ? Number(battler._buffTurns[paramId] || 0) : 0;
+    },
+
+    iconIndex(battler, param, kind) {
+        const paramId = this.paramId(param);
+        if (!battler || paramId < 0 || !battler.buffIconIndex) return 0;
+
+        const buffLevel = Number(battler.buff(paramId) || 0);
+        if (buffLevel === 0) return 0;
+        if (this.rawTurns(battler, paramId) <= 0) return 0;
+        if (kind && !this.has(battler, param, kind)) return 0;
+
+        return battler.buffIconIndex(buffLevel, paramId);
+    },
+
+    iconDataUrl(iconIndex) {
+        iconIndex = Number(iconIndex || 0);
+        if (iconIndex <= 0) return BUFF_HUD_EMPTY_IMAGE;
+        if (this._iconCache[iconIndex]) return this._iconCache[iconIndex];
+
+        const iconSet = ImageManager.loadSystem("IconSet");
+        if (!iconSet || !iconSet.isReady || !iconSet.isReady()) return BUFF_HUD_EMPTY_IMAGE;
+
+        try {
+            const width = ImageManager.iconWidth;
+            const height = ImageManager.iconHeight;
+            const sx = (iconIndex % 16) * width;
+            const sy = Math.floor(iconIndex / 16) * height;
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            canvas.width = width;
+            canvas.height = height;
+            context.drawImage(iconSet.canvas, sx, sy, width, height, 0, 0, width, height);
+            this._iconCache[iconIndex] = canvas.toDataURL("image/png");
+            return this._iconCache[iconIndex];
+        } catch (e) {
+            return BUFF_HUD_EMPTY_IMAGE;
+        }
+    },
+
+    icon(battler, param, kind) {
+        return this.iconDataUrl(this.iconIndex(battler, param, kind));
+    },
+
+    entries(battler) {
+        if (!battler || !battler.buff) return [];
+
+        const entries = [];
+        for (const data of BUFF_HUD_PARAMS) {
+            const level = Number(battler.buff(data.paramId) || 0);
+            const turns = this.rawTurns(battler, data.paramId);
+            if (level === 0) continue;
+            if (turns <= 0) continue;
+            entries.push({
+                key: data.key,
+                paramId: data.paramId,
+                kind: level > 0 ? "up" : "down",
+                level: Math.abs(level),
+                turns,
+                iconIndex: battler.buffIconIndex(level, data.paramId)
+            });
+        }
+
+        return entries.sort((a, b) => {
+            const order = battler._reverieBuffHudOrder || {};
+            const orderDiff = Number(order[b.paramId] || 0) - Number(order[a.paramId] || 0);
+            return orderDiff || a.paramId - b.paramId;
+        });
+    },
+
+    entry(battler, slotIndex) {
+        return this.entries(battler)[Number(slotIndex)] || null;
+    },
+
+    hasActor(actorId, param, kind) {
+        return this.has(this.battlerActor(actorId), param, kind);
+    },
+
+    hasEnemy(enemyIndex, param, kind) {
+        return this.has(this.battlerEnemy(enemyIndex), param, kind);
+    },
+
+    turnsActor(actorId, param, kind) {
+        return this.turns(this.battlerActor(actorId), param, kind);
+    },
+
+    turnsEnemy(enemyIndex, param, kind) {
+        return this.turns(this.battlerEnemy(enemyIndex), param, kind);
+    },
+
+    iconActor(actorId, param, kind) {
+        return this.icon(this.battlerActor(actorId), param, kind);
+    },
+
+    iconEnemy(enemyIndex, param, kind) {
+        return this.icon(this.battlerEnemy(enemyIndex), param, kind);
+    },
+
+    hasEntryActor(actorId, slotIndex) {
+        return !!this.entry(this.battlerActor(actorId), slotIndex);
+    },
+
+    hasEntryEnemy(enemyIndex, slotIndex) {
+        return !!this.entry(this.battlerEnemy(enemyIndex), slotIndex);
+    },
+
+    entryIconActor(actorId, slotIndex) {
+        const entry = this.entry(this.battlerActor(actorId), slotIndex);
+        return this.iconDataUrl(entry ? entry.iconIndex : 0);
+    },
+
+    entryIconEnemy(enemyIndex, slotIndex) {
+        const entry = this.entry(this.battlerEnemy(enemyIndex), slotIndex);
+        return this.iconDataUrl(entry ? entry.iconIndex : 0);
+    },
+
+    entryTurnsActor(actorId, slotIndex) {
+        const entry = this.entry(this.battlerActor(actorId), slotIndex);
+        return entry && entry.turns > 0 ? entry.turns : "";
+    },
+
+    entryTurnsEnemy(enemyIndex, slotIndex) {
+        const entry = this.entry(this.battlerEnemy(enemyIndex), slotIndex);
+        return entry && entry.turns > 0 ? entry.turns : "";
+    }
+};
+
+globalThis.ReverieBuffHud = BuffHud;
+
+const _Game_Battler_addBuff_ReverieBuffHud = Game_Battler.prototype.addBuff;
+Game_Battler.prototype.addBuff = function(paramId, turns) {
+    _Game_Battler_addBuff_ReverieBuffHud.call(this, paramId, turns);
+    if (this.buff && this.buff(paramId) === 0 && this._buffTurns) {
+        this._buffTurns[paramId] = 0;
+    }
+    rememberBuffHudChange(this, paramId);
+};
+
+const _Game_Battler_addDebuff_ReverieBuffHud = Game_Battler.prototype.addDebuff;
+Game_Battler.prototype.addDebuff = function(paramId, turns) {
+    _Game_Battler_addDebuff_ReverieBuffHud.call(this, paramId, turns);
+    if (this.buff && this.buff(paramId) === 0 && this._buffTurns) {
+        this._buffTurns[paramId] = 0;
+    }
+    rememberBuffHudChange(this, paramId);
+};
+
+const _Game_Battler_removeBuff_ReverieBuffHud = Game_Battler.prototype.removeBuff;
+Game_Battler.prototype.removeBuff = function(paramId) {
+    _Game_Battler_removeBuff_ReverieBuffHud.call(this, paramId);
+    rememberBuffHudChange(this, paramId);
+};
 
 const _Game_Troop_setup_ReverieEnemyDisplayNames = Game_Troop.prototype.setup;
 Game_Troop.prototype.setup = function(troopId) {
