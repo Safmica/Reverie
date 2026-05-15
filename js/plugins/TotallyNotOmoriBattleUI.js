@@ -1320,11 +1320,11 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
         
         if (sName.includes("project")) {
             if (isElementor || hasUpgraded) isFailed = true;
-        } else if (sName.includes("mock") || sName.includes("hype up") || sName.includes("doomscroll")) {
+        } else if (sName.includes("mock") || sName.includes("hype up") || sName.includes("paranoia")) {
             if (hasUpgraded) isFailed = true;
         } else if (sName.includes("overwhelm")) {
             if (!hasBase) isFailed = true;
-        } else if (sName.includes("wake-up call")) {
+        } else if (sName.includes("snapback")) {
             if (!target.isStateAffected(8)) isFailed = true;
         } else if (sName.includes("bear hug")) {
             if (!target.isStateAffected(7)) isFailed = true;
@@ -1376,9 +1376,10 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
         let tName = cleanText(target.name());
         if (sName.includes("clinical facts")) {
             let wasUpgraded = target.isStateAffected(6);
+            let recoveryRate = target.rec;
 
-            let hpAmount = Math.floor(target.mhp * 0.15);
-            let mpAmount = Math.floor(target.mmp * 0.15);
+            let hpAmount = Math.floor(target.mhp * 0.15 * recoveryRate);
+            let mpAmount = Math.floor(target.mmp * 0.15 * recoveryRate);
             this.push('addText', tName + " recovered " + hpAmount + " HP!");
             this.push('wait'); 
             this.push('wait');
@@ -1390,14 +1391,14 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
                 this.push('wait');
                 this.push('addText', tName + " becomes Heroic!");
             }
-        } else if (sName.includes("wake-up call")) {
-            let hpAmount = Math.floor(target.mhp * 0.40);
+        } else if (sName.includes("snapback")) {
+            let hpAmount = Math.floor(target.mhp * 0.40 * target.rec);
             this.push('addText', tName + " recovered " + hpAmount + " HP!");
             this.push('wait');
             this.push('wait');
             this.push('addText', tName + " becomes Hopeless!");
         } else if (sName.includes("bear hug")) {
-            let mpAmount = Math.floor(target.mmp * 0.40);
+            let mpAmount = Math.floor(target.mmp * 0.40 * target.rec);
             this.push('addText', tName + " recovered " + mpAmount + " MP!");
             this.push('wait');
             this.push('wait');
@@ -1494,7 +1495,7 @@ Window_BattleLog.prototype.displayChangedStates = function(target) {
     }
     
     if (isRevived) {
-        this.push('addText', cleanText(target.name()) + " revived with 50% HP!");
+        this.push('addText', cleanText(target.name()) + " revived with 30% HP!");
         this.push('wait');
         this.push('wait');
     }
