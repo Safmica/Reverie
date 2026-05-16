@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 44,
+  "editMapId": 106,
   "elements": [
     "",
     "Heroic Element",
@@ -343,13 +343,22 @@
     "BEGIN",
     "PICKUP_TRASH",
     "TRASH_DONE",
+<<<<<<< HEAD
     "MEET_ANN",
     "",
+=======
+    "SAVE_TUTOR",
+    "OPENING",
+>>>>>>> 5fbb96a3741eb28b5b78576079a539051803c5b4
     "SORA_LEADER",
     "GIN_LEADER",
     "ANN_LEADER",
     "ZUKO_LEADER",
+<<<<<<< HEAD
     "",
+=======
+    "FIRST_OPENING",
+>>>>>>> 5fbb96a3741eb28b5b78576079a539051803c5b4
     "",
     "",
     "",
@@ -381,6 +390,15 @@
     "",
     "",
     "Door Open/Close",
+<<<<<<< HEAD
+=======
+    "Crack Danger",
+    "Rock Visibility",
+    "Push Rock",
+    "Scene Storage End",
+    "NPC Storage Room",
+    "Entering Village",
+>>>>>>> 5fbb96a3741eb28b5b78576079a539051803c5b4
     "",
     "",
     "",
@@ -414,6 +432,7 @@
     "",
     "",
     "",
+<<<<<<< HEAD
     "",
     "",
     "",
@@ -424,6 +443,12 @@
     "",
     "",
     "",
+=======
+    "Check the House",
+    "Talk to Stranger",
+    "FAMILY PHOTO",
+    "Secret Well",
+>>>>>>> 5fbb96a3741eb28b5b78576079a539051803c5b4
     "",
     "",
     "",
@@ -1553,7 +1578,11 @@
     "",
     "",
     "Follower Beside Player",
+<<<<<<< HEAD
     "",
+=======
+    "Crack Timer",
+>>>>>>> 5fbb96a3741eb28b5b78576079a539051803c5b4
     "",
     "",
     "",
@@ -1713,7 +1742,11 @@
     "",
     ""
   ],
+<<<<<<< HEAD
   "versionId": 98527504,
+=======
+  "versionId": 25629221,
+>>>>>>> 5fbb96a3741eb28b5b78576079a539051803c5b4
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,

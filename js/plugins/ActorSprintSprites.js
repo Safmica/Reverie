@@ -8,6 +8,8 @@
  * Uses img/characters/Sprint_Actor.png while the player is actually dashing.
  * This only changes the displayed character sheet; it does not change movement
  * speed or the walk/dash option behavior.
+ * If the player's base move speed is below 4, the normal walk sheet is used
+ * even while dash is active.
  */
 
 (() => {
@@ -15,7 +17,9 @@
 
     const WALK_CHARACTER_NAME = "ActorReverie";
     const SPRINT_CHARACTER_NAME = "Sprint_Actor";
+    const MIN_SPRINT_MOVE_SPEED = 4;
     let keepSprintVisualDuringEvent = false;
+    let sprintVisualRequestedLastFrame = false;
 
     const sprintCharacterNameFor = function(actor, sprinting) {
         if (!actor) return "";
@@ -27,24 +31,60 @@
         return !!($gameMap && $gameMap.isEventRunning && $gameMap.isEventRunning());
     };
 
+    const isGinSkillTransitioning = function() {
+        return !!(
+            window.GinSkill &&
+            window.GinSkill.isTransitioning &&
+            window.GinSkill.isTransitioning()
+        );
+    };
+
+    const isMessageBusy = function() {
+        return !!($gameMessage && $gameMessage.isBusy && $gameMessage.isBusy());
+    };
+
+    const isVisualHoldContext = function() {
+        return isEventRunning() || isGinSkillTransitioning() || isMessageBusy();
+    };
+
+    const canUseSprintVisual = function() {
+        return (
+            $gamePlayer &&
+            !$gamePlayer.isInVehicle() &&
+            $gamePlayer.moveSpeed &&
+            $gamePlayer.moveSpeed() >= MIN_SPRINT_MOVE_SPEED
+        );
+    };
+
     const isActivelySprinting = function() {
-        return $gamePlayer && $gamePlayer.isDashing() && !$gamePlayer.isInVehicle();
+        return canUseSprintVisual() && $gamePlayer.isDashing();
     };
 
     const isUsingSprintVisual = function() {
         return (
-            $gamePlayer &&
-            !$gamePlayer.isInVehicle() &&
+            canUseSprintVisual() &&
             $gamePlayer.characterName() === SPRINT_CHARACTER_NAME
         );
     };
 
+    const shouldHoldSprintVisualOnEventStart = function() {
+        return (
+            canUseSprintVisual() &&
+            (isActivelySprinting() || isUsingSprintVisual() || sprintVisualRequestedLastFrame)
+        );
+    };
+
     const updateSprintVisualHold = function() {
-        if (!isEventRunning()) {
+        if (!canUseSprintVisual()) {
+            keepSprintVisualDuringEvent = false;
+            sprintVisualRequestedLastFrame = false;
+            return;
+        }
+        if (!isVisualHoldContext()) {
             keepSprintVisualDuringEvent = false;
             return;
         }
-        if (isActivelySprinting() || isUsingSprintVisual()) {
+        if (isActivelySprinting() || isUsingSprintVisual() || sprintVisualRequestedLastFrame) {
             keepSprintVisualDuringEvent = true;
         }
     };
@@ -52,8 +92,11 @@
     const shouldUseSprintSprites = function() {
         updateSprintVisualHold();
         return (
-            isActivelySprinting() ||
-            (keepSprintVisualDuringEvent && isEventRunning() && !$gamePlayer.isInVehicle())
+            canUseSprintVisual() &&
+            (
+                isActivelySprinting() ||
+                (keepSprintVisualDuringEvent && isVisualHoldContext())
+            )
         );
     };
 
@@ -79,9 +122,9 @@
 
     const _Game_Player_triggerButtonAction = Game_Player.prototype.triggerButtonAction;
     Game_Player.prototype.triggerButtonAction = function() {
-        const keepSprint = isActivelySprinting() || isUsingSprintVisual();
+        const keepSprint = shouldHoldSprintVisualOnEventStart();
         const result = _Game_Player_triggerButtonAction.call(this);
-        if (result && keepSprint && isEventRunning()) {
+        if (result && keepSprint && isVisualHoldContext()) {
             keepSprintVisualDuringEvent = true;
         }
         return result;
@@ -89,17 +132,19 @@
 
     const _Game_Player_updateNonmoving = Game_Player.prototype.updateNonmoving;
     Game_Player.prototype.updateNonmoving = function(wasMoving, sceneActive) {
-        const keepSprint = wasMoving && (isActivelySprinting() || isUsingSprintVisual());
+        const keepSprint = wasMoving && shouldHoldSprintVisualOnEventStart();
         _Game_Player_updateNonmoving.call(this, wasMoving, sceneActive);
-        if (keepSprint && isEventRunning()) {
+        if (keepSprint && isVisualHoldContext()) {
             keepSprintVisualDuringEvent = true;
         }
     };
 
     Game_Player.prototype.refreshSprintActorSprite = function() {
         const actor = $gameParty.leader();
-        const characterName = sprintCharacterNameFor(actor, shouldUseSprintSprites());
+        const useSprintSprites = shouldUseSprintSprites();
+        const characterName = sprintCharacterNameFor(actor, useSprintSprites);
         const characterIndex = actor ? actor.characterIndex() : 0;
+        sprintVisualRequestedLastFrame = useSprintSprites;
         setCharacterImageIfNeeded(this, characterName, characterIndex);
     };
 

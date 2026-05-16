@@ -15,6 +15,8 @@
     "use strict";
 
     const CONCLUSION_WAIT_COUNT = 5;
+    const CONCLUSION_FOLLOWUP_WAIT_COUNT = 4;
+    const SORA_ACTOR_ID = 1;
 
     const cleanText = function(text) {
         return String(text || "")
@@ -50,12 +52,23 @@
         return "The Elementas are stunned!";
     };
 
-    const addConclusionLog = function(text) {
+    const soraDeathDefeatMessage = function() {
+        if (!$gameActors || !$gameParty) return "";
+
+        const sora = $gameActors.actor(SORA_ACTOR_ID);
+        const partyMembers = $gameParty.members ? $gameParty.members() : [];
+        if (!sora || !sora.isDead() || !partyMembers.includes(sora)) return "";
+
+        const soraName = cleanBattlerName(sora) || "Sora";
+        return soraName + " was erased.";
+    };
+
+    const addConclusionLog = function(text, waitCount = CONCLUSION_WAIT_COUNT) {
         const logWindow = BattleManager._logWindow;
         if (!logWindow) return false;
 
         logWindow.push("addText", cleanText(text));
-        for (let i = 0; i < CONCLUSION_WAIT_COUNT; i++) {
+        for (let i = 0; i < waitCount; i++) {
             logWindow.push("wait");
         }
         return true;
@@ -76,10 +89,11 @@
 
     BattleManager.displayVictoryMessage = function() {
         addConclusionLog(stunnedEnemyMessage());
+        addConclusionLog("Now is the perfect time to run!", CONCLUSION_FOLLOWUP_WAIT_COUNT);
     };
 
     BattleManager.displayDefeatMessage = function() {
-        addConclusionLog(TextManager.defeat.format($gameParty.name()));
+        addConclusionLog(soraDeathDefeatMessage() || TextManager.defeat.format($gameParty.name()));
     };
 
     BattleManager.displayEscapeSuccessMessage = function() {

@@ -1,0 +1,1799 @@
+{
+  "map": "Map004",
+  "events": [
+    {
+      "id": "EV004",
+      "page": 0,
+      "commands": [
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "AHH... SOLID GROUND! FINALLY!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "I MISSED YOU SO MUCH, DIRT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "We were only on the boat for a little while, Zuko."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "THAT DOESN'T MAKE IT ANY LESS TRUE! I WAS ROCKING BACK AND FORTH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You look way too happy for someone who was just whining about the waves five minutes ago."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "BECAUSE THE WAVES ARE GONE NOW! DUH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "The sky looks pretty dark up here..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "It might rain soon."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "GREAT. WONDERFUL."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "From water below us to water above us. BLARGH."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Let's just keep moving."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "You say that like this place isn't already trying to look super creepy!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "It kind of is, to be honest."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "panicking",
+          "text": "PHEW... Why is it so hot up here?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "You were just complaining about the cold wind a minute ago..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I CONTAIN MANY COMPLAINTS, SORA!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "You contain noise. That's what you contain."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "THAT TOO! WHOOSH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Careful, Zuko!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "RELAX! I totally know what I'm doing!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "SEE? Perfect balance! TA-DAA!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You almost fell."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "Almost is NOT falling!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "It will be if you keep running your mouth."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "Guys, look at this... There are a lot of tree stumps here."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Way too many."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "Someone cut down a huge number of trees. The forest is just... gone."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "For a village this high up the mountain, that's a lot of chopping! CHOP CHOP CHOP!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "exhausted",
+          "text": "It feels wrong. The earth looks sick."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "Yeah..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "You kids should be careful walking around here."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Um, excuse me? Has something happened?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "The ground has been shaking lately."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "SHAKING?! LIKE AN EARTHQUAKE?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "Small at first. But now it happens more often."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "That... doesn't sound good at all."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "They keep cutting trees to make more space."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "confused",
+          "text": "More space for what?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "We don't really know. The work just keeps going."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "UHH... THAT IS A VERY STRANGE ANSWER!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "If you are looking for the village elder, his house is at the top end of the village."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "relieved",
+          "text": "Thank you, sir."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "And... don't stay too long near the edge of the cliff."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "relieved",
+          "text": "GEE, THANKS! THAT IS VERY COMFORTING!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "I'm pretty sure it wasn't meant to be comforting, Zuko."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "horrified",
+          "text": "\\FX<FC, shake>I KNOW! THAT'S THE WHOLE PROBLEM! AAAA!\\RX"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "confused",
+          "text": "They really cut down trees this big...?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "It must have taken a lot of effort."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "OR JUST REALLY BAD JUDGMENT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "confused",
+          "text": "Maybe both..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Probably both."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I can probably get through that crack."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "OF COURSE YOU CAN! YOU'RE TINY!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Was that supposed to be a compliment?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "MAYBE?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "Bad answer."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Be careful in there, Ann."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I will be."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "exhausted",
+          "text": "This part of the ground looks really weak..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "DON'T BREAK THE MOUNTAIN, ANN!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I'm not trying to break it!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "THAT IS EXACTLY WHAT SOMEONE BREAKING THE MOUNTAIN WOULD SAY!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "Can you just be quiet? You talk way too much. It's the opposite of helpful."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "HUH."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "THAT ACTUALLY WORKED?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Yes. Yes, it did."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Try not to sound so shocked next time."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "A LITTLE SHOCK IS TOTALLY FAIR HERE!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "smiling",
+          "text": "Good job, Ann."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "Mm. Thanks. Let's keep moving."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "You children are not from around here."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "No, sir. We're just passing through."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "That is rare lately."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "WE'RE LOOKING FOR SOMETHING REALLY IMPORTANT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "I can guess."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "We're searching for... Shii."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "Shii..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "Wait, you know about it?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "Only from old stories. I do not know exactly where it is."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "OF COURSE NOT. TYPICAL!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Zuko, be polite!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "But people say it may be found up near the mountain peak."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "The peak?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "Yes. And the only road to the next village goes right across it."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "WELL, THAT'S CONVENIENT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "In a really bad way."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "The mountain has been uneasy for days. If you go, do not linger up there."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "We understand. We won't."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "Then you should rest here first before you climb."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "FINALLY! SOMETHING THAT ACTUALLY SOUNDS NICE!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "That was fast. The sky just opened up."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I HATE WHEN THE WEATHER CHANGES ITS MIND SO QUICKLY!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "We should move, guys."
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "Come inside, children. You can wait until it passes."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "UH... W-WHAT WAS THAT?! THAT FELT WRONG!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Back away from the edge! Now!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Everyone, move!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "What is happening?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "A landslide-get away from the house!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "RUN!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "other",
+          "expression": "default",
+          "text": "THE GROUND IS COLLAPSING!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "horrified",
+          "text": "\\FX<FC, shake>NO NO NO NO NO!! WAAAHH!!\\RX"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Don't freeze, Zuko! Keep running!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "This way! Follow me!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "T-THAT'S NOT A VILLAGE ANYMORE... IT'S ALL GONE!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Focus! Keep your eyes ahead!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "It's the Elementa."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "OF COURSE IT IS! WHY WOULDN'T IT BE?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "It gets worse every time they show up."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Stay close to me, don't wander off!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "panicking",
+          "text": "\\FX<FC, shake>ROCK FALLING ABOVE US! WATCH OUT!!\\RX"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Left side! Dodge!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "I see it!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "WHY DOES EVERYTHING ON THIS MOUNTAIN WANT TO SQUASH US?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "Because the whole hill is breaking apart, idiot!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "THAT IS NOT A NICE ANSWER, ANN!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Both of you, keep moving!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "horrified",
+          "text": "THERE! A MONSTER!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Don't let it corner us among the rocks!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "I'll try to hold it back! Get ready!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "THIS ENTIRE PLACE IS INSANE!! CRAZYYYY!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Yes. Yes, it is."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "exhausted",
+          "text": "PHEW... I REALLY DO NOT LIKE WINNING LIKE THIS. I FEEL SICK."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "Good. At least we're alive."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Let's move out before it wakes up again."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "panicking",
+          "text": "NO. NOPE."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "ABSOLUTELY NOT. I AM NOT GOING IN THERE."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "confused",
+          "text": "Can you cross it at all?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "exhausted",
+          "text": "I CAN BARELY EVEN LOOK AT IT! IT'S GROSS!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Then we need to find another way around."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "There has to be one..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "OF COURSE THERE HAS TO BE ONE! WHY WOULD ANYTHING BE EASY FOR US TODAY?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "WHAT?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "smiling",
+          "text": "It... it would be nice if Gin were still with us here."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "YEAH."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "IT REALLY WOULD."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "But we don't have that option anymore."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "I know. Still."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "I can probably fit through here to see where it leads."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "YOU SAY THAT LIKE IT'S A SKILL EVERYBODY SHOULD HAVE!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "It's a skill only I have out of the three of us."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "WOW, THAT ALMOST SOUNDED PROUD!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Don't ruin the moment, Zuko."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Please be careful in there, Ann."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I will."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "relieved",
+          "text": "HEY ANN! YOU OKAY IN THERE?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Do not yell into my ear!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I AM NOT IN YOUR EAR!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You're so loud you sound like you are!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "THAT IS RUDE!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "Good."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "Just move it out of the way!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "It doesn't move at all."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "TRY HARDER! PUSH IT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I am not you, Zuko. I can't just push boulders."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "relieved",
+          "text": "OKAY, FAIR POINT."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Ann, look! There's a small opening in the stone."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Oh, I see it. I think I can slip through."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "Okay... I made it. Now what?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Look below the rock."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "There is a crack in the ground beneath it."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "OH GOSH. DON'T TELL ME YOU'RE ABOUT TO BREAK THE GROUND AGAIN!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "I am just going to check it..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "THAT IS DEFINITELY ONE WAY TO SOLVE A PROBLEM!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You sound impressed."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I AM! TOTALLY IMPRESSED!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Don't get used to it."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "TOO LATE FOR THAT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "We need to go one at a time."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "THAT SENTENCE NEVER MEANS ANYTHING GOOD!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Just walk carefully."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "UH OH..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Zuko, move! Jump!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "horrified",
+          "text": "\\FX<FC, shake>I AM MOVING!! WAAAH!\\RX"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "horrified",
+          "text": "\\FX<FC, hard shake>GYAAAAH!\\RX"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Zuko!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "Are you kidding me?! Really?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "I PANICKED! I'M SORRY!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I can see that!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "I DIDN'T MEAN TO DO IT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "You NEVER mean to do it, Zuko!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "exhausted",
+          "text": "Ann, are you hurt?!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "No. I am just really, really angry."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "THAT IS VERY FAIR."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I am going to have to find another way around."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Be extremely careful."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I know. You two try not to break anything else while I'm gone."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "NO PROMISES!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "I hate that answer."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Hey! I found a narrow path up here."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "relieved",
+          "text": "Good. Keep going, we'll try to match your pace."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "NICE ONE, ANN!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "That was literally the point of pulling the lever."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "IT'S STILL NICE THOUGH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "happy",
+          "text": "FINALLY! SOMETHING I CAN ACTUALLY PUSH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "smiling",
+          "text": "Wow. You did it without falling off a cliff."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I AM FULL OF SURPRISES!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You are full of noise."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "Hold on... there is gas ahead of us."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Then you lead us, Sora. Slowly."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "UGH... I HATE THAT SMELL SO MUCH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You hate everything."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "NOT TRUE! BUT I DEFINITELY HATE THAT SMELL!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "confused",
+          "text": "We are getting really close now."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "Uh... hey Ann. About earlier..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Yes?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I was stupid."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Yes, you were."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "And I was loud."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Also yes."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "And I almost messed everything up for us."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You did."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I KNOW."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "I... I'm sorry."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "Good. Apology accepted."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "annoyed",
+          "text": "We made it back out together. That's what matters."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "For now."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "WOW. THAT IS A VERY 'ANN' WAY TO SAY IT!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Because it's true."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Look ahead, guys."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "Up there?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "The peak of the mountain."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "Then that must be where Shii is."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "IT STILL SOUNDS WAY TOO CALM FOR THE TOP OF A MOUNTAIN!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Let's just finish this part first."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "OF COURSE IT SHOWS UP HERE! OF COURSE IT DOES!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Stay sharp, everyone."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Don't rush in! Hold your ground!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "THAT THING IS SO DISGUSTING!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Focus on surviving!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "I HATE EVERY SINGLE SECOND OF THIS FIGHT!!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Keep moving back!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "Don't break our formation!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "Guys... look."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "Ann... that is yours."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "YEAH! THAT'S YOUR SHII!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "So this is mine..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "It really does look exactly like me."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "relieved",
+          "text": "HEY. NO RUSH, OKAY?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I know."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "I just... I wanted to be sure."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "You're not scary at all."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "You're just... warm."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "Ah..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "It feels better than I thought it would."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "smiling",
+          "text": "Like... my chest is finally lighter."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Like I can stand up straight again."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Like I don't have to keep holding my breath all the time anymore."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "exhausted",
+          "text": "HAH... THAT SOUNDS EXACTLY LIKE YOU."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "confused",
+          "text": "You got it, Ann. You really got it."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Yeah."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "I did."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "And you two still have to keep going to find yours."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "We know."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "No, really."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "Do not stop here just because I did."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "WE WEREN'T PLANNING TO STOP!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "Good."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Then listen to me."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "The road ahead is still there for you."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "So go and finish it."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "I will be perfectly fine here."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Don't waste your time looking back."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "anxious",
+          "text": "Ann..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Sora."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "You are doing a lot better at this than you think."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "So keep that brave face on and keep moving forward."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "WOW. THAT SOUNDED LIKE A VERY BOSSY SPEECH!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "It was meant to be."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "YEAH. I FIGURED."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "Good."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "And Zuko..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "confused",
+          "text": "YEAH? WHAT?"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "angry",
+          "text": "Stop being so careless all the time."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "annoyed",
+          "text": "HEY! THAT IS UNFAIR!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "It is true."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "anxious",
+          "text": "..."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "relieved",
+          "text": "FINE. I WILL TRY."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Try harder."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "normal",
+          "text": "We will continue on, Ann."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "I know you will. That is why I am not worried about you two."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "LIAR!"
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "confused",
+          "text": "Maybe a little."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "But only a little."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "holding_tears",
+          "text": "We will come back, Ann."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "relieved",
+          "text": "You better. But not like this."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "anxious",
+          "text": "Come back after you finish the next part."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "That sounds more like you."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Obviously."
+        },
+        {
+          "type": "dialogue",
+          "actor": "sora",
+          "expression": "relieved",
+          "text": "Okay."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Now go. Before I have to yell at you for being slow."
+        },
+        {
+          "type": "dialogue",
+          "actor": "zuko",
+          "expression": "normal",
+          "text": "There it is. I knew you were still Ann."
+        },
+        {
+          "type": "dialogue",
+          "actor": "ann",
+          "expression": "normal",
+          "text": "Always."
+        }
+      ]
+    }
+  ]
+}

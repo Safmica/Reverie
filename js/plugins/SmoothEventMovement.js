@@ -133,6 +133,107 @@
         };
     };
 
+    const parseCutsceneModeText = (modeText) => {
+        const text = normalizeCutsceneParam(modeText);
+        if (!text) return null;
+        if (/^cutscene_done$/i.test(text)) {
+            return { type: "done", wait: true, explicit: true };
+        }
+        const actionMatch = text.match(/^cutscene\s*:\s*(.+)$/i);
+        if (actionMatch) {
+            return parseCutsceneActionText(actionMatch[1]);
+        }
+        return null;
+    };
+
+    const parseCutsceneCommentText = (commentText) => {
+        const text = String(commentText ?? "");
+        const matchModeStr = text.match(/<Mode:\s*(.+?)>/i);
+        if (!matchModeStr) return null;
+        return parseCutsceneModeText(matchModeStr[1]);
+    };
+
+    const normalizeCharacterKey = (value) => {
+        return normalizeCutsceneParam(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+    };
+
+    const snapshotCharacterPosition = (character) => {
+        if (!character) return null;
+        return {
+            x: character.x,
+            y: character.y,
+            direction: character.direction ? character.direction() : 2
+        };
+    };
+
+    const eventImageMatchesActor = (event, actor) => {
+        const page = event && event.page && event.page();
+        const image = page && page.image;
+        if (!image || image.tileId > 0) return false;
+        return image.characterName === actor.characterName() &&
+            image.characterIndex === actor.characterIndex();
+    };
+
+    const findActorMapCharacterPosition = (actor) => {
+        if (typeof $gameMap === "undefined" || typeof $gamePlayer === "undefined") return null;
+        if (!$gameMap || !$gamePlayer || !actor) return null;
+        const actorKey = normalizeCharacterKey(actor.name());
+        if (!actorKey) return null;
+
+        let bestEvent = null;
+        let bestScore = 0;
+        let bestDistance = Infinity;
+
+        for (const event of $gameMap.events()) {
+            if (!event || !event.page || !event.page()) continue;
+
+            const eventKey = normalizeCharacterKey(event.event().name || "");
+            const exactNameMatch = eventKey === actorKey;
+            const containedNameMatch = actorKey.length >= 3 && eventKey.includes(actorKey);
+            const imageMatch = eventImageMatchesActor(event, actor);
+            let score = 0;
+
+            if (exactNameMatch) score += 8;
+            if (containedNameMatch) score += 4;
+            if (imageMatch) score += 3;
+            if (score === 0) continue;
+
+            const distance = Math.abs(event.deltaXFrom($gamePlayer.x)) +
+                Math.abs(event.deltaYFrom($gamePlayer.y));
+            if (score > bestScore || (score === bestScore && distance < bestDistance)) {
+                bestEvent = event;
+                bestScore = score;
+                bestDistance = distance;
+            }
+        }
+
+        return snapshotCharacterPosition(bestEvent);
+    };
+
+    const followerForActorId = (actorId) => {
+        if (typeof $gameParty === "undefined" || typeof $gamePlayer === "undefined") return null;
+        if (!$gameParty || !$gamePlayer) return null;
+        const index = $gameParty.battleMembers().findIndex(actor => {
+            return actor && actor.actorId && actor.actorId() === actorId;
+        });
+        if (index <= 0) return null;
+        return $gamePlayer.followers().follower(index - 1);
+    };
+
+    const placeNewPartyFollower = (actorId, preferredPosition) => {
+        if (typeof $gamePlayer === "undefined" || !$gamePlayer || !$gamePlayer.followers) return;
+        const follower = followerForActorId(actorId);
+        if (!follower) return;
+
+        const position = preferredPosition || snapshotCharacterPosition($gamePlayer);
+        if (!position) return;
+
+        follower.locate(position.x, position.y);
+        follower.setDirection(position.direction || $gamePlayer.direction());
+        follower._cutsceneDetached = false;
+        follower._cutsceneControlled = false;
+    };
+
     const resolveCutsceneTarget = (name) => {
         const key = normalizeCutsceneParam(name).toLowerCase();
         if (!key) return null;
@@ -246,7 +347,7 @@
                 const matchModeStr = text.match(/<Mode:\s*(.+?)>/i);
                 if (matchModeStr) {
                     const modeText = matchModeStr[1];
-                    if (!this.parseCutsceneModeTag(modeText)) {
+                    if (!parseCutsceneModeText(modeText)) {
                         modeMeta = modeText;
                     }
                 }
@@ -259,7 +360,7 @@
         if (regMeta) {
             this._targetRegions = regMeta.split(',').map(n => Number(n.trim()));
         }
-        if (modeMeta && !this.parseCutsceneModeTag(modeMeta)) {
+        if (modeMeta && !parseCutsceneModeText(modeMeta)) {
             if (modeMeta.toLowerCase() === 'reg') {
                 this._monsterMode = 'REG';
             } else {
@@ -281,18 +382,10 @@
     };
 
     Game_Event.prototype.parseCutsceneModeTag = function (modeText) {
-        const text = normalizeCutsceneParam(modeText);
-        if (!text) return false;
-        if (/^cutscene_done$/i.test(text)) {
-            this.addCutsceneAction({ type: "done", wait: true, explicit: true });
-            return true;
-        }
-        const actionMatch = text.match(/^cutscene\s*:\s*(.+)$/i);
-        if (actionMatch) {
-            this.addCutsceneAction(parseCutsceneActionText(actionMatch[1]));
-            return true;
-        }
-        return false;
+        const action = parseCutsceneModeText(modeText);
+        if (!action) return false;
+        this.addCutsceneAction(action);
+        return true;
     };
 
     Game_Event.prototype.hasCutsceneActions = function () {
@@ -381,12 +474,19 @@
         if (!event || !actions || actions.length === 0) {
             return false;
         }
+        const queuedActions = actions.map(action => Object.assign({}, action));
         if (this._cutsceneActive) {
+            if (this._cutsceneOwnerEventId === event.eventId() && !this._cutscenePendingEnd) {
+                this._cutsceneQueue.push(...queuedActions);
+                this._cutsceneWaitRemaining += queuedActions.filter(action => action.wait).length;
+                this._cutsceneInputLocked = true;
+                return true;
+            }
             return false;
         }
         this._cutsceneActive = true;
         this._cutsceneOwnerEventId = event.eventId();
-        this._cutsceneQueue = actions.map(action => Object.assign({}, action));
+        this._cutsceneQueue = queuedActions;
         this._cutsceneRunning = [];
         this._cutsceneLeaderCharacter = null;
         this._cutsceneDetachAll = false;
@@ -700,16 +800,26 @@
                 const target = precedingMap[index];
 
                 if (follower && target) {
-                    const allowedRegions = $gameTemp.isCutsceneActive()
-                        ? ($gameTemp._cutsceneAllowedRegions || [])
-                        : [];
-                    $gameTemp.tryStepToward(follower, target.x, target.y, allowedRegions);
+                    follower.chaseCharacter(target);
                 }
             }
             return;
         }
 
         _Game_Followers_updateMove.call(this);
+    };
+
+    const _Game_Party_addActor = Game_Party.prototype.addActor;
+    Game_Party.prototype.addActor = function (actorId) {
+        const actor = typeof $gameActors !== "undefined" && $gameActors ? $gameActors.actor(actorId) : null;
+        const alreadyInParty = this._actors.includes(actorId);
+        const sourcePosition = !alreadyInParty ? findActorMapCharacterPosition(actor) : null;
+
+        _Game_Party_addActor.call(this, actorId);
+
+        if (!alreadyInParty && this._actors.includes(actorId)) {
+            placeNewPartyFollower(actorId, sourcePosition);
+        }
     };
 
     const _Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
@@ -760,6 +870,31 @@
                 event.tryStartCutscene(this);
             }
         }
+    };
+
+    Game_Interpreter.prototype.startCutsceneFromComments = function () {
+        if (!$gameTemp || this._eventId <= 0) return;
+        const event = $gameMap.event(this._eventId);
+        if (!event) return;
+
+        const actions = [];
+        for (const comment of this._comments || []) {
+            const action = parseCutsceneCommentText(comment);
+            if (action) actions.push(action);
+        }
+        if (actions.length === 0) return;
+
+        const started = $gameTemp.startCutsceneFromEvent(event, actions);
+        if (started && actions.some(action => action.wait)) {
+            this.setWaitMode("cutscene");
+        }
+    };
+
+    const _Game_Interpreter_command108 = Game_Interpreter.prototype.command108;
+    Game_Interpreter.prototype.command108 = function (params) {
+        const result = _Game_Interpreter_command108.call(this, params);
+        this.startCutsceneFromComments();
+        return result;
     };
 
     const _Game_Interpreter_command301 = Game_Interpreter.prototype.command301;
