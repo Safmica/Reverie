@@ -1,0 +1,365 @@
+[The boat docks near the slope]
+[Narration] : The water path ends. The three of them step onto dry land again.
+[Zuko] : "AHH... SOLID GROUND! FINALLY!"
+[Zuko] : "I MISSED YOU SO MUCH, DIRT!"
+[Sora] : "We were only on the boat for a little while, Zuko."
+[Zuko] : "THAT DOESN'T MAKE IT ANY LESS TRUE! I WAS ROCKING BACK AND FORTH!"
+[Ann] : "You look way too happy for someone who was just whining about the waves five minutes ago."
+[Zuko] : "BECAUSE THE WAVES ARE GONE NOW! DUH!"
+[Sora] : "The sky looks pretty dark up here..."
+[Ann] : "It might rain soon."
+[Zuko] : "GREAT. WONDERFUL."
+[Zuko] : "From water below us to water above us. BLARGH."
+[Sora] : "Let's just keep moving."
+[Zuko] : "You say that like this place isn't already trying to look super creepy!"
+[Ann] : "It kind of is, to be honest."
+
+[Narration] : They begin climbing the slope road.
+[Zuko] : "PHEW... Why is it so hot up here?!"
+[Sora] : "You were just complaining about the cold wind a minute ago..."
+[Zuko] : "I CONTAIN MULTITUDES, SORA!"
+[Ann] : "You contain noise. That's what you contain."
+[Zuko] : "THAT TOO! WHOOSH!"
+
+[Narration] : Zuko steps on a cracked edge near the cliff.
+[Ann] : "Careful, Zuko!"
+[Zuko] : "RELAX! I totally know what I'm doing!"
+[Narration] : The ground holds.
+[Zuko] : "SEE? Perfect balance! TA-DAA!"
+[Ann] : "You almost fell."
+[Zuko] : "Almost is NOT falling!"
+[Ann] : "It will be if you keep running your mouth."
+[Sora] : "Guys, look at this... There are a lot of tree stumps here."
+[Ann] : "Way too many."
+[Sora] : "Someone cut down a huge number of trees. The forest is just... gone."
+[Zuko] : "For a village this high up the mountain, that's a lot of chopping! CHOP CHOP CHOP!"
+[Ann] : "It feels wrong. The earth looks sick."
+[Sora] : "Yeah..."
+
+[The logging village]
+[Narration] : They reach a village built around wood cutting and storage. The place is calm on the surface, but the people seem tense.
+[Villager A] : "You kids should be careful walking around here."
+[Sora] : "Um, excuse me? Has something happened?"
+[Villager A] : "The ground has been shaking lately."
+[Zuko] : "SHAKING?! LIKE AN EARTHQUAKE?!"
+[Villager A] : "Small at first. But now it happens more often."
+[Ann] : "That... doesn't sound good at all."
+[Villager B] : "They keep cutting trees to make more space."
+[Sora] : "More space for what?"
+[Villager B] : "We don't really know. The work just keeps going."
+[Zuko] : "UHH... THAT IS A VERY STRANGE ANSWER!"
+[Villager C] : "If you are looking for the village elder, his house is at the top end of the village."
+[Sora] : "Thank you, sir."
+[Villager C] : "And... don't stay too long near the edge of the cliff."
+[Zuko] : "GEE, THANKS! THAT IS VERY COMFORTING!"
+[Ann] : "I'm pretty sure it wasn't meant to be comforting, Zuko."
+[Zuko] : "I KNOW! THAT'S THE WHOLE PROBLEM! AAAA!"
+
+[Narration] : A little farther ahead, they find a pile of huge stumps.
+[Sora] : "They really cut down trees this big...?"
+[Ann] : "It must have taken a lot of effort."
+[Zuko] : "OR JUST REALLY BAD JUDGMENT!"
+[Sora] : "Maybe both..."
+[Ann] : "Probably both."
+
+[Behind the lumber yard]
+[Narration] : The path narrows behind the work area. A large rock blocks a side route.
+[Ann] : "I can probably get through that crack."
+[Zuko] : "OF COURSE YOU CAN! YOU'RE TINY!"
+[Ann] : "Was that supposed to be a compliment?"
+[Zuko] : "MAYBE?!"
+[Ann] : "Bad answer."
+[Sora] : "Be careful in there, Ann."
+[Ann] : "I will be."
+
+[Narration] : Ann slips through the narrow gap. On the other side, she finds a broken patch of ground under the stone.
+[Ann] : "This part of the ground looks really weak..."
+[Zuko] : "DON'T BREAK THE MOUNTAIN, ANN!!"
+[Ann] : "I'm not trying to break it!"
+[Zuko] : "THAT IS EXACTLY WHAT SOMEONE BREAKING THE MOUNTAIN WOULD SAY!"
+[Ann] : "Can you just be quiet? You talk way too much. It's the opposite of helpful."
+[Narration] : Ann interacts with the cracked ground. The stone shifts, then drops into the lower ravine with a loud thud.
+[Zuko] : "HUH."
+[Zuko] : "THAT ACTUALLY WORKED?!"
+[Ann] : "Yes. Yes, it did."
+[Ann] : "Try not to sound so shocked next time."
+[Zuko] : "A LITTLE SHOCK IS TOTALLY FAIR HERE!"
+[Sora] : "Good job, Ann."
+[Ann] : "Mm. Thanks. Let's keep moving."
+
+[The elder’s house]
+[Narration] : At the top end of the village, they meet the village elder.
+[Village Elder] : "You children are not from around here."
+[Sora] : "No, sir. We're just passing through."
+[Village Elder] : "That is rare lately."
+[Zuko] : "WE'RE LOOKING FOR SOMETHING REALLY IMPORTANT!"
+[Village Elder] : "I can guess."
+[Sora] : "We're searching for... Shii."
+[Village Elder] : "Shii..."
+[Ann] : "Wait, you know about it?"
+[Village Elder] : "Only from old stories. I do not know exactly where it is."
+[Zuko] : "OF COURSE NOT. TYPICAL!"
+[Ann] : "Zuko, be polite!"
+[Village Elder] : "But people say it may be found up near the mountain peak."
+[Sora] : "The peak?"
+[Village Elder] : "Yes. And the only road to the next village goes right across it."
+[Zuko] : "WELL, THAT'S CONVENIENT!"
+[Ann] : "In a really bad way."
+[Village Elder] : "The mountain has been uneasy for days. If you go, do not linger up there."
+[Sora] : "We understand. We won't."
+[Village Elder] : "Then you should rest here first before you climb."
+[Zuko] : "FINALLY! SOMETHING THAT ACTUALLY SOUNDS NICE!"
+
+[The rain begins]
+[Narration] : The first drops fall. Then the rain turns heavy.
+[Ann] : "That was fast. The sky just opened up."
+[Zuko] : "I HATE WHEN THE WEATHER CHANGES ITS MIND SO QUICKLY!"
+[Sora] : "We should move, guys."
+[Village Elder] : "Come inside, children. You can wait until it passes."
+[Narration] : Suddenly, the ground gives a deep, violent shake.
+[Zuko] : "UH... W-WHAT WAS THAT?! THAT FELT WRONG!"
+[Ann] : "Back away from the edge! Now!"
+[Sora] : "Everyone, move!!"
+[Village Elder] : "What is happening?!"
+[Sora] : "A landslide—get away from the house!!"
+
+[Narration] : The slope breaks apart. Mud, stones, and broken wood rush down the hill with a terrifying roar.
+[Villager A] : "RUN!"
+[Villager B] : "THE GROUND IS COLLAPSING!"
+[Zuko] : "NO NO NO NO NO!! WAAAHHQ!!"
+[Ann] : "Don't freeze, Zuko! Keep running!"
+[Sora] : "This way! Follow me!"
+
+[Narration] : The village is torn open by the landslide. Houses collapse. Others tilt and crack under the mud. The safe village is gone in just a few breaths.
+[Zuko] : "T-THAT'S NOT A VILLAGE ANYMORE... IT'S ALL GONE!"
+[Ann] : "Focus! Keep your eyes ahead!"
+[Sora] : "It's the Elementa."
+[Zuko] : "OF COURSE IT IS! WHY WOULDN'T IT BE?!"
+[Ann] : "It gets worse every time they show up."
+[Sora] : "Stay close to me, don't wander off!"
+
+[Escape through the ruins]
+[Narration] : They push through broken paths while the ruins keep shifting unsteadily beneath their feet.
+[Zuko] : "ROCK FALLING ABOVE US! WATCH OUT!!"
+[Ann] : "Left side! Dodge!"
+[Sora] : "I see it!"
+[Zuko] : "WHY DOES EVERYTHING ON THIS MOUNTAIN WANT TO SQUASH US?!"
+[Ann] : "Because the whole hill is breaking apart, idiot!"
+[Zuko] : "THAT IS NOT A NICE ANSWER, ANN!!"
+[Sora] : "Both of you, keep moving!"
+
+[Narration] : A ground-type Elementa appears from the fallen stones, blocking their path.
+[Zuko] : "THERE! A MONSTER!"
+[Ann] : "Don't let it corner us among the rocks!"
+[Sora] : "I'll try to hold it back! Get ready!"
+[Zuko] : "THIS ENTIRE PLACE IS INSANE!! CRAZYYYY!"
+[Ann] : "Yes. Yes, it is."
+
+[Narration] : The fight ends with the Elementa forced into its Dormant State.
+[Zuko] : "PHEW... I REALLY DO NOT LIKE WINNING LIKE THIS. I FEEL SICK."
+[Ann] : "Good. At least we're alive."
+[Sora] : "Let's move out before it wakes up again."
+
+[The muddy valley]
+[Narration] : They finally break out of the ruined village. However, the path ahead is blocked by deep, muddy water.
+[Zuko] : "NO. NOPE."
+[Zuko] : "ABSOLUTELY NOT. I AM NOT GOING IN THERE."
+[Sora] : "Can you cross it at all?"
+[Zuko] : "I CAN BARELY EVEN LOOK AT IT! IT'S GROSS!"
+[Ann] : "Then we need to find another way around."
+[Sora] : "There has to be one..."
+[Zuko] : "OF COURSE THERE HAS TO BE ONE! WHY WOULD ANYTHING BE EASY FOR US TODAY?!"
+[Sora] : "..."
+[Zuko] : "WHAT?!"
+[Sora] : "It... it would be nice if Gin were still with us here."
+[Ann] : "..."
+[Zuko] : "YEAH."
+[Zuko] : "IT REALLY WOULD."
+[Ann] : "But we don't have that option anymore."
+[Sora] : "I know. Still."
+[Narration] : They quietly follow the cliff wall, searching for a way around the mud.
+
+[Ann enters the hidden route]
+[Narration] : A narrow crack in the cliff opens into a dark passage.
+[Ann] : "I can probably fit through here to see where it leads."
+[Zuko] : "YOU SAY THAT LIKE IT'S A SKILL EVERYBODY SHOULD HAVE!"
+[Ann] : "It's a skill only I have out of the three of us."
+[Zuko] : "WOW, THAT ALMOST SOUNDED PROUD!"
+[Ann] : "Don't ruin the moment, Zuko."
+[Sora] : "Please be careful in there, Ann."
+[Ann] : "I will."
+
+[Narration] : Ann enters the maze-like passage. Visibility is very low. The route is tight, dark, and silent.
+[Zuko] : "HEY ANN! YOU OKAY IN THERE?!"
+[Ann] : "Do not yell into my ear!"
+[Zuko] : "I AM NOT IN YOUR EAR!"
+[Ann] : "You're so loud you sound like you are!"
+[Zuko] : "THAT IS RUDE!"
+[Ann] : "Good."
+
+[Narration] : A huge rock blocks the route ahead in Ann's path.
+[Zuko] : "Just move it out of the way!"
+[Ann] : "It doesn't move at all."
+[Zuko] : "TRY HARDER! PUSH IT!"
+[Ann] : "I am not you, Zuko. I can't just push boulders."
+[Zuko] : "OKAY, FAIR POINT."
+[Sora] : "Ann, look! There's a small opening in the stone."
+[Ann] : "Oh, I see it. I think I can slip through."
+[Narration] : Ann crawls through the tiny gap and reaches the other side.
+[Ann] : "Okay... I made it. Now what?"
+[Sora] : "Look below the rock."
+[Ann] : "There is a crack in the ground beneath it."
+[Zuko] : "OH GOSH. DON'T TELL ME YOU'RE ABOUT TO BREAK THE GROUND AGAIN!"
+[Ann] : "I am just going to check it..."
+[Narration] : The ground suddenly gives way. The giant rock loses its support and crashes down into the ravine.
+[Zuko] : "THAT IS DEFINITELY ONE WAY TO SOLVE A PROBLEM!"
+[Ann] : "You sound impressed."
+[Zuko] : "I AM! TOTALLY IMPRESSED!"
+[Ann] : "Don't get used to it."
+[Zuko] : "TOO LATE FOR THAT!"
+
+[The fragile crossing]
+[Narration] : The route bends upward again. A fragile-looking cliff bridge waits ahead.
+[Sora] : "We need to go one at a time."
+[Zuko] : "THAT SENTENCE NEVER MEANS ANYTHING GOOD MATE!"
+[Ann] : "Just walk carefully."
+[Narration] : As they move, the stones behind them suddenly begin to crumble and fall.
+[Zuko] : "UH OH..."
+[Ann] : "Zuko, move! Jump!"
+[Zuko] : "I AM MOVING!! WAAAH!"
+[Narration] : Zuko jumps too early in a panic. The weakened path completely breaks apart behind them.
+[Zuko] : "GYAAAAH!"
+[Sora] : "Zuko!!"
+[Narration] : Sora and Zuko land hard on the far side of the gap. But Ann is left stranded on the other side.
+[Ann] : "Are you kidding me?! Really?!"
+[Zuko] : "I PANICKED! I'M SORRY!!"
+[Ann] : "I can see that!"
+[Zuko] : "I DIDN'T MEAN TO DO IT!"
+[Ann] : "You NEVER mean to do it, Zuko!"
+[Sora] : "Ann, are you hurt?!"
+[Ann] : "No. I am just really, really angry."
+[Zuko] : "THAT IS VERY FAIR."
+[Ann] : "I am going to have to find another way around."
+[Sora] : "Be extremely careful."
+[Ann] : "I know. You two try not to break anything else while I'm gone."
+[Zuko] : "NO PROMISES!!"
+[Ann] : "I hate that answer."
+
+[The reunion path]
+[Narration] : The player continues through a multi-skill route to reunite the team.
+[Ann] : "Hey! I found a narrow path up here."
+[Sora] : "Good. Keep going, we'll try to match your pace."
+[Narration] : Ann slips through a small opening above the cliff and pulls a rusted lever. A steel bridge section drops into place with a clank.
+[Zuko] : "NICE ONE, ANN!"
+[Ann] : "That was literally the point of pulling the lever."
+[Zuko] : "IT'S STILL NICE THOUGH!"
+[Narration] : Zuko reaches the next gap in their path.
+[Zuko] : "FINALLY! SOMETHING I CAN ACTUALLY PUSH!"
+[Narration] : He shoves a heavy fallen pillar into position to cover a smaller ravine.
+[Ann] : "Wow. You did it without falling off a cliff."
+[Zuko] : "I AM FULL OF SURPRISES!"
+[Ann] : "You are full of noise."
+[Sora] : "Hold on... there is gas ahead of us."
+[Ann] : "Then use my leading skill."
+[Narration] : Ann carefully leads them through the poisoned stretch safely.
+[Zuko] : "UGH... I HATE THAT SMELL SO MUCH!"
+[Ann] : "You hate everything."
+[Zuko] : "NOT TRUE! BUT I DEFINITELY HATE THAT SMELL!"
+[Sora] : "We are getting really close now."
+
+[Reunion]
+[Zuko] : "Uh... hey Ann. About earlier..."
+[Ann] : "Yes?"
+[Zuko] : "I was stupid."
+[Ann] : "Yes, you were."
+[Zuko] : "And I was loud."
+[Ann] : "Also yes."
+[Zuko] : "And I almost messed everything up for us."
+[Ann] : "You did."
+[Zuko] : "I KNOW."
+[Ann] : "..."
+[Zuko] : "I... I'm sorry."
+[Ann] : "Good. Apology accepted."
+[Sora] : "We made it back out together. That's what matters."
+[Ann] : "For now."
+[Zuko] : "WOW. THAT IS A VERY 'ANN' WAY TO SAY IT!"
+[Ann] : "Because it's true."
+[Sora] : "Look ahead, guys."
+[Zuko] : "Up there?"
+[Sora] : "The peak of the mountain."
+[Ann] : "Then that must be where Shii is."
+[Zuko] : "IT STILL SOUNDS WAY TOO CALM FOR THE TOP OF A MOUNTAIN!"
+[Sora] : "Let's just finish this part first."
+
+[The mountain peak]
+[Narration] : The air grows eerily still as they reach the top of the mountain. Suddenly, the mountain shakes violently. The local Elementor rises from the ruined, muddy terrain.
+[Zuko] : "OF COURSE IT SHOWS UP HERE! OF COURSE IT DOES!"
+[Ann] : "Stay sharp, everyone."
+[Sora] : "Don't rush in! Hold your ground!"
+[Zuko] : "THAT THING IS SO DISGUSTING!!"
+[Ann] : "Focus on surviving!"
+[Narration] : They endure the terrifying encounter until the Escape Gauge finally fills up.
+[Zuko] : "I HATE EVERY SINGLE SECOND OF THIS FIGHT!!"
+[Ann] : "Keep moving back!"
+[Sora] : "Don't break our formation!"
+[Narration] : The storm of movement and violent shaking finally begins to ease. The disaster loosens its grip on the mountain peak.
+[Ann] : "Guys... look."
+
+[Ann’s Shii]
+[Narration] : A purest white light appears ahead in the gloom. It takes the exact shape of Ann.
+[Ann] : "..."
+[Sora] : "Ann... that is yours."
+[Zuko] : "YEAH! THAT'S YOUR SHII!"
+[Ann] : "So this is mine..."
+[Ann] : "It really does look exactly like me."
+[Narration] : Ann takes a slow, shaky breath and walks closer to the glowing figure.
+[Zuko] : "HEY. NO RUSH, OKAY?"
+[Ann] : "I know."
+[Ann] : "I just... I wanted to be sure."
+[Narration] : The light waits patiently for her.
+[Ann] : "You're not scary at all."
+[Ann] : "You're just... warm."
+[Narration] : The Shii gently touches her hand. It folds into her body like a soft, quiet wind.
+[Ann] : "Ah..."
+[Ann] : "..."
+[Ann] : "It feels better than I thought it would."
+[Ann] : "Like... my chest is finally lighter."
+[Ann] : "Like I can stand up straight again."
+[Ann] : "Like I don't have to keep holding my breath all the time anymore."
+[Zuko] : "HAH... THAT SOUNDS EXACTLY LIKE YOU."
+[Sora] : "You got it, Ann. You really got it."
+[Ann] : "Yeah."
+[Ann] : "I did."
+[Ann] : "And you two still have to keep going to find yours."
+[Sora] : "We know."
+[Ann] : "No, really."
+[Ann] : "Do not stop here just because I did."
+[Zuko] : "WE WEREN'T PLANNING TO STOP!"
+[Ann] : "Good."
+[Ann] : "Then listen to me."
+[Ann] : "The road ahead is still there for you."
+[Ann] : "So go and finish it."
+[Ann] : "I will be perfectly fine here."
+[Ann] : "Don't waste your time looking back."
+[Sora] : "Ann..."
+[Ann] : "Sora."
+[Ann] : "You are doing a lot better at this than you think."
+[Ann] : "So keep that brave face on and keep moving forward."
+[Zuko] : "WOW. THAT SOUNDED LIKE A VERY BOSSY SPEECH!"
+[Ann] : "It was meant to be."
+[Zuko] : "YEAH. I FIGURED."
+[Ann] : "Good."
+[Ann] : "And Zuko..."
+[Zuko] : "YEAH? WHAT?"
+[Ann] : "Stop being so careless all the time."
+[Zuko] : "HEY! THAT IS UNFAIR!"
+[Ann] : "It is true."
+[Zuko] : "..."
+[Zuko] : "FINE. I WILL TRY."
+[Ann] : "Try harder."
+[Sora] : "We will continue on, Ann."
+[Ann] : "I know you will. That is why I am not worried about you two."
+[Zuko] : "LIAR!"
+[Ann] : "Maybe a little."
+[Ann] : "But only a little."
+[Narration] : Ann gives them both a small, genuinely warm smile.
