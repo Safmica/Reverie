@@ -20,6 +20,9 @@
     const CURSOR_IMAGE_NAME = "FingerCursor";
     const CURSOR_NATIVE_SIZE = 14; 
     const CURSOR_DRAW_SIZE = 24;
+    const ABILITY_SLOT_COUNT = 4;
+    const SKILL_STYPE_ID = 2;
+    const BOND_STYPE_ID = 3;
 
     const HMU_EQUIP_TABS_GROUP = "EquipTabsMenu";
     const HMU_EQUIP_LIST_GROUP = "EquipListMenu";
@@ -864,8 +867,8 @@
     Game_Actor.prototype.skills = function() {
         if ($gameParty.inBattle()) {
             const battleSkills = [];
-            this._equippedSkills = this._equippedSkills || [null, null, null, null];
-            this._equippedBonds = this._equippedBonds || [null, null, null, null];
+            this._equippedSkills = this._equippedSkills || emptyAbilitySlots();
+            this._equippedBonds = this._equippedBonds || emptyAbilitySlots();
             
             this._equippedSkills.forEach(id => { if (id && this.isLearnedSkill(id)) battleSkills.push($dataSkills[id]); });
             this._equippedBonds.forEach(id => { if (id && this.isLearnedSkill(id)) battleSkills.push($dataSkills[id]); });
@@ -873,6 +876,119 @@
             return battleSkills;
         }
         return _Game_Actor_skills.call(this);
+    };
+
+    function emptyAbilitySlots() {
+        return Array(ABILITY_SLOT_COUNT).fill(null);
+    }
+
+    function ensureActorAbilitySlots(actor) {
+        actor._equippedSkills = actor._equippedSkills || emptyAbilitySlots();
+        actor._equippedBonds = actor._equippedBonds || emptyAbilitySlots();
+    }
+
+    function abilityArrayForSkill(actor, skill) {
+        if (!actor || !skill) return null;
+        if (skill.stypeId === SKILL_STYPE_ID) return actor._equippedSkills;
+        if (skill.stypeId === BOND_STYPE_ID) return actor._equippedBonds;
+        return null;
+    }
+
+    function abilityCategoryName(skill) {
+        if (!skill) return "";
+        if (skill.stypeId === BOND_STYPE_ID) return "bond";
+        if (skill.stypeId === SKILL_STYPE_ID) return "skill";
+        return "";
+    }
+
+    function setLastSkillLearnResult(result) {
+        if ($gameTemp) $gameTemp.reverieLastSkillLearnResult = result;
+    }
+
+    function autoEquipLearnedSkill(actor, skillId, wasAlreadyLearned) {
+        const skill = $dataSkills[skillId];
+        const result = {
+            actorId: actor.actorId(),
+            actorName: actor.name(),
+            skillId,
+            skillName: skill ? skill.name : "",
+            category: abilityCategoryName(skill),
+            wasAlreadyLearned,
+            autoEquipped: false,
+            slotsFull: false,
+            slotIndex: -1
+        };
+
+        if (!skill || !result.category || wasAlreadyLearned) {
+            setLastSkillLearnResult(result);
+            return result;
+        }
+
+        ensureActorAbilitySlots(actor);
+
+        const abilityArray = abilityArrayForSkill(actor, skill);
+        if (!abilityArray || abilityArray.includes(skillId)) {
+            setLastSkillLearnResult(result);
+            return result;
+        }
+
+        const emptyIndex = abilityArray.findIndex(id => !id);
+        if (emptyIndex >= 0) {
+            abilityArray[emptyIndex] = skillId;
+            result.autoEquipped = true;
+            result.slotIndex = emptyIndex;
+        } else {
+            result.slotsFull = true;
+        }
+
+        setLastSkillLearnResult(result);
+        return result;
+    }
+
+    const _Game_Actor_learnSkill_ReverieAutoSlot = Game_Actor.prototype.learnSkill;
+    Game_Actor.prototype.learnSkill = function(skillId) {
+        skillId = Number(skillId);
+        const wasAlreadyLearned = this.isLearnedSkill(skillId);
+
+        _Game_Actor_learnSkill_ReverieAutoSlot.call(this, skillId);
+
+        if (this._reverieSuppressLearnSkillAutoEquip) return;
+        if (!this.isLearnedSkill(skillId)) return;
+
+        autoEquipLearnedSkill(this, skillId, wasAlreadyLearned);
+    };
+
+    Game_Temp.prototype.reverieSkillLearnLine1 = function() {
+        const result = this.reverieLastSkillLearnResult;
+        if (!result || !result.skillName) return "";
+        if (result.wasAlreadyLearned) return result.actorName + " already knows " + result.skillName + ".";
+        return result.actorName + " learned " + result.skillName + ".";
+    };
+
+    Game_Temp.prototype.reverieSkillLearnLine2 = function() {
+        const result = this.reverieLastSkillLearnResult;
+        if (!result || !result.skillName || !result.category) return "";
+        if (result.wasAlreadyLearned) return "";
+        if (result.autoEquipped) return result.skillName + " was added to " + result.actorName + "'s " + result.category + " slots.";
+        if (result.slotsFull) return result.actorName + "'s " + result.category + " slots are full.";
+        return "";
+    };
+
+    Game_Temp.prototype.reverieLastSkillWasAutoEquipped = function() {
+        const result = this.reverieLastSkillLearnResult;
+        return !!(result && result.autoEquipped);
+    };
+
+    Game_Temp.prototype.reverieShowLastSkillLearnMessage = function() {
+        const line1 = this.reverieSkillLearnLine1();
+        const line2 = this.reverieSkillLearnLine2();
+        if (line1 && line2) {
+            $gameMessage.add(line1 + "<br>" + line2);
+        } else if (line1) {
+            $gameMessage.add(line1);
+        } else if (line2) {
+            $gameMessage.add(line2);
+        }
     };
 
     // =======================================================
@@ -899,6 +1015,7 @@
         this.titleOptionsConfirmPad = "";
         this.titleOptionsCancelKey = "";
         this.titleOptionsCancelPad = "";
+        this.reverieLastSkillLearnResult = null;
     };
 
     // =======================================================
@@ -906,11 +1023,16 @@
     // =======================================================
     const _Game_Actor_setup = Game_Actor.prototype.setup;
     Game_Actor.prototype.setup = function(actorId) {
-        _Game_Actor_setup.call(this, actorId);
+        this._reverieSuppressLearnSkillAutoEquip = true;
+        try {
+            _Game_Actor_setup.call(this, actorId);
+        } finally {
+            this._reverieSuppressLearnSkillAutoEquip = false;
+        }
         
         // Create fresh, empty arrays for the new character
-        this._equippedSkills = [null, null, null, null];
-        this._equippedBonds = [null, null, null, null];
+        this._equippedSkills = emptyAbilitySlots();
+        this._equippedBonds = emptyAbilitySlots();
         
         let skillCount = 0;
         let bondCount = 0;
@@ -919,10 +1041,10 @@
         const initialSkills = this.skills();
         for (let i = 0; i < initialSkills.length; i++) {
             const skill = initialSkills[i];
-            if (skill && skill.stypeId === 2 && skillCount < 4) { // Skill Type 2: Skills
+            if (skill && skill.stypeId === SKILL_STYPE_ID && skillCount < ABILITY_SLOT_COUNT) {
                 this._equippedSkills[skillCount] = skill.id;
                 skillCount++;
-            } else if (skill && skill.stypeId === 3 && bondCount < 4) { // Skill Type 3: Bonds
+            } else if (skill && skill.stypeId === BOND_STYPE_ID && bondCount < ABILITY_SLOT_COUNT) {
                 this._equippedBonds[bondCount] = skill.id;
                 bondCount++;
             }

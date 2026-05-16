@@ -647,6 +647,11 @@ function forceHideTarget(target) {
     if (target.hide) target.hide();
 }
 
+function hideEnemyNativeStateIcon(enemySprite) {
+    if (!enemySprite || !enemySprite._stateIconSprite) return;
+    forceHideTarget(enemySprite._stateIconSprite);
+}
+
 function applyEnemyNameHiddenSettings(settings) {
     if (!settings) return;
     settings.NameAlwaysHidden = true;
@@ -698,6 +703,7 @@ const _Sprite_Enemy_update_ReverieEnemyNames = Sprite_Enemy.prototype.update;
 Sprite_Enemy.prototype.update = function() {
     _Sprite_Enemy_update_ReverieEnemyNames.call(this);
     disableBattleCoreEnemyNameSettings();
+    hideEnemyNativeStateIcon(this);
 
     for (const key of ["_nameSprite", "_enemyNameSprite", "_enemyName", "_nameWindow", "_enemyNameWindow"]) {
         forceHideTarget(this[key]);
