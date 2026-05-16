@@ -1962,6 +1962,20 @@ Window_BattleLog.prototype.displayHpDamage = function(target) {
     }
 };
 
+Window_BattleLog.prototype.displayMpDamage = function(target) {
+    const damage = target.result().mpDamage;
+    if (damage !== 0) {
+        const mpName = TextManager.mpA || "MP";
+        if (damage > 0) {
+            this.push('addText', cleanText(target.name()) + " lost " + damage + " " + mpName + "!");
+        } else {
+            this.push('addText', cleanText(target.name()) + " recovered " + Math.abs(damage) + " " + mpName + "!");
+        }
+        this.push('wait');
+        this.push('wait');
+    }
+};
+
 // DYNAMIC EMOTION & REVIVE TRACKER
 const _Window_BattleLog_displayChangedStates = Window_BattleLog.prototype.displayChangedStates;
 Window_BattleLog.prototype.displayChangedStates = function(target) {
