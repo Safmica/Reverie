@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 108,
+  "editMapId": 106,
   "elements": [
     "",
     "Heroic Element",
@@ -420,10 +420,10 @@
     "",
     "",
     "",
-    "",
-    "",
-    "",
-    "",
+    "Check the House",
+    "Talk to Stranger",
+    "FAMILY PHOTO",
+    "Secret Well",
     "",
     "",
     "",
@@ -1713,7 +1713,7 @@
     "",
     ""
   ],
-  "versionId": 33790096,
+  "versionId": 25629221,
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,
