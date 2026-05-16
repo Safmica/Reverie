@@ -991,6 +991,42 @@
         }
     };
 
+    function setLastMementosGainResult(result) {
+        if ($gameTemp) $gameTemp.reverieLastMementosGainResult = result;
+    }
+
+    const _Game_Party_gainItem_ReverieMementosMessage = Game_Party.prototype.gainItem;
+    Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
+        const previousAmount = DataManager.isItem(item) ? this.numItems(item) : 0;
+
+        _Game_Party_gainItem_ReverieMementosMessage.call(this, item, amount, includeEquip);
+
+        if (!DataManager.isItem(item) || amount <= 0) return;
+
+        const newAmount = this.numItems(item);
+        const gainedAmount = Math.max(0, newAmount - previousAmount);
+        if (gainedAmount <= 0) return;
+
+        setLastMementosGainResult({
+            itemId: item.id,
+            itemName: item.name,
+            amount: gainedAmount,
+            total: newAmount
+        });
+    };
+
+    Game_Temp.prototype.reverieMementosGainLine1 = function() {
+        const result = this.reverieLastMementosGainResult;
+        if (!result || !result.itemName) return "";
+        if (result.amount > 1) return "You got " + result.itemName + " x" + result.amount + "!";
+        return "You got " + result.itemName + "!";
+    };
+
+    Game_Temp.prototype.reverieShowLastMementosGainMessage = function() {
+        const line1 = this.reverieMementosGainLine1();
+        if (line1) $gameMessage.add(line1);
+    };
+
     // =======================================================
     // 1.14 PREVENT HUD MAKER IMAGE CRASHES
     // =======================================================
@@ -1016,6 +1052,7 @@
         this.titleOptionsCancelKey = "";
         this.titleOptionsCancelPad = "";
         this.reverieLastSkillLearnResult = null;
+        this.reverieLastMementosGainResult = null;
     };
 
     // =======================================================
@@ -2825,6 +2862,11 @@
     };
     Window_MementosItemList.prototype.select = customSelectRefresh;
 
+    function isMementosPictureItem(item) {
+        const viewer = globalThis.ReverieMementosPictureViewer;
+        return !!(viewer && viewer.isPictureItem && viewer.isPictureItem(item));
+    }
+
     function Window_MementosAction() { this.initialize(...arguments); }
     Window_MementosAction.prototype = Object.create(Window_Command.prototype);
     Window_MementosAction.prototype.constructor = Window_MementosAction;
@@ -2845,6 +2887,10 @@
                     return action.testApply(actor);
                 });
             }
+        }
+
+        if (isMementosPictureItem(item)) {
+            isNeeded = true;
         }
 
         const canTrash = item && item.itypeId !== 2; 
@@ -4029,6 +4075,14 @@
     };
 
     Scene_Map.prototype.onMementosActionUse = function() {
+        const item = this._mementosActionWindow ? this._mementosActionWindow._item : null;
+        const viewer = globalThis.ReverieMementosPictureViewer;
+
+        if (isMementosPictureItem(item) && viewer && viewer.open(item, this)) {
+            this._mementosActionWindow.deactivate();
+            return;
+        }
+
         $gameTemp.mementosUseMode = true; 
         this._statusWindow.activate();
         this._statusWindow.select(0);
