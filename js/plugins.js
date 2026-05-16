@@ -47,5 +47,6 @@ var $plugins =
 {"name":"PartyLeaderCondition","status":true,"description":"Reverie - check party leader by character name for event conditions.","parameters":{"Leader Switches":"[\"{\\\"actorName\\\":\\\"SORA\\\",\\\"switchId\\\":\\\"6\\\"}\",\"{\\\"actorName\\\":\\\"GIN\\\",\\\"switchId\\\":\\\"7\\\"}\",\"{\\\"actorName\\\":\\\"ANN\\\",\\\"switchId\\\":\\\"8\\\"}\",\"{\\\"actorName\\\":\\\"ZUKO\\\",\\\"switchId\\\":\\\"9\\\"}\"]","Auto Refresh Switches":"true"}},
 {"name":"PictureFade","status":true,"description":"Reverie - show a picture with automatic fade in, stay, and fade out.","parameters":{}},
 {"name":"BattleConclusionLog","status":true,"description":"Reverie - routes battle conclusion messages through the battle log.","parameters":{}},
-{"name":"MementosPictureViewer","status":true,"description":"Reverie - Opens tagged keepsakes as picture pages from the Mementos menu.","parameters":{}}
+{"name":"MementosPictureViewer","status":true,"description":"Reverie - Opens tagged keepsakes as picture pages from the Mementos menu.","parameters":{}},
+{"name":"MementosDropGacha","status":true,"description":"Reverie - Chapter-based mementos drop gacha for Elementa battles.","parameters":{}}
 ];
