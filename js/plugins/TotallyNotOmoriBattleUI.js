@@ -1796,6 +1796,14 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
             if (!target.isStateAffected(7)) isFailed = true;
         } else if (sName.includes("clinical facts")) {
             if (!target.isStateAffected(6) && !target.isStateAffected(3)) isFailed = true;
+        } else if (sName.includes("take it from here")) {
+            const userLocked = subject && (
+                subject.isStateAffected(6) ||
+                subject.isStateAffected(7) ||
+                subject.isStateAffected(8) ||
+                subject.isStateAffected(9)
+            );
+            if (target === subject || !hasBase || userLocked || target.isStateAffected(9)) isFailed = true;
         }
     }
 
