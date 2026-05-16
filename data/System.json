@@ -92,7 +92,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "battleback1Name": "CH1",
+  "battleback1Name": "",
   "battleback2Name": "",
   "battlerHue": 0,
   "battlerName": "Hi_monster",
@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 13,
+  "editMapId": 108,
   "elements": [
     "",
     "Heroic Element",
@@ -1713,7 +1713,7 @@
     "",
     ""
   ],
-  "versionId": 25629221,
+  "versionId": 41833352,
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,
