@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 14,
+  "editMapId": 52,
   "elements": [
     "",
     "Heroic Element",
@@ -384,8 +384,8 @@
     "Crack Danger",
     "Rock Visibility",
     "Push Rock",
-    "",
-    "",
+    "Scene Storage End",
+    "NPC Storage Room",
     "",
     "",
     "",
@@ -1713,7 +1713,7 @@
     "",
     ""
   ],
-  "versionId": 46586390,
+  "versionId": 31685008,
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,
