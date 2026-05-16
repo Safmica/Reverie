@@ -1,0 +1,3 @@
+setelah berhasil mempelajari persona, bagaimana dialog karakter omori dibangun yang mengambarkan anak anak. barulah kamu modifikasi dialogue game saat ini dengan menyesuaikan pembawaan dan kata kata tiap karakter. boleh mengubah atau menambahkan dialog (misalnya untuk keperluan basa basi dan pembawaan karakter) asal tidak merusak flow map game. dialog ditulis dalam bahasa inggris ringan dan detail dialog dapat dilihat pada folder /dialogue. apabila perlu gambaran detail keadaan dapat dilihat pada folder /flow_maps
+
+untuk dialog terbarunya kamu dapat tulis pada folder revision_dialogue, dengan masing masing ch pada file

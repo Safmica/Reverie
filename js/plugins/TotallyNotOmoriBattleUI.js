@@ -647,6 +647,11 @@ function forceHideTarget(target) {
     if (target.hide) target.hide();
 }
 
+function hideEnemyNativeStateIcon(enemySprite) {
+    if (!enemySprite || !enemySprite._stateIconSprite) return;
+    forceHideTarget(enemySprite._stateIconSprite);
+}
+
 function applyEnemyNameHiddenSettings(settings) {
     if (!settings) return;
     settings.NameAlwaysHidden = true;
@@ -698,6 +703,7 @@ const _Sprite_Enemy_update_ReverieEnemyNames = Sprite_Enemy.prototype.update;
 Sprite_Enemy.prototype.update = function() {
     _Sprite_Enemy_update_ReverieEnemyNames.call(this);
     disableBattleCoreEnemyNameSettings();
+    hideEnemyNativeStateIcon(this);
 
     for (const key of ["_nameSprite", "_enemyNameSprite", "_enemyName", "_nameWindow", "_enemyNameWindow"]) {
         forceHideTarget(this[key]);
@@ -1796,6 +1802,14 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
             if (!target.isStateAffected(7)) isFailed = true;
         } else if (sName.includes("clinical facts")) {
             if (!target.isStateAffected(6) && !target.isStateAffected(3)) isFailed = true;
+        } else if (sName.includes("take it from here")) {
+            const userLocked = subject && (
+                subject.isStateAffected(6) ||
+                subject.isStateAffected(7) ||
+                subject.isStateAffected(8) ||
+                subject.isStateAffected(9)
+            );
+            if (target === subject || !hasBase || userLocked || target.isStateAffected(9)) isFailed = true;
         }
     }
 
@@ -1945,6 +1959,20 @@ Window_BattleLog.prototype.displayHpDamage = function(target) {
         if (despairReflectMethods.length > 0) {
             this._methods.push(...despairReflectMethods);
         }
+    }
+};
+
+Window_BattleLog.prototype.displayMpDamage = function(target) {
+    const damage = target.result().mpDamage;
+    if (damage !== 0) {
+        const mpName = TextManager.mpA || "MP";
+        if (damage > 0) {
+            this.push('addText', cleanText(target.name()) + " lost " + damage + " " + mpName + "!");
+        } else {
+            this.push('addText', cleanText(target.name()) + " recovered " + Math.abs(damage) + " " + mpName + "!");
+        }
+        this.push('wait');
+        this.push('wait');
     }
 };
 
