@@ -2829,6 +2829,13 @@
     applySkeletonStyle(Window_MementosItemList);
     
     Window_MementosItemList.prototype.maxCols = function() { return 1; };
+
+    Window_MementosItemList.prototype.updateArrows = function() {
+        this.upArrowVisible = false;
+        this.downArrowVisible = false;
+        if (this._upArrowSprite) this._upArrowSprite.visible = false;
+        if (this._downArrowSprite) this._downArrowSprite.visible = false;
+    };
     
     Window_MementosItemList.prototype.itemHeight = function() {
         return MEMENTOS_LIST_ITEM_HEIGHT;
