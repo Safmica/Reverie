@@ -92,7 +92,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "battleback1Name": "CH1",
+  "battleback1Name": "",
   "battleback2Name": "",
   "battlerHue": 0,
   "battlerName": "Hi_monster",
@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 100,
+  "editMapId": 14,
   "elements": [
     "",
     "Heroic Element",
@@ -350,8 +350,8 @@
     "ANN_LEADER",
     "ZUKO_LEADER",
     "FIRST_OPENING",
-    "",
-    "",
+    "BREAK_BRIDGE",
+    "START_ELEMENTA",
     "",
     "",
     "",
@@ -387,7 +387,7 @@
     "Scene Storage End",
     "NPC Storage Room",
     "Entering Village",
-    "",
+    "Elder",
     "",
     "",
     "",
@@ -1713,7 +1713,7 @@
     "",
     ""
   ],
-  "versionId": 94792886,
+  "versionId": 10541271,
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,
