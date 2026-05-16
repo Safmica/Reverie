@@ -1985,6 +1985,46 @@ Window_BattleLog.prototype.displayChangedStates = function(target) {
     }
 };
 
+function reverieBuffChangeText(target, paramId, kind) {
+    const targetName = battleLogName(target);
+    const paramName = TextManager.param(paramId);
+    const currentLevel = target.buff ? Number(target.buff(paramId) || 0) : 0;
+
+    if (currentLevel === 0 || kind === "remove") {
+        return TextManager.buffRemove.format(targetName, paramName);
+    }
+
+    if (kind === "buff") {
+        return TextManager.buffAdd.format(targetName, paramName);
+    }
+
+    return TextManager.debuffAdd.format(targetName, paramName);
+}
+
+function pushReverieBuffText(logWindow, text) {
+    logWindow.push('addText', text);
+    logWindow.push('wait');
+    logWindow.push('wait');
+    logWindow.push('wait');
+    logWindow.push('wait');
+}
+
+Window_BattleLog.prototype.displayChangedBuffs = function(target) {
+    const result = target.result();
+
+    for (const paramId of result.addedBuffs) {
+        pushReverieBuffText(this, reverieBuffChangeText(target, paramId, "buff"));
+    }
+
+    for (const paramId of result.addedDebuffs) {
+        pushReverieBuffText(this, reverieBuffChangeText(target, paramId, "debuff"));
+    }
+
+    for (const paramId of result.removedBuffs) {
+        pushReverieBuffText(this, reverieBuffChangeText(target, paramId, "remove"));
+    }
+};
+
 Window_BattleLog.prototype.drawLineText = function(index) {
     const rect = this.lineRect(index);
     // (We completely deleted the clearRect line here!)
