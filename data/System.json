@@ -117,7 +117,7 @@
     "pitch": 100,
     "volume": 90
   },
-  "editMapId": 13,
+  "editMapId": 53,
   "elements": [
     "",
     "Heroic Element",
@@ -381,9 +381,9 @@
     "",
     "",
     "Door Open/Close",
-    "",
-    "",
-    "",
+    "Crack Danger",
+    "Rock Visibility",
+    "Push Rock",
     "",
     "",
     "",
@@ -1553,7 +1553,7 @@
     "",
     "",
     "Follower Beside Player",
-    "",
+    "Crack Timer",
     "",
     "",
     "",
@@ -1713,7 +1713,7 @@
     "",
     ""
   ],
-  "versionId": 29471063,
+  "versionId": 60585933,
   "victoryMe": {
     "name": "Victory1",
     "pan": 0,
